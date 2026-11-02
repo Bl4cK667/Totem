@@ -55,6 +55,8 @@
   --fs-h2: max(2.4rem, 32px);
   --fs-h1: max(3.6rem, 44px);
   --fs-numero: max(3.6rem, 44px);
+  --fs-locais: max(0.95rem, 20px);      /* textos da tela de locais: legíveis a 1,5 m */
+  --fs-locais-numero: max(1.5rem, 30px);
 
   --tracking-legenda: 0.28em;
 

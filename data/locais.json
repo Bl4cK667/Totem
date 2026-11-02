@@ -51,6 +51,7 @@
       "local.proximo": "Próximo local",
       "inicio": "Início",
       "mascote.saudacao": "Olá! Escolha um lugar e eu conto as curiosidades.",
+      "mascote.convite": "Toque em um lugar para conhecer!",
       "mascote.dica": "Toque em mim para outra curiosidade",
       "mascote.rotulo": "Você sabia?"
     },
@@ -94,6 +95,7 @@
       "local.proximo": "Next place",
       "inicio": "Home",
       "mascote.saudacao": "Hi! Pick a place and I'll tell you some fun facts.",
+      "mascote.convite": "Tap a place to explore it!",
       "mascote.dica": "Tap me for another fact",
       "mascote.rotulo": "Did you know?"
     },
@@ -137,6 +139,7 @@
       "local.proximo": "Siguiente lugar",
       "inicio": "Inicio",
       "mascote.saudacao": "¡Hola! Elija un lugar y le cuento curiosidades.",
+      "mascote.convite": "¡Toque un lugar para conocerlo!",
       "mascote.dica": "Tóqueme para otra curiosidad",
       "mascote.rotulo": "¿Sabía que?"
     }

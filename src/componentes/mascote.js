@@ -125,6 +125,8 @@ const SVG = `
   </g>
 </svg>`;
 
+const TEMPO_CONVITE = 6000; // ms
+
 let falas = [];
 let indiceFala = 0;
 let indiceCidade = 0;
@@ -169,7 +171,7 @@ export function montarMascote() {
   em('idioma', () => {
     el('.mascote__corpo').setAttribute('aria-label', t('mascote.dica'));
     if (!visivel) return;
-    if (estado.tela === 'locais') falar(t('mascote.saudacao'));
+    if (estado.tela === 'locais') convidar();
     else if (falas.length) falar(falas[indiceFala]);
   });
 }
@@ -193,9 +195,14 @@ function atualizarPorTela(tela) {
     gsap.to(raiz, { autoAlpha: 0, y: 24, duration: 0.5, ease: 'power2.in' });
   }
   if (tela === 'locais') {
-    // Na lista de locais ele só acena (o balão cobriria os cards); toque nele para a saudação
-    gsap.delayedCall(1.8, () => estado.tela === 'locais' && animar('acenando'));
+    // Na lista de locais ele acena e convida; o balão some sozinho para não cobrir os cards
+    gsap.delayedCall(1.8, () => estado.tela === 'locais' && convidar());
   }
+}
+
+/** Convite curto da lista de locais, sem o título "Você sabia?" */
+function convidar() {
+  falar(t('mascote.convite'), TEMPO_CONVITE, { simples: true });
 }
 
 function proximaFala() {
@@ -209,11 +216,12 @@ function proximaFala() {
 }
 
 /** Mostra o balão e "digita" o texto letra por letra, com boca e braço animados */
-export function falar(conteudo, duracao = 12000) {
+export function falar(conteudo, duracao = 12000, { simples = false } = {}) {
   const texto = tr(conteudo);
   const balao = el('.mascote__balao');
   const alvo = el('.mascote__texto');
   const calmo = semMovimento();
+  balao.classList.toggle('mascote__balao--simples', simples);
   el('.mascote__rotulo').textContent = t('mascote.rotulo');
   el('.mascote__dica').textContent = t('mascote.dica');
 

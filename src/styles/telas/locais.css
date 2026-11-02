@@ -9,10 +9,11 @@
   background: var(--creme);
   color: var(--txt-sobre-claro);
   padding-top: calc(var(--toque) + var(--margem) * 1.4);
+  overflow: hidden;
 }
 
 .locais__cabecalho { padding: 4vh var(--margem) 0; }
-.locais__sobretitulo { display: flex; align-items: center; gap: 1em; color: var(--ouro-texto); }
+.locais__sobretitulo { display: flex; align-items: center; gap: 1em; color: var(--ouro-texto); font-size: var(--fs-locais); letter-spacing: 0.2em; }
 .locais__sobretitulo .filete { width: 2.4rem; background: var(--ouro-texto); opacity: 1; }
 .locais__titulo {
   margin-top: 1rem;
@@ -36,18 +37,20 @@
   cursor: grab;
 }
 .carrossel__trilho {
-  display: flex;
-  align-items: center;
+  position: relative;
   column-gap: 3.5vw;
+  width: 100%;
   height: 100%;
-  will-change: transform;
 }
 
 .card-local {
-  position: relative;
-  flex: none;
-  width: 72vw;
-  height: min(88%, 118vw);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  width: 70vw;
+  height: min(65vh, 100%);
   overflow: hidden;
   border-radius: var(--raio);
   background: var(--terra-900);
@@ -57,43 +60,65 @@
 }
 .card-local__foto { position: absolute; inset: 0; overflow: hidden; }
 .card-local__foto img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+.card-local__apagado { position: absolute; inset: 0; background: var(--creme); opacity: 0; }
+/* A sombra fica só no terço de baixo: o resto do card é foto */
 .card-local__veu {
-  position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(18, 13, 9, 0.94) 0%, rgba(18, 13, 9, 0.8) 38%, rgba(18, 13, 9, 0.35) 60%, rgba(18, 13, 9, 0) 78%);
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 34%;
+  background: linear-gradient(to top, rgba(18, 13, 9, 0.94) 0%, rgba(18, 13, 9, 0.86) 62%, rgba(18, 13, 9, 0) 100%);
 }
 .card-local__texto {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  padding: 2.2rem 2rem 2.2rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  column-gap: 0.7rem;
+  padding: 0 1.6rem 1.4rem;
   color: var(--txt-sobre-escuro);
 }
 .card-local__num { font-size: var(--fs-h3); color: var(--ouro-claro); font-style: italic; line-height: 1; }
-.card-local__categoria { margin-top: 1rem; color: var(--ouro-claro); }
+.card-local__categoria { color: var(--ouro-claro); }
+.card-local__nome, .card-local__frase, .card-local__abrir { grid-column: 1 / -1; }
 .card-local__nome {
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
   font-family: var(--serif);
   font-size: var(--fs-h2);
   font-weight: 400;
   line-height: 1.02;
 }
-.card-local__frase { margin-top: 0.8rem; max-width: 24em; color: var(--txt-sobre-escuro-2); }
-.card-local__abrir { margin-top: 1.4rem; }
+.card-local__frase { margin-top: 0.4rem; color: var(--txt-sobre-escuro-2); }
+.card-local__abrir { margin-top: 0.8rem; justify-self: start; min-height: var(--toque); }
+/* Nome pequeno, só nos cards dos lados */
+.card-local__lado {
+  position: absolute;
+  left: 0.7rem; bottom: 1rem;
+  max-width: 13vw; /* cabe na parte do card que aparece */
+  font-size: var(--fs-locais);
+  line-height: 1.1;
+  color: var(--creme);
+  opacity: 0;
+}
+.a-esquerda .card-local__lado { left: auto; right: 0.7rem; text-align: right; }
 
 /* --- Rodapé: progresso e setas ---------------------------------------------- */
 .locais__rodape {
   display: flex;
   align-items: center;
   gap: 1.2rem;
+  /* o rodapé tem a altura do mascote: assim ele não encosta nos cards */
+  min-height: calc(var(--mascote-h) + 2.4vh);
   /* espaço à direita reservado para o mascote */
-  padding: 2vh calc(var(--mascote-w) + var(--margem)) 3.5vh var(--margem);
+  padding: 1vh calc(var(--mascote-w) + var(--margem)) 1vh var(--margem);
 }
-.locais__progresso { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; order: -1; }
-.locais__contador { font-size: var(--fs-h3); line-height: 1; }
+.locais__progresso { min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; order: -1; }
+.locais__contador { font-size: var(--fs-locais-numero); line-height: 1; }
 .locais__total { color: var(--txt-sobre-claro-2); }
 .locais__barra { display: flex; gap: 6px; }
 .locais__barra i { width: 2.4rem; height: 2px; background: var(--terra-300); transition: background-color 0.5s, width 0.5s var(--ease-luxo); }
 .locais__barra i.ativa { width: 4rem; background: var(--terra-900); }
-.locais__dica { color: var(--txt-sobre-claro-2); }
+.locais__dica { color: var(--txt-sobre-claro-2); font-size: var(--fs-locais); letter-spacing: 0.12em; }
 
 .seta-redonda {
   display: grid;
@@ -112,7 +137,14 @@
 /* --- Horizontal --------------------------------------------------------- */
 @media (orientation: landscape) {
   .locais__cabecalho { padding-top: 1vh; }
-  .card-local { width: min(28vw, 50vh); height: 92%; }
-  .card-local__texto { padding: 1.6rem; }
-  .locais__rodape { padding-top: 1vh; padding-bottom: 2.5vh; }
+  /* Título numa linha só: sobra altura para o card */
+  .tela-locais { padding-top: calc(var(--toque) + 0.4rem); }
+  .locais__cabecalho { display: flex; align-items: baseline; gap: 2rem; padding-top: 0; padding-bottom: 0.8rem; }
+  .locais__titulo { margin-top: 0; max-width: none; }
+  .card-local { width: 40vw; }
+  .card-local__lado { max-width: none; font-size: var(--fs-lead); }
+  /* Card mais largo que alto: o botão vai ao lado do texto, para tudo caber no terço de baixo */
+  .card-local__texto { grid-template-columns: auto 1fr auto; padding-bottom: 1rem; }
+  .card-local__nome, .card-local__frase { grid-column: 1 / 3; }
+  .card-local__abrir { grid-column: 3; grid-row: 1 / 4; align-self: end; margin: 0 0 0 1rem; }
 }

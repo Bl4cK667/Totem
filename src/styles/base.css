@@ -167,7 +167,7 @@ a { color: inherit; }
 }
 .idiomas button {
   min-width: var(--toque);
-  min-height: calc(var(--toque) - 10px);
+  min-height: var(--toque);
   padding: 0 0.6em;
   border-radius: 999px;
   font-size: max(0.62rem, 12px);

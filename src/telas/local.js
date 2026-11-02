@@ -137,7 +137,21 @@ function htmlLocal(l, qr) {
 
   <section class="cap cap-streetview" data-tema="escuro">
     ${cabecalho(n++, t('local.streetview'), t('local.streetviewSub'))}
-    <div class="streetview"></div>
+    <div class="streetview-area">
+      <div class="streetview-moldura">
+        <div class="streetview"></div>
+        <div class="streetview__acoes">
+          <button class="botao botao--contorno-claro" data-acao="voltar">
+            <svg class="seta" viewBox="0 0 28 16" aria-hidden="true" style="transform:scaleX(-1)"><path d="M0 8h26M19 1l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            ${t('local.streetviewVoltar')}
+          </button>
+          <button class="botao botao--contorno-claro" data-sv="tela-cheia">
+            <svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            ${t('local.streetviewTelaCheia')}
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="cap cap-final" data-tema="claro">
@@ -251,10 +265,10 @@ function animar(l) {
     }
 
     // Street View: só cria o iframe quando o capítulo se aproxima
-    const caixa = conteudo.querySelector('.streetview');
-    streetview = montarStreetView(caixa, l.streetView);
-    ScrollTrigger.create({ trigger: caixa, start: 'top 160%', once: true, onEnter: () => streetview.carregar() });
-    gsap.from(caixa, { autoAlpha: 0, y: 60, duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: caixa, start: 'top 88%' } });
+    const moldura = conteudo.querySelector('.streetview-moldura');
+    streetview = montarStreetView(moldura, l.id);
+    ScrollTrigger.create({ trigger: moldura, start: 'top 160%', once: true, onEnter: () => streetview.carregar() });
+    gsap.from(moldura, { autoAlpha: 0, y: 60, duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: moldura, start: 'top 88%' } });
 
     // Final
     gsap.from('.cap-final > *', { autoAlpha: 0, y: 40, duration: 1.2, stagger: 0.1, ease: 'expo.out', scrollTrigger: { trigger: '.cap-final', start: 'top 80%' } });

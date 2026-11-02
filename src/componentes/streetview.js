@@ -1,26 +1,54 @@
 // Street View (Google Maps Embed API) dentro da página do local.
-// Sem chave ou sem internet → mostra uma imagem elegante com aviso,
-// nunca uma tela quebrada. Se a conexão voltar, carrega sozinho.
+// Chave e coordenadas vêm de config.js (raiz do projeto).
+// Sem chave, sem internet ou demorando demais → mostra uma imagem elegante
+// com aviso, nunca uma tela quebrada. Se a conexão voltar, carrega sozinho.
 import { estado } from '../core/estado.js';
 import { t, html } from '../core/i18n.js';
 
-const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY || '';
-const TEMPO_LIMITE = 9000;
+const TEMPO_LIMITE = 15000;
+const REPETIR_TESTE = 30000;
+
+// navigator.onLine só sabe se há rede, e o iframe "carrega" mesmo com falha:
+// este endereço do Google confirma que a internet chega até lá de verdade
+function temInternet() {
+  return fetch('https://www.google.com/generate_204', { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(TEMPO_LIMITE) }).then(
+    () => true,
+    () => false
+  );
+}
+
+/* global GOOGLE_MAPS_KEY, LOCAIS_STREET_VIEW */
+function chave() {
+  const k = typeof GOOGLE_MAPS_KEY === 'string' ? GOOGLE_MAPS_KEY.trim() : '';
+  return k === 'COLE_AQUI' ? '' : k;
+}
+
+function dadosDoLocal(id) {
+  return typeof LOCAIS_STREET_VIEW === 'undefined' ? null : LOCAIS_STREET_VIEW.find((l) => l.id === id);
+}
 
 function urlStreetView(sv) {
   const p = new URLSearchParams({
-    key: CHAVE,
-    location: `${sv.lat},${sv.lng}`,
+    key: chave(),
+    location: `${sv.latitude},${sv.longitude}`,
     heading: sv.heading ?? 0,
     pitch: sv.pitch ?? 0,
     fov: sv.fov ?? 80,
     language: estado.idioma === 'pt' ? 'pt-BR' : estado.idioma,
   });
   if (sv.pano) p.set('pano', sv.pano);
+  if (sv.radius) p.set('radius', sv.radius);
   return `https://www.google.com/maps/embed/v1/streetview?${p}`;
 }
 
-function fallback(caixa) {
+// Motivo → explicação para o visitante
+const SUBTITULOS = {
+  offline: 'local.streetviewOffSub',
+  chave: 'local.streetviewPreparoSub',
+  demora: 'local.streetviewDemoraSub',
+};
+
+function fallback(caixa, motivo) {
   caixa.classList.remove('carregado');
   caixa.innerHTML = `
     <div class="streetview__off">
@@ -28,25 +56,67 @@ function fallback(caixa) {
       <div class="streetview__off-texto">
         <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" stroke-width="1"/><path d="M14 30c3-6 7-9 10-9s7 3 10 9M24 12v5M24 21v0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M10 38L38 10" stroke="currentColor" stroke-width="1.2"/></svg>
         <p class="serif">${html(t('local.streetviewOff'))}</p>
-        <p class="streetview__off-sub">${html(t('local.streetviewOffSub'))}</p>
+        <p class="streetview__off-sub">${html(t(SUBTITULOS[motivo]))}</p>
       </div>
     </div>`;
 }
 
-export function montarStreetView(caixa, sv) {
+export function montarStreetView(moldura, id) {
+  const caixa = moldura.querySelector('.streetview');
+  const sv = dadosDoLocal(id);
   let iframe = null;
   let timer = null;
+  let pedido = false; // a pessoa já chegou perto do capítulo
+  let tentativa = 0; // respostas de tentativas antigas são ignoradas
 
-  const tentar = () => {
-    if (!CHAVE || !navigator.onLine || !sv) return fallback(caixa);
-    caixa.innerHTML = '<div class="streetview__carregando"><i></i></div>';
+  const limpar = () => {
+    tentativa++;
+    clearTimeout(timer);
+    iframe?.remove();
+    iframe = null;
+  };
+
+  const erro = (motivo) => {
+    limpar();
+    moldura.classList.add('sem-street-view');
+    fallback(caixa, motivo);
+  };
+
+  // Rede ligada, mas sem internet: nenhum evento avisa quando ela volta
+  const aguardarInternet = () => {
+    const esta = tentativa;
+    timer = setTimeout(async () => {
+      const voltou = await temInternet();
+      if (esta !== tentativa) return;
+      if (voltou) tentar();
+      else aguardarInternet();
+    }, REPETIR_TESTE);
+  };
+
+  const tentar = async () => {
+    limpar();
+    if (!navigator.onLine) return erro('offline');
+    if (!chave() || !sv) return erro('chave');
+    moldura.classList.remove('sem-street-view');
+    caixa.classList.remove('carregado');
+    caixa.innerHTML = `<div class="streetview__carregando"><i></i><span class="legenda">${html(t('local.streetviewCarregando'))}</span></div>`;
+    timer = setTimeout(() => erro('demora'), TEMPO_LIMITE);
+
+    const esta = tentativa;
+    const internet = await temInternet();
+    if (esta !== tentativa) return;
+    if (!internet) {
+      erro('offline');
+      return aguardarInternet();
+    }
+
     iframe = document.createElement('iframe');
-    iframe.loading = 'eager';
+    iframe.loading = 'lazy';
     iframe.referrerPolicy = 'no-referrer-when-downgrade';
     iframe.allow = 'accelerometer; gyroscope; fullscreen';
+    iframe.allowFullscreen = true;
     iframe.title = 'Street View';
     iframe.src = urlStreetView(sv);
-    timer = setTimeout(() => fallback(caixa), TEMPO_LIMITE);
     iframe.addEventListener('load', () => {
       clearTimeout(timer);
       caixa.classList.add('carregado');
@@ -54,17 +124,48 @@ export function montarStreetView(caixa, sv) {
     caixa.appendChild(iframe);
   };
 
-  const off = () => fallback(caixa);
-  window.addEventListener('online', tentar);
+  const carregar = () => {
+    pedido = true;
+    tentar();
+  };
+
+  // Antes de a pessoa chegar ao capítulo, internet indo e voltando não carrega nada
+  const on = () => pedido && tentar();
+  const off = () => pedido && erro('offline');
+  window.addEventListener('online', on);
   window.addEventListener('offline', off);
 
+  // A moldura sai do fluxo em tela cheia: ao fechar, a página volta para onde estava
+  const scroller = moldura.closest('.local-scroll');
+  let rolagem = null;
+  const aoMudarTela = () => {
+    if (document.fullscreenElement || rolagem === null) return;
+    const y = rolagem;
+    rolagem = null;
+    requestAnimationFrame(() => (scroller.scrollTop = y));
+  };
+  const aoClicar = (e) => {
+    if (e.target.closest('[data-sv="tela-cheia"]')) {
+      rolagem = scroller.scrollTop;
+      moldura.requestFullscreen().catch(() => (rolagem = null));
+    } else if (document.fullscreenElement && e.target.closest('[data-acao="voltar"]')) {
+      e.stopPropagation();
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+  moldura.classList.toggle('sem-tela-cheia', !document.fullscreenEnabled);
+  moldura.addEventListener('click', aoClicar);
+  document.addEventListener('fullscreenchange', aoMudarTela);
+
   return {
-    carregar: tentar,
+    carregar,
     destruir() {
-      clearTimeout(timer);
-      window.removeEventListener('online', tentar);
+      limpar();
+      window.removeEventListener('online', on);
       window.removeEventListener('offline', off);
-      iframe?.remove();
+      moldura.removeEventListener('click', aoClicar);
+      document.removeEventListener('fullscreenchange', aoMudarTela);
+      if (document.fullscreenElement === moldura) document.exitFullscreen().catch(() => {});
     },
   };
 }

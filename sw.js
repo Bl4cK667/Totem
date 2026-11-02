@@ -1,9 +1,9 @@
 // Service worker do totem: guarda os arquivos para funcionar sem internet.
-// - HTML e JSON: tenta a rede primeiro (para receber atualizações) e cai no cache
+// - HTML, JSON e config.js: tenta a rede primeiro (para receber atualizações) e cai no cache
 // - Imagens, fontes, JS, CSS: cache primeiro
 // - Street View (Google) não passa por aqui: depende da internet
 // Ao trocar fotos mantendo o nome do arquivo, aumente a versão: o cache antigo é apagado
-const CACHE = 'totem-mirante-v2';
+const CACHE = 'totem-mirante-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) =>
@@ -37,7 +37,7 @@ self.addEventListener('fetch', (e) => {
     });
 
   // ignoreVary: JS e CSS são pedidos com cabeçalho Origin, que o pré-cache não tem
-  if (req.mode === 'navigate' || url.pathname.endsWith('.json')) {
+  if (req.mode === 'navigate' || url.pathname.endsWith('.json') || url.pathname.endsWith('/config.js')) {
     e.respondWith(daRede().catch(() => caches.match(req, { ignoreSearch: true, ignoreVary: true })));
   } else {
     e.respondWith(caches.match(req, { ignoreVary: true }).then((r) => r || daRede()));

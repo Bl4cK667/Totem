@@ -184,9 +184,34 @@
 }
 .streetview iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; opacity: 0; transition: opacity 0.8s; }
 .streetview.carregado iframe { opacity: 1; }
-.streetview__carregando { position: absolute; inset: 0; display: grid; place-items: center; }
+.streetview__carregando {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.2rem;
+  color: var(--ouro-claro);
+}
+.streetview.carregado .streetview__carregando { visibility: hidden; transition: visibility 0s 0.8s; }
 .streetview__carregando i { width: 30%; height: 1px; background: var(--linha-sobre-escuro); position: relative; overflow: hidden; }
 .streetview__carregando i::after { content: ''; position: absolute; inset: 0; width: 40%; background: var(--ouro-claro); animation: carregar 1.4s var(--ease-luxo) infinite; }
+/* Menos movimento: a linha para, e o texto só respira (sem deslocamento) */
+@media (prefers-reduced-motion: reduce) {
+  .streetview__carregando .legenda { animation: sv-respirar 2.4s ease-in-out infinite !important; }
+}
+@keyframes sv-respirar { 50% { opacity: 0.45; } }
+
+.streetview__acoes { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.4rem; }
+.sem-street-view [data-sv='tela-cheia'],
+.sem-tela-cheia [data-sv='tela-cheia'] { display: none; }
+
+/* Tela cheia: a moldura ocupa tudo e os botões continuam abaixo do Street View */
+.streetview-moldura:fullscreen {
+  display: flex; flex-direction: column;
+  padding: 1rem;
+  background: var(--noite);
+}
+.streetview-moldura:fullscreen .streetview { flex: 1; height: auto; min-height: 0; }
+.streetview-moldura:fullscreen [data-sv='tela-cheia'] { display: none; }
+.streetview-moldura:fullscreen .streetview__acoes { justify-content: center; margin-top: 1rem; }
 
 .streetview__off { position: absolute; inset: 0; }
 .streetview__off img { width: 100%; height: 100%; object-fit: cover; }

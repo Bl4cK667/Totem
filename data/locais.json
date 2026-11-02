@@ -38,6 +38,11 @@
       "local.streetviewSub": "Arraste com o dedo para olhar em volta.",
       "local.streetviewOff": "Street View indisponível no momento",
       "local.streetviewOffSub": "Sem conexão com a internet. Aproveite as fotos e tente novamente mais tarde.",
+      "local.streetviewPreparoSub": "Este passeio ainda está sendo preparado. Aproveite as fotos do local.",
+      "local.streetviewDemoraSub": "A conexão está lenta agora. Aproveite as fotos e tente novamente mais tarde.",
+      "local.streetviewCarregando": "Carregando Street View",
+      "local.streetviewTelaCheia": "Tela cheia",
+      "local.streetviewVoltar": "Voltar",
       "local.qrTitulo": "Leve este passeio no seu celular",
       "local.qrTexto": "Aponte a câmera do celular para o código.",
       "local.voltar": "Voltar aos locais",
@@ -76,6 +81,11 @@
       "local.streetviewSub": "Drag with your finger to look around.",
       "local.streetviewOff": "Street View unavailable right now",
       "local.streetviewOffSub": "No internet connection. Enjoy the photos and try again later.",
+      "local.streetviewPreparoSub": "This tour is still being prepared. Enjoy the photos of this place.",
+      "local.streetviewDemoraSub": "The connection is slow right now. Enjoy the photos and try again later.",
+      "local.streetviewCarregando": "Loading Street View",
+      "local.streetviewTelaCheia": "Full screen",
+      "local.streetviewVoltar": "Back",
       "local.qrTitulo": "Take this tour on your phone",
       "local.qrTexto": "Point your phone camera at the code.",
       "local.voltar": "Back to places",
@@ -114,6 +124,11 @@
       "local.streetviewSub": "Arrastre con el dedo para mirar alrededor.",
       "local.streetviewOff": "Street View no disponible en este momento",
       "local.streetviewOffSub": "Sin conexión a internet. Disfrute de las fotos e intente más tarde.",
+      "local.streetviewPreparoSub": "Este paseo aún se está preparando. Disfrute de las fotos del lugar.",
+      "local.streetviewDemoraSub": "La conexión está lenta en este momento. Disfrute de las fotos e intente más tarde.",
+      "local.streetviewCarregando": "Cargando Street View",
+      "local.streetviewTelaCheia": "Pantalla completa",
+      "local.streetviewVoltar": "Volver",
       "local.qrTitulo": "Lleve este paseo en su celular",
       "local.qrTexto": "Apunte la cámara del celular al código.",
       "local.voltar": "Volver a los lugares",
@@ -189,7 +204,6 @@
         { "pt": "Deslize até o Antes e Depois para ver, do espaço, como a cidade cresceu de 2009 a 2022!", "en": "Scroll to Then and Now to see from space how the city grew from 2009 to 2022!", "es": "¡Deslice hasta Antes y Ahora para ver desde el espacio cómo creció la ciudad de 2009 a 2022!" },
         { "pt": "A Feira do Produtor e o Mercado Municipal completaram 9 anos em 2025.", "en": "The Farmers' Fair and the Municipal Market turned 9 in 2025.", "es": "La Feria del Productor y el Mercado Municipal cumplieron 9 años en 2025." }
       ],
-      "streetView": { "lat": -6.49694, "lng": -49.87778, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas gerais do município (Wikipédia). Para o Street View, escolha uma rua do centro." },
       "creditos": "Prefeitura de Canaã dos Carajás; satélite: INPE/OBT/DPI (CC BY-SA 4.0). Dados: IBGE."
     },
 
@@ -235,7 +249,6 @@
         { "pt": "Sabia que este lago tem 15 mil metros quadrados? E dá para caminhar ao redor dele todo!", "en": "Did you know this lake covers 15,000 square meters? And you can walk all the way around it!", "es": "¿Sabía que este lago tiene 15.000 metros cuadrados? ¡Y se puede caminar a su alrededor!" },
         { "pt": "No Natal, o lago vira palco, com telão de LED e show de fogos.", "en": "At Christmas, the lake becomes a stage, with an LED screen and fireworks.", "es": "En Navidad, el lago se convierte en escenario, con pantalla LED y fuegos artificiales." }
       ],
-      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 90, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas do centro da cidade [CONFIRMAR]" },
       "creditos": "Prefeitura de Canaã dos Carajás."
     },
 
@@ -282,7 +295,6 @@
         { "pt": "A ciclovia daqui tem 1.239 metros. Bora pedalar?", "en": "The bike path here is 1,239 meters long. Ready to ride?", "es": "La ciclovía de aquí tiene 1.239 metros. ¿Vamos a pedalear?" },
         { "pt": "Em dezembro de 2025, a Parada de Natal deu a volta completa no Lago dos Buritis.", "en": "In December 2025, the Christmas Parade went all the way around Buritis Lake.", "es": "En diciembre de 2025, el Desfile de Navidad dio la vuelta completa al Lago de los Buritíes." }
       ],
-      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 180, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
       "creditos": "Prefeitura de Canaã dos Carajás."
     },
 
@@ -328,7 +340,6 @@
         { "pt": "As cores da Prefeitura são branco, marrom, verde e amarelo. Reparou que eu uso todas?", "en": "City Hall's colors are white, brown, green and yellow. Notice I'm wearing them all?", "es": "Los colores de la Alcaldía son blanco, marrón, verde y amarillo. ¿Notó que los llevo todos?" },
         { "pt": "Este brasão no meu peito lembra o da nossa cidade!", "en": "The crest on my chest is a nod to our city's coat of arms!", "es": "¡Este escudo en mi pecho recuerda al de nuestra ciudad!" }
       ],
-      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 0, "pitch": 5, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
       "creditos": "Prefeitura de Canaã dos Carajás."
     },
 
@@ -374,7 +385,6 @@
         { "pt": "Este projeto ganhou um prêmio nacional de engenharia em 2024!", "en": "This project won a national engineering award in 2024!", "es": "¡Este proyecto ganó un premio nacional de ingeniería en 2024!" },
         { "pt": "A imagem que você está vendo é do projeto do parque.", "en": "The image you're looking at shows the park's design.", "es": "La imagen que está viendo es del proyecto del parque." }
       ],
-      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
       "creditos": "imagem do projeto da Prefeitura de Canaã dos Carajás."
     },
 
@@ -415,7 +425,6 @@
         { "pt": "Olha que vista! Esse é um dos cartões-postais da nossa cidade.", "en": "What a view! This is one of our city's landmarks.", "es": "¡Qué vista! Esta es una de las postales de nuestra ciudad." },
         { "pt": "Como bom guarda-parque, eu recomendo a Trilha do Mirante!", "en": "As a good park ranger, I recommend the Lookout Trail!", "es": "¡Como buen guardaparque, recomiendo el Sendero del Mirador!" }
       ],
-      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
       "creditos": "Prefeitura de Canaã dos Carajás."
     },
 
@@ -451,7 +460,6 @@
       "falas": [
         { "pt": "Muita gente chega a Canaã por aqui. Seja bem-vindo!", "en": "Many people arrive in Canaã right here. Welcome!", "es": "Mucha gente llega a Canaã por aquí. ¡Bienvenido!" }
       ],
-      "streetView": { "lat": -6.51946, "lng": -49.8547, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas do OpenStreetMap" },
       "creditos": "Prefeitura de Canaã dos Carajás."
     }
   ]

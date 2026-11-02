@@ -1,0 +1,200 @@
+/* ==========================================================================
+   TELA INICIAL — modo vitrine sobre o planeta
+   ========================================================================== */
+
+#globo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.tela-inicio {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: calc(var(--margem) * 1.6) var(--margem) calc(var(--margem) * 1.5);
+  text-align: center;
+  color: var(--txt-sobre-escuro);
+}
+
+/* Véus para garantir leitura sobre o planeta (topo e base) */
+.tela-inicio::before,
+.tela-inicio::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.tela-inicio::before { top: 0; height: 52%; background: linear-gradient(to bottom, rgba(18, 13, 9, 0.85), rgba(18, 13, 9, 0)); }
+.tela-inicio::after { bottom: 0; height: 34%; background: linear-gradient(to top, rgba(18, 13, 9, 0.92) 20%, rgba(18, 13, 9, 0)); }
+
+.inicio__topo { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+.inicio__brasao { width: max(4.4rem, 64px); height: auto; }
+.inicio__prefeitura { color: var(--txt-sobre-escuro); }
+
+.inicio__texto {
+  align-self: start;
+  padding-top: 7vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.inicio__sobretitulo {
+  color: var(--ouro-claro);
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+}
+.inicio__sobretitulo::before,
+.inicio__sobretitulo::after {
+  content: '';
+  width: 2.4rem;
+  height: 1px;
+  background: var(--ouro);
+}
+
+.inicio__titulo {
+  margin-top: 1.6rem;
+  font-family: var(--serif);
+  font-weight: 300;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+}
+.inicio__titulo .linha { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.inicio__titulo .linha > * { display: inline-block; }
+.inicio__titulo .linha:first-child {
+  font-size: var(--fs-h2);
+  font-style: italic;
+  color: var(--ouro-claro);
+}
+.inicio__titulo em {
+  font-style: normal;
+  font-size: var(--fs-h1);
+  font-weight: 400;
+  color: var(--creme);
+}
+
+.inicio__subtitulo {
+  max-width: 22em;
+  margin-top: 1.6rem;
+  font-size: var(--fs-corpo);
+  color: var(--txt-sobre-escuro-2);
+}
+
+.inicio__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+/* Botão principal com brilho que respira */
+.inicio__botao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1em;
+  min-height: calc(var(--toque) * 1.25);
+  padding: 0 2.2em;
+  border-radius: 999px;
+  background: var(--ouro-claro);
+  color: var(--terra-900);
+  font-size: max(0.78rem, 15px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: transform 0.5s var(--ease-luxo);
+}
+.inicio__botao:active { transform: scale(0.97); }
+.inicio__botao .seta { width: 1.6em; animation: seta 3.2s ease-in-out infinite; }
+.inicio__botao-texto { position: relative; }
+@keyframes seta { 50% { transform: translateX(0.3em); } }
+
+/* Só a opacidade varia, em ciclo contínuo: sem anel crescendo nem salto ao reiniciar */
+.inicio__pulso {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 2.2rem 0.3rem rgba(228, 199, 126, 0.5);
+  opacity: 0.2;
+  animation: pulso 4.4s ease-in-out infinite;
+  pointer-events: none;
+  will-change: opacity;
+}
+@keyframes pulso { 50% { opacity: 0.75; } }
+
+/* Reflexo de luz que atravessa o botão de vez em quando */
+.inicio__reflexo {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.inicio__reflexo::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 35%;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  transform: translateX(-120%);
+  animation: reflexo 7s ease-in-out infinite;
+}
+@keyframes reflexo {
+  0%, 68% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+
+/* --- Modo descanso -------------------------------------------------------- */
+.inicio__descanso {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 14vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  color: var(--creme);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.inicio__descanso-anel {
+  width: max(4.4rem, 64px);
+  height: max(4.4rem, 64px);
+  border-radius: 50%;
+  border: 1px solid var(--ouro-claro);
+  position: relative;
+}
+.inicio__descanso-anel::before,
+.inicio__descanso-anel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--ouro-claro);
+  animation: anel 2.8s ease-out infinite;
+}
+.inicio__descanso-anel::after { animation-delay: 1.4s; }
+.inicio__descanso-anel { background: radial-gradient(circle, var(--ouro-claro) 0 14%, transparent 15%); }
+@keyframes anel { from { transform: scale(1); opacity: 0.8; } to { transform: scale(2.6); opacity: 0; } }
+
+/* --- Horizontal: texto à esquerda, planeta à direita ---------------------- */
+@media (orientation: landscape) {
+  .tela-inicio {
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(0, 0.52fr);
+    text-align: left;
+    padding-left: calc(var(--margem) * 2);
+  }
+  .tela-inicio::before { height: 100%; width: 60%; right: auto; background: linear-gradient(to right, rgba(18, 13, 9, 0.9) 30%, rgba(18, 13, 9, 0)); }
+  .tela-inicio::after { height: 22%; }
+  .inicio__topo { flex-direction: row; justify-content: flex-start; }
+  .inicio__brasao { width: max(3rem, 48px); }
+  .inicio__texto { align-self: center; align-items: flex-start; padding-top: 0; }
+  .inicio__sobretitulo::before { display: none; }
+  .inicio__acoes { flex-direction: row; justify-content: flex-start; flex-wrap: wrap; gap: 1.2rem 2rem; }
+  .inicio__descanso { left: calc(var(--margem) * 2); right: auto; align-items: flex-start; bottom: 12vh; }
+}

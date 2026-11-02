@@ -1,0 +1,3 @@
+Coloque aqui as fotos (JPG/PNG) com o nome do local, por exemplo lago-prefeitura-capa.jpg,
+e rode: npm run imagens
+As fotos atuais vieram do site da Prefeitura e do Wikimedia Commons (veja o README, seção 4).

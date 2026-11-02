@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <!-- user-scalable=no evita zoom acidental no totem -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#120d09" />
+  <title>Mirante de Canaã dos Carajás</title>
+  <link rel="icon" href="assets/img/marca/brasao.svg" />
+</head>
+<body>
+  <div id="app">
+    <!-- Planeta (Three.js) -->
+    <canvas id="globo" aria-hidden="true"></canvas>
+
+    <!-- 1. Tela inicial (vitrine) -->
+    <section class="tela tela-inicio" data-tela="inicio" aria-label="Início">
+      <div class="inicio__topo">
+        <img class="inicio__brasao" src="assets/img/marca/brasao.svg" alt="" />
+        <p class="legenda inicio__prefeitura" data-i18n="prefeitura"></p>
+      </div>
+
+      <div class="inicio__texto">
+        <p class="legenda inicio__sobretitulo" data-i18n="inicio.sobretitulo"></p>
+        <h1 class="inicio__titulo">
+          <span class="linha"><span data-i18n="inicio.titulo1"></span></span>
+          <span class="linha"><em data-i18n="inicio.titulo2"></em></span>
+        </h1>
+        <p class="inicio__subtitulo" data-i18n="inicio.subtitulo"></p>
+      </div>
+
+      <div class="inicio__acoes">
+        <button class="inicio__botao" data-acao="comecar">
+          <span class="inicio__pulso" aria-hidden="true"></span>
+          <span class="inicio__reflexo" aria-hidden="true"></span>
+          <span class="inicio__botao-texto" data-i18n="inicio.botao"></span>
+          <svg class="seta" viewBox="0 0 28 16" aria-hidden="true"><path d="M0 8h26M19 1l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <div class="idiomas idiomas--escuro" role="group" data-i18n-aria="idioma"></div>
+      </div>
+
+      <!-- Modo descanso -->
+      <div class="inicio__descanso" aria-hidden="true">
+        <span class="inicio__descanso-anel"></span>
+        <p class="legenda" data-i18n="inicio.descanso"></p>
+      </div>
+    </section>
+
+    <!-- 2. Transição Terra → Brasil → Pará → Canaã -->
+    <section class="tela tela-transicao" data-tela="transicao" aria-hidden="true">
+      <svg class="mapa" preserveAspectRatio="xMidYMid slice"></svg>
+      <div class="mapa__rotulos">
+        <p class="legenda mapa__rotulo" data-rotulo="brasil"><span data-i18n="transicao.brasil"></span></p>
+        <p class="legenda mapa__rotulo" data-rotulo="para"><span data-i18n="transicao.para"></span></p>
+        <p class="mapa__rotulo mapa__rotulo--cidade" data-rotulo="cidade">
+          <span class="serif" data-i18n="transicao.cidade"></span>
+          <span class="legenda mapa__coord"></span>
+        </p>
+      </div>
+    </section>
+
+    <!-- 3. Tela de locais -->
+    <section class="tela tela-locais" data-tela="locais" aria-label="Locais"></section>
+
+    <!-- 4. Página do local -->
+    <section class="tela tela-local" data-tela="local">
+      <div class="local-scroll"><div class="local-conteudo"></div></div>
+    </section>
+
+    <!-- Barra superior das telas internas -->
+    <header class="barra-topo">
+      <button class="barra-topo__marca" data-acao="inicio">
+        <img src="assets/img/marca/brasao.svg" alt="" />
+        <span class="legenda" data-i18n="prefeitura"></span>
+      </button>
+      <div class="barra-topo__direita">
+        <button class="botao-inicio botao-voltar-locais" data-acao="locais">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+          <span class="legenda" data-i18n="locais.sobretitulo"></span>
+        </button>
+        <div class="idiomas" role="group" data-i18n-aria="idioma"></div>
+      </div>
+    </header>
+
+    <!-- Mascote guia -->
+    <div class="mascote" aria-live="polite"></div>
+
+    <div class="cortina"></div>
+    <div class="toques" aria-hidden="true"></div>
+  </div>
+
+  <div class="carregando"><div class="carregando__linha"><i></i></div></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

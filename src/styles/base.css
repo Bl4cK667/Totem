@@ -1,0 +1,227 @@
+/* ==========================================================================
+   BASE — reset, regras de quiosque e componentes compartilhados
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--noite);
+}
+body {
+  color: var(--txt-sobre-escuro);
+  font-family: var(--sans);
+  font-size: var(--fs-corpo);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Quiosque: sem seleção, sem arrastar imagem, sem destaque azul no toque,
+   sem zoom por pinça (touch-action), sem barras de rolagem aparentes */
+html {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+img, svg, canvas { -webkit-user-drag: none; user-select: none; display: block; }
+img { max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; }
+a { color: inherit; }
+
+#app { position: fixed; inset: 0; overflow: hidden; }
+
+/* --- Telas ----------------------------------------------------------- */
+.tela {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 2;
+}
+.tela.ativa { visibility: visible; opacity: 1; }
+
+/* --- Tipografia utilitária ---------------------------------------------- */
+.legenda {
+  font-family: var(--sans);
+  font-size: var(--fs-legenda);
+  font-weight: 600;
+  letter-spacing: var(--tracking-legenda);
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.serif { font-family: var(--serif); font-weight: 400; }
+
+/* Linha dourada fina */
+.filete { display: block; height: 1px; background: currentColor; opacity: 0.6; }
+
+/* Marca [CONFIRMAR] — visível apenas durante a revisão de conteúdo */
+.confirmar {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.4em;
+  padding: 0.15em 0.55em;
+  font-family: var(--sans);
+  font-size: max(0.45rem, 10px);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.18em;
+  line-height: 1.3;
+  border: 1px dashed currentColor;
+  border-radius: 99px;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+.sem-confirmar .confirmar { display: none; }
+
+/* --- Botões ----------------------------------------------------------- */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8em;
+  min-height: var(--toque);
+  padding: 0 1.6em;
+  font-family: var(--sans);
+  font-size: max(0.72rem, 14px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  transition: transform 0.4s var(--ease-luxo), background-color 0.4s, color 0.4s;
+}
+.botao:active { transform: scale(0.97); }
+
+.botao--ouro { background: var(--ouro-claro); color: var(--terra-900); }
+.botao--contorno-claro { border: 1px solid var(--linha-sobre-escuro); color: var(--txt-sobre-escuro); }
+.botao--contorno-escuro { border: 1px solid var(--terra-900); color: var(--terra-900); }
+.botao--escuro { background: var(--terra-900); color: var(--creme); }
+
+.seta { width: 1.4em; height: 1em; flex: none; }
+
+/* --- Barra superior (telas internas) ------------------------------------- */
+.barra-topo {
+  position: absolute;
+  z-index: 20;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: calc(var(--margem) * 0.6) var(--margem);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  color: var(--txt-sobre-claro);
+  transition: color 0.5s;
+}
+.barra-topo > * { pointer-events: auto; }
+.barra-topo.sobre-escuro { color: var(--txt-sobre-escuro); }
+
+.barra-topo__marca {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  min-height: var(--toque);
+  padding-right: 0.6em;
+  text-align: left;
+}
+.barra-topo__marca img { width: max(2.2rem, 40px); height: auto; }
+.barra-topo__marca span { max-width: 22em; }
+
+.barra-topo__direita { display: flex; align-items: center; gap: 0.6rem; }
+
+.botao-inicio {
+  display: inline-flex; align-items: center; gap: 0.6em;
+  min-height: var(--toque); min-width: var(--toque);
+  padding: 0 1.1em;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+.botao-inicio svg { width: 1.1em; height: 1.1em; }
+
+/* Fundo translúcido da barra quando a página rola sobre fotos */
+.barra-topo::before {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.5s;
+  background: linear-gradient(to bottom, rgba(18, 13, 9, 0.7), rgba(18, 13, 9, 0));
+}
+.barra-topo.com-veu::before { opacity: 1; }
+
+/* --- Seletor de idioma ------------------------------------------------- */
+.idiomas {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 4px;
+}
+.idiomas button {
+  min-width: var(--toque);
+  min-height: calc(var(--toque) - 10px);
+  padding: 0 0.6em;
+  border-radius: 999px;
+  font-size: max(0.62rem, 12px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  transition: background-color 0.35s, color 0.35s;
+}
+.idiomas button[aria-pressed='true'] { background: currentColor; }
+.idiomas button[aria-pressed='true'] span { color: var(--creme); }
+.sobre-escuro .idiomas button[aria-pressed='true'] span,
+.idiomas--escuro button[aria-pressed='true'] span { color: var(--terra-900); }
+
+/* --- Feedback de toque ---------------------------------------------------- */
+.toques { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+.toque {
+  position: absolute;
+  width: 120px; height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(228, 199, 126, 0.9);
+  background: radial-gradient(circle, rgba(228, 199, 126, 0.28), rgba(228, 199, 126, 0) 65%);
+  will-change: transform, opacity;
+}
+
+/* --- Cortina de transição ---------------------------------------------- */
+.cortina {
+  position: fixed; inset: 0; z-index: 80;
+  background: var(--noite);
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* --- Tela de carregamento ---------------------------------------------- */
+.carregando {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  background: var(--noite);
+}
+.carregando__linha {
+  width: 30vmin; height: 1px;
+  background: var(--linha-sobre-escuro);
+  overflow: hidden;
+}
+.carregando__linha i {
+  display: block; height: 100%; width: 40%;
+  background: var(--ouro-claro);
+  animation: carregar 1.4s var(--ease-luxo) infinite;
+}
+@keyframes carregar { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+
+/* Acessibilidade: quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  /* iteration-count: sem ele, uma animação infinita com duração mínima vira um pisca-pisca.
+     transition: none, e não duração mínima: com duração em todo elemento, qualquer propriedade
+     vira transição e o GSAP lê valores intermediários, deixando textos presos escondidos. */
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}

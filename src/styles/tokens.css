@@ -1,0 +1,79 @@
+/* ==========================================================================
+   TOKENS — único lugar onde ficam cores, fontes e medidas do totem.
+   Paleta derivada das cores oficiais: branco, marrom, verde e amarelo.
+   Pares de cor aprovados (WCAG AA) estão listados em scripts/verificar-contraste.js
+   ========================================================================== */
+
+@font-face { font-family: 'Cormorant'; font-weight: 300; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-300-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant'; font-weight: 400; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant'; font-weight: 500; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant'; font-weight: 600; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant'; font-weight: 300; font-style: italic; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-300-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Cormorant'; font-weight: 400; font-style: italic; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-weight: 400; font-style: normal; font-display: block; src: url('../../assets/fonts/manrope-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-weight: 500; font-style: normal; font-display: block; src: url('../../assets/fonts/manrope-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-weight: 600; font-style: normal; font-display: block; src: url('../../assets/fonts/manrope-latin-600-normal.woff2') format('woff2'); }
+
+:root {
+  /* --- Paleta ----------------------------------------------------------- */
+  --noite: #120d09;        /* fundo do espaço (marrom quase preto) */
+  --terra-900: #2a1d14;    /* marrom profundo: fundo escuro / texto sobre claro */
+  --terra-800: #3a2a1e;
+  --terra-700: #5e4532;    /* texto secundário sobre claro */
+  --terra-600: #6b4a33;
+  --terra-300: #b89c80;    /* apenas decorativo */
+
+  --mata-900: #15291f;
+  --mata-800: #1f3b2c;     /* verde mata: fundo escuro alternativo */
+  --mata-500: #3f6b4e;     /* detalhes, mascote */
+
+  --ouro: #c9a24a;         /* linhas finas, números sobre escuro */
+  --ouro-claro: #e4c77e;   /* destaques sobre escuro */
+  --ouro-texto: #7a5a17;   /* dourado legível sobre fundo claro */
+
+  --creme: #f6f1e7;        /* fundo claro principal / texto sobre escuro */
+  --creme-2: #ede4d3;
+  --branco: #ffffff;
+
+  /* Textos (sempre usar estes, nunca a cor crua) */
+  --txt-sobre-claro: var(--terra-900);
+  --txt-sobre-claro-2: var(--terra-700);
+  --txt-sobre-escuro: var(--creme);
+  --txt-sobre-escuro-2: rgba(246, 241, 231, 0.74);
+
+  --linha-sobre-escuro: rgba(201, 162, 74, 0.45);
+  --linha-sobre-claro: rgba(122, 90, 23, 0.35);
+
+  /* --- Tipografia --------------------------------------------------------- */
+  --serif: 'Cormorant', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+
+  --fs-legenda: max(0.6rem, 12px);      /* caixa alta espaçada */
+  --fs-corpo: max(0.95rem, 15px);
+  --fs-lead: max(1.35rem, 20px);
+  --fs-h3: max(1.6rem, 22px);
+  --fs-h2: max(2.4rem, 32px);
+  --fs-h1: max(3.6rem, 44px);
+  --fs-numero: max(3.6rem, 44px);
+
+  --tracking-legenda: 0.28em;
+
+  /* --- Medidas ------------------------------------------------------------ */
+  --toque: max(64px, 2.75rem);          /* altura mínima de área de toque */
+  --margem: max(16px, 2.2rem);          /* margem lateral das telas */
+  --raio: 2px;
+  --mascote-h: clamp(160px, 11rem, 200px);
+  --mascote-w: calc(var(--mascote-h) * 0.8);
+
+  /* --- Movimento ---------------------------------------------------------- */
+  --ease-luxo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Escala base: a interface inteira é medida em rem.
+   Vertical 1080×1920 → ~30px | Notebook 1366×768 → ~16px | Celular → 15px */
+html {
+  font-size: clamp(15px, 2.8vw, 34px);
+}
+@media (orientation: landscape) {
+  html { font-size: clamp(14px, calc(0.9vw + 0.5vh), 26px); }
+}

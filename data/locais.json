@@ -1,0 +1,458 @@
+{
+  "_leiame": "TODO o conteúdo do totem fica aqui. Textos em pt/en/es. Trechos marcados com [CONFIRMAR] são exemplos e precisam ser revisados com a Prefeitura. Para esconder as marcas [CONFIRMAR] na tela, mude config.mostrarMarcasConfirmar para false. Para adicionar um local, copie um bloco de 'locais' e troque id, textos, fotos e coordenadas.",
+
+  "config": {
+    "tempoDescansoSegundos": 60,
+    "mostrarMarcasConfirmar": true,
+    "qrUrlBase": "https://www.canaadoscarajas.pa.gov.br/novo/",
+    "cidade": { "lat": -6.531, "lng": -49.852 },
+    "mascote": { "nome": "Guia" }
+  },
+
+  "interface": {
+    "pt": {
+      "prefeitura": "Prefeitura de Canaã dos Carajás",
+      "inicio.sobretitulo": "Mirante · Pará · Brasil",
+      "inicio.titulo1": "Conheça",
+      "inicio.titulo2": "Canaã dos Carajás",
+      "inicio.subtitulo": "Do alto do mirante, um passeio pela Terra Prometida do sudeste do Pará.",
+      "inicio.botao": "Toque para conhecer a cidade",
+      "inicio.descanso": "Toque para começar",
+      "idioma": "Idioma",
+      "transicao.brasil": "Brasil",
+      "transicao.para": "Pará",
+      "transicao.cidade": "Canaã dos Carajás",
+      "locais.sobretitulo": "Pontos da cidade",
+      "locais.titulo": "Escolha um lugar para conhecer",
+      "locais.dica": "Deslize para o lado",
+      "locais.abrir": "Conhecer",
+      "local.rolar": "Deslize para explorar",
+      "local.capitulo": "Capítulo",
+      "local.numeros": "Em números",
+      "local.curiosidades": "Curiosidades",
+      "local.antesDepois": "Antes e depois",
+      "local.antes": "Antes",
+      "local.hoje": "Hoje",
+      "local.arraste": "Arraste para comparar",
+      "local.streetview": "Caminhe pelo local",
+      "local.streetviewSub": "Arraste com o dedo para olhar em volta.",
+      "local.streetviewOff": "Street View indisponível no momento",
+      "local.streetviewOffSub": "Sem conexão com a internet. Aproveite as fotos e tente novamente mais tarde.",
+      "local.qrTitulo": "Leve este passeio no seu celular",
+      "local.qrTexto": "Aponte a câmera do celular para o código.",
+      "local.voltar": "Voltar aos locais",
+      "local.creditos": "Fotos e fontes",
+      "local.proximo": "Próximo local",
+      "inicio": "Início",
+      "mascote.saudacao": "Olá! Escolha um lugar e eu conto as curiosidades.",
+      "mascote.dica": "Toque em mim para outra curiosidade",
+      "mascote.rotulo": "Você sabia?"
+    },
+    "en": {
+      "prefeitura": "City of Canaã dos Carajás",
+      "inicio.sobretitulo": "Lookout · Pará · Brazil",
+      "inicio.titulo1": "Discover",
+      "inicio.titulo2": "Canaã dos Carajás",
+      "inicio.subtitulo": "From the top of the lookout, a tour of the Promised Land of southeastern Pará.",
+      "inicio.botao": "Tap to explore the city",
+      "inicio.descanso": "Tap to begin",
+      "idioma": "Language",
+      "transicao.brasil": "Brazil",
+      "transicao.para": "Pará",
+      "transicao.cidade": "Canaã dos Carajás",
+      "locais.sobretitulo": "City landmarks",
+      "locais.titulo": "Choose a place to visit",
+      "locais.dica": "Swipe sideways",
+      "locais.abrir": "Explore",
+      "local.rolar": "Swipe to explore",
+      "local.capitulo": "Chapter",
+      "local.numeros": "In numbers",
+      "local.curiosidades": "Did you know",
+      "local.antesDepois": "Then and now",
+      "local.antes": "Then",
+      "local.hoje": "Now",
+      "local.arraste": "Drag to compare",
+      "local.streetview": "Walk around",
+      "local.streetviewSub": "Drag with your finger to look around.",
+      "local.streetviewOff": "Street View unavailable right now",
+      "local.streetviewOffSub": "No internet connection. Enjoy the photos and try again later.",
+      "local.qrTitulo": "Take this tour on your phone",
+      "local.qrTexto": "Point your phone camera at the code.",
+      "local.voltar": "Back to places",
+      "local.creditos": "Photos and sources",
+      "local.proximo": "Next place",
+      "inicio": "Home",
+      "mascote.saudacao": "Hi! Pick a place and I'll tell you some fun facts.",
+      "mascote.dica": "Tap me for another fact",
+      "mascote.rotulo": "Did you know?"
+    },
+    "es": {
+      "prefeitura": "Alcaldía de Canaã dos Carajás",
+      "inicio.sobretitulo": "Mirador · Pará · Brasil",
+      "inicio.titulo1": "Conozca",
+      "inicio.titulo2": "Canaã dos Carajás",
+      "inicio.subtitulo": "Desde lo alto del mirador, un paseo por la Tierra Prometida del sureste de Pará.",
+      "inicio.botao": "Toque para conocer la ciudad",
+      "inicio.descanso": "Toque para comenzar",
+      "idioma": "Idioma",
+      "transicao.brasil": "Brasil",
+      "transicao.para": "Pará",
+      "transicao.cidade": "Canaã dos Carajás",
+      "locais.sobretitulo": "Lugares de la ciudad",
+      "locais.titulo": "Elija un lugar para conocer",
+      "locais.dica": "Deslice hacia el lado",
+      "locais.abrir": "Conocer",
+      "local.rolar": "Deslice para explorar",
+      "local.capitulo": "Capítulo",
+      "local.numeros": "En números",
+      "local.curiosidades": "Curiosidades",
+      "local.antesDepois": "Antes y ahora",
+      "local.antes": "Antes",
+      "local.hoje": "Hoy",
+      "local.arraste": "Arrastre para comparar",
+      "local.streetview": "Camine por el lugar",
+      "local.streetviewSub": "Arrastre con el dedo para mirar alrededor.",
+      "local.streetviewOff": "Street View no disponible en este momento",
+      "local.streetviewOffSub": "Sin conexión a internet. Disfrute de las fotos e intente más tarde.",
+      "local.qrTitulo": "Lleve este paseo en su celular",
+      "local.qrTexto": "Apunte la cámara del celular al código.",
+      "local.voltar": "Volver a los lugares",
+      "local.creditos": "Fotos y fuentes",
+      "local.proximo": "Siguiente lugar",
+      "inicio": "Inicio",
+      "mascote.saudacao": "¡Hola! Elija un lugar y le cuento curiosidades.",
+      "mascote.dica": "Tóqueme para otra curiosidad",
+      "mascote.rotulo": "¿Sabía que?"
+    }
+  },
+
+  "curiosidadesCidade": [
+    { "pt": "Canaã vem da Bíblia e significa \"Terra Prometida\".", "en": "Canaã comes from the Bible and means \"Promised Land\".", "es": "Canaã viene de la Biblia y significa \"Tierra Prometida\"." },
+    { "pt": "A cidade nasceu de um assentamento agrícola, criado a partir de 1982.", "en": "The city grew out of a farming settlement created from 1982 onward.", "es": "La ciudad nació de un asentamiento agrícola creado a partir de 1982." },
+    { "pt": "Quem nasce aqui é canaanense!", "en": "People born here are called \"canaanenses\"!", "es": "¡Quien nace aquí es canaanense!" },
+    { "pt": "Entre 2010 e 2022, a população saltou de cerca de 26,7 mil para mais de 77 mil pessoas.", "en": "Between 2010 and 2022, the population jumped from about 26,700 to over 77,000 people.", "es": "Entre 2010 y 2022, la población pasó de unas 26.700 a más de 77.000 personas." },
+    { "pt": "A cidade tem um planetário municipal. Dá para conhecer o céu de pertinho!", "en": "The city has a municipal planetarium, a great way to get to know the night sky!", "es": "La ciudad tiene un planetario municipal. ¡Una gran forma de conocer el cielo!" },
+    { "pt": "Alunos da rede municipal conquistaram 1.031 medalhas na Olimpíada Brasileira de Astronomia.", "en": "Municipal school students won 1,031 medals at the Brazilian Astronomy Olympiad.", "es": "Alumnos de la red municipal ganaron 1.031 medallas en la Olimpiada Brasileña de Astronomía." },
+    { "pt": "A Prefeitura tem a meta de plantar 1 milhão de mudas até 2028.", "en": "City Hall aims to plant 1 million seedlings by 2028.", "es": "La Alcaldía tiene la meta de plantar 1 millón de plantones hasta 2028." },
+    { "pt": "A bandeira de Canaã traz uma estrela e o lema \"União de Todos\".", "en": "Canaã's flag features a star and the motto \"União de Todos\", Unity of All.", "es": "La bandera de Canaã lleva una estrella y el lema \"União de Todos\", Unión de Todos." }
+  ],
+
+  "locais": [
+    {
+      "id": "cidade",
+      "ativo": true,
+      "nome": { "pt": "Canaã dos Carajás", "en": "Canaã dos Carajás", "es": "Canaã dos Carajás" },
+      "categoria": { "pt": "A Terra Prometida", "en": "The Promised Land", "es": "La Tierra Prometida" },
+      "frase": {
+        "pt": "De assentamento agrícola a uma das cidades que mais cresceram no Brasil.",
+        "en": "From a farming settlement to one of the fastest-growing cities in Brazil.",
+        "es": "De asentamiento agrícola a una de las ciudades que más crecieron en Brasil."
+      },
+      "introducao": {
+        "pt": "Canaã dos Carajás nasceu do Projeto de Assentamento Carajás, implantado a partir de 1982 no sudeste do Pará. A área ficou conhecida como CEDERE e, em outubro de 1994, foi desmembrada de Parauapebas para se tornar município. Hoje, a cidade une a força da mineração, o campo e novos espaços de lazer.",
+        "en": "Canaã dos Carajás was born from the Carajás Settlement Project, established from 1982 in southeastern Pará. The area became known as CEDERE and, in October 1994, it split from Parauapebas to become a municipality. Today the city combines mining, farming and new leisure spaces.",
+        "es": "Canaã dos Carajás nació del Proyecto de Asentamiento Carajás, implantado a partir de 1982 en el sureste de Pará. El área se conoció como CEDERE y, en octubre de 1994, se separó de Parauapebas para convertirse en municipio. Hoy la ciudad une la minería, el campo y nuevos espacios de ocio."
+      },
+      "fotos": {
+        "capa": "assets/img/locais/cidade-capa.webp",
+        "miniatura": "assets/img/locais/cidade-capa-sm.webp",
+        "antes": "assets/img/locais/cidade-antes.webp",
+        "depois": "assets/img/locais/cidade-depois.webp",
+        "legendaAntes": { "pt": "Satélite, 2009", "en": "Satellite, 2009", "es": "Satélite, 2009" },
+        "legendaDepois": { "pt": "Satélite, 2022", "en": "Satellite, 2022", "es": "Satélite, 2022" }
+      },
+      "numeros": [
+        { "valor": 1994, "tipo": "ano", "rotulo": { "pt": "Criação do município", "en": "Municipality created", "es": "Creación del municipio" } },
+        { "valor": 77079, "rotulo": { "pt": "Habitantes no Censo 2022", "en": "Residents, 2022 Census", "es": "Habitantes, Censo 2022" } },
+        { "valor": 1551, "rotulo": { "pt": "Famílias assentadas na origem", "en": "Families settled at the start", "es": "Familias asentadas al inicio" } },
+        { "valor": 2016, "tipo": "ano", "rotulo": { "pt": "Início do complexo S11D", "en": "S11D complex began", "es": "Inicio del complejo S11D" } }
+      ],
+      "curiosidades": [
+        {
+          "titulo": { "pt": "A Terra Prometida", "en": "The Promised Land", "es": "La Tierra Prometida" },
+          "texto": { "pt": "O nome Canaã tem origem bíblica e significa \"Terra Prometida\". Segundo o IBGE, a escolha reflete a grande presença de evangélicos na cidade.", "en": "The name Canaã is biblical and means \"Promised Land\". According to IBGE, the choice reflects the large evangelical community in the city.", "es": "El nombre Canaã es bíblico y significa \"Tierra Prometida\". Según el IBGE, la elección refleja la gran presencia de evangélicos en la ciudad." }
+        },
+        {
+          "titulo": { "pt": "Crescimento histórico", "en": "Historic growth", "es": "Crecimiento histórico" },
+          "texto": { "pt": "Em 2010, eram cerca de 26,7 mil moradores. O Censo de 2022 contou 77.079, quase o triplo em 12 anos.", "en": "In 2010, there were about 26,700 residents. The 2022 Census counted 77,079, nearly three times as many in 12 years.", "es": "En 2010 había unos 26.700 habitantes. El Censo de 2022 contó 77.079, casi el triple en 12 años." }
+        },
+        {
+          "titulo": { "pt": "Riqueza mineral", "en": "Mineral wealth", "es": "Riqueza mineral" },
+          "texto": { "pt": "A mina do Sossego, de cobre, começou em 2004. Em 2016, entrou em operação o complexo S11D, de minério de ferro, da Vale.", "en": "The Sossego copper mine began in 2004. In 2016, Vale's S11D iron ore complex started operating.", "es": "La mina de cobre de Sossego comenzó en 2004. En 2016 entró en operación el complejo S11D de mineral de hierro, de Vale." }
+        },
+        {
+          "titulo": { "pt": "Floresta de Carajás", "en": "Carajás Forest", "es": "Bosque de Carajás" },
+          "texto": { "pt": "Parte da Floresta Nacional de Carajás, unidade de conservação criada em 1998, fica dentro do município.", "en": "Part of the Carajás National Forest, a conservation unit created in 1998, lies within the municipality.", "es": "Parte del Bosque Nacional de Carajás, unidad de conservación creada en 1998, está dentro del municipio." }
+        }
+      ],
+      "falas": [
+        { "pt": "Deslize até o Antes e Depois para ver, do espaço, como a cidade cresceu de 2009 a 2022!", "en": "Scroll to Then and Now to see from space how the city grew from 2009 to 2022!", "es": "¡Deslice hasta Antes y Ahora para ver desde el espacio cómo creció la ciudad de 2009 a 2022!" },
+        { "pt": "A Feira do Produtor e o Mercado Municipal completaram 9 anos em 2025.", "en": "The Farmers' Fair and the Municipal Market turned 9 in 2025.", "es": "La Feria del Productor y el Mercado Municipal cumplieron 9 años en 2025." }
+      ],
+      "streetView": { "lat": -6.49694, "lng": -49.87778, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas gerais do município (Wikipédia). Para o Street View, escolha uma rua do centro." },
+      "creditos": "Prefeitura de Canaã dos Carajás; satélite: INPE/OBT/DPI (CC BY-SA 4.0). Dados: IBGE."
+    },
+
+    {
+      "id": "lago-prefeitura",
+      "ativo": true,
+      "nome": { "pt": "Lago da Prefeitura", "en": "City Hall Lake", "es": "Lago de la Alcaldía" },
+      "categoria": { "pt": "Lazer e natureza", "en": "Leisure and nature", "es": "Ocio y naturaleza" },
+      "frase": {
+        "pt": "Um lago de 15 mil m² em frente à Prefeitura, com pista de caminhada ao redor.",
+        "en": "A 15,000 m² lake in front of City Hall, circled by a walking track.",
+        "es": "Un lago de 15.000 m² frente a la Alcaldía, rodeado por una pista para caminar."
+      },
+      "introducao": {
+        "pt": "O lago faz parte do complexo do Centro Administrativo, no bairro Novo Horizonte 3, entregue em outubro de 2022. A área de mais de 19 mil m² foi totalmente urbanizada e reúne pista de caminhada, playground e academia ao ar livre. Hoje, é um dos espaços mais frequentados pela população.",
+        "en": "The lake is part of the Administrative Center complex in the Novo Horizonte 3 neighborhood, opened in October 2022. The fully landscaped area of over 19,000 m² has a walking track, playground and outdoor gym. Today it is one of the most popular places in town.",
+        "es": "El lago forma parte del complejo del Centro Administrativo, en el barrio Novo Horizonte 3, entregado en octubre de 2022. El área de más de 19.000 m² fue totalmente urbanizada y reúne pista para caminar, parque infantil y gimnasio al aire libre. Hoy es uno de los lugares más concurridos."
+      },
+      "fotos": {
+        "capa": "assets/img/locais/lago-prefeitura-capa.webp",
+        "miniatura": "assets/img/locais/lago-prefeitura-capa-sm.webp"
+      },
+      "numeros": [
+        { "valor": 2022, "tipo": "ano", "rotulo": { "pt": "Inauguração", "en": "Opened", "es": "Inauguración" } },
+        { "valor": 15000, "sufixo": " m²", "rotulo": { "pt": "Área do lago", "en": "Lake area", "es": "Área del lago" } },
+        { "valor": 19000, "sufixo": " m²", "rotulo": { "pt": "Mais de, em área urbanizada", "en": "Over, in landscaped area", "es": "Más de, en área urbanizada" } }
+      ],
+      "curiosidades": [
+        {
+          "titulo": { "pt": "Palco do Natal", "en": "A Christmas stage", "es": "Escenario de la Navidad" },
+          "texto": { "pt": "No \"Canaã, Natal da Família\" de 2025, o lago recebeu um espetáculo com telão de LED e fogos, além da Casa do Papai Noel.", "en": "During the 2025 \"Canaã, Natal da Família\" celebrations, the lake hosted a show with an LED screen and fireworks, plus Santa's House.", "es": "En el \"Canaã, Natal da Família\" de 2025, el lago recibió un espectáculo con pantalla LED y fuegos artificiales, además de la Casa de Papá Noel." }
+        },
+        {
+          "titulo": { "pt": "Mais verde nas margens", "en": "Greener shores", "es": "Orillas más verdes" },
+          "texto": { "pt": "Em fevereiro de 2026, a Secretaria de Meio Ambiente plantou ali mudas nativas, frutíferas e ornamentais, dentro da meta de 1 milhão de mudas até 2028.", "en": "In February 2026, the Environment Department planted native, fruit and ornamental seedlings here, as part of a goal of 1 million by 2028.", "es": "En febrero de 2026, la Secretaría de Medio Ambiente plantó aquí plantones nativos, frutales y ornamentales, dentro de la meta de 1 millón hasta 2028." }
+        },
+        {
+          "titulo": { "pt": "Ponto de encontro", "en": "A meeting point", "es": "Punto de encuentro" },
+          "texto": { "pt": "O passeio ciclístico que abriu a Semana do Meio Ambiente de 2026 teve sua concentração no lago em frente à Prefeitura.", "en": "The bike ride that opened Environment Week 2026 gathered at the lake in front of City Hall.", "es": "El paseo ciclista que abrió la Semana del Medio Ambiente de 2026 se concentró en el lago frente a la Alcaldía." }
+        }
+      ],
+      "falas": [
+        { "pt": "Sabia que este lago tem 15 mil metros quadrados? E dá para caminhar ao redor dele todo!", "en": "Did you know this lake covers 15,000 square meters? And you can walk all the way around it!", "es": "¿Sabía que este lago tiene 15.000 metros cuadrados? ¡Y se puede caminar a su alrededor!" },
+        { "pt": "No Natal, o lago vira palco, com telão de LED e show de fogos.", "en": "At Christmas, the lake becomes a stage, with an LED screen and fireworks.", "es": "En Navidad, el lago se convierte en escenario, con pantalla LED y fuegos artificiales." }
+      ],
+      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 90, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas do centro da cidade [CONFIRMAR]" },
+      "creditos": "Prefeitura de Canaã dos Carajás."
+    },
+
+    {
+      "id": "lago-buritis",
+      "ativo": true,
+      "nome": { "pt": "Lago dos Buritis", "en": "Buritis Lake", "es": "Lago de los Buritíes" },
+      "categoria": { "pt": "Parque Linear Zulmira Arrais da Silva", "en": "Zulmira Arrais da Silva Linear Park", "es": "Parque Lineal Zulmira Arrais da Silva" },
+      "frase": {
+        "pt": "Mais de 37 mil m² de lazer, ciclovia e natureza no bairro Jardim das Palmeiras.",
+        "en": "Over 37,000 m² of leisure, bike paths and nature in the Jardim das Palmeiras neighborhood.",
+        "es": "Más de 37.000 m² de ocio, ciclovía y naturaleza en el barrio Jardim das Palmeiras."
+      },
+      "introducao": {
+        "pt": "Ao lado do Lago dos Buritis fica o Parque Linear Zulmira Arrais da Silva, inaugurado em dezembro de 2024 entre o lago e a Avenida Titânio. Com pistas de caminhada, ciclovia, gramados e iluminação em LED, o parque também ajuda a preservar o córrego Palmeirim, melhorando o escoamento das águas e evitando inundações.",
+        "en": "Next to Buritis Lake is the Zulmira Arrais da Silva Linear Park, opened in December 2024 between the lake and Titânio Avenue. With walking tracks, a bike path, lawns and LED lighting, the park also helps protect the Palmeirim stream, improving drainage and preventing floods.",
+        "es": "Junto al Lago de los Buritíes está el Parque Lineal Zulmira Arrais da Silva, inaugurado en diciembre de 2024 entre el lago y la Avenida Titânio. Con pistas para caminar, ciclovía, céspedes e iluminación LED, el parque también ayuda a preservar el arroyo Palmeirim, mejorando el drenaje y evitando inundaciones."
+      },
+      "fotos": {
+        "capa": "assets/img/locais/lago-buritis-capa.webp",
+        "miniatura": "assets/img/locais/lago-buritis-capa-sm.webp"
+      },
+      "numeros": [
+        { "valor": 2024, "tipo": "ano", "rotulo": { "pt": "Inauguração do parque", "en": "Park opened", "es": "Inauguración del parque" } },
+        { "valor": 37000, "sufixo": " m²", "rotulo": { "pt": "Mais de, em área de parque", "en": "Over, in park area", "es": "Más de, en área de parque" } },
+        { "valor": 1239, "sufixo": " m", "rotulo": { "pt": "De ciclovia", "en": "Of bike path", "es": "De ciclovía" } }
+      ],
+      "curiosidades": [
+        {
+          "titulo": { "pt": "Por que buritis?", "en": "Why buriti palms?", "es": "¿Por qué buritíes?" },
+          "texto": { "pt": "O buriti é uma palmeira típica de áreas úmidas da Amazônia e do Cerrado.", "en": "The buriti is a palm typical of wetlands in the Amazon and the Cerrado.", "es": "El buriti es una palmera típica de zonas húmedas de la Amazonia y el Cerrado." }
+        },
+        {
+          "titulo": { "pt": "Parque que protege", "en": "A park that protects", "es": "Un parque que protege" },
+          "texto": { "pt": "Além do lazer, o parque foi pensado para preservar o córrego Palmeirim, melhorar o escoamento das águas e evitar inundações.", "en": "Besides leisure, the park was designed to protect the Palmeirim stream, improve drainage and prevent floods.", "es": "Además del ocio, el parque se pensó para preservar el arroyo Palmeirim, mejorar el drenaje y evitar inundaciones." }
+        },
+        {
+          "titulo": { "pt": "Plantado na inauguração", "en": "Planted at the opening", "es": "Plantado en la inauguración" },
+          "texto": { "pt": "A cerimônia de abertura teve plantio de mudas, símbolo de respeito ao meio ambiente, com familiares de Zulmira Arrais da Silva, que dá nome ao local.", "en": "The opening ceremony included planting seedlings, a symbol of respect for nature, with the family of Zulmira Arrais da Silva, for whom the park is named.", "es": "La ceremonia de apertura incluyó la plantación de plantones, símbolo de respeto al medio ambiente, con familiares de Zulmira Arrais da Silva, quien da nombre al lugar." }
+        }
+      ],
+      "falas": [
+        { "pt": "Sabia que o buriti é uma palmeira que gosta de lugares com bastante água?", "en": "Did you know the buriti is a palm that loves places with plenty of water?", "es": "¿Sabía que el buriti es una palmera a la que le gustan los lugares con mucha agua?" },
+        { "pt": "A ciclovia daqui tem 1.239 metros. Bora pedalar?", "en": "The bike path here is 1,239 meters long. Ready to ride?", "es": "La ciclovía de aquí tiene 1.239 metros. ¿Vamos a pedalear?" },
+        { "pt": "Em dezembro de 2025, a Parada de Natal deu a volta completa no Lago dos Buritis.", "en": "In December 2025, the Christmas Parade went all the way around Buritis Lake.", "es": "En diciembre de 2025, el Desfile de Navidad dio la vuelta completa al Lago de los Buritíes." }
+      ],
+      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 180, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
+      "creditos": "Prefeitura de Canaã dos Carajás."
+    },
+
+    {
+      "id": "prefeitura",
+      "ativo": true,
+      "nome": { "pt": "Prefeitura", "en": "City Hall", "es": "Alcaldía" },
+      "categoria": { "pt": "Centro Administrativo", "en": "Administrative Center", "es": "Centro Administrativo" },
+      "frase": {
+        "pt": "A sede da gestão municipal, com mais de 6 mil m² e totalmente acessível.",
+        "en": "The seat of the municipal administration, with over 6,000 m² and fully accessible.",
+        "es": "La sede de la gestión municipal, con más de 6.000 m² y totalmente accesible."
+      },
+      "introducao": {
+        "pt": "O Centro Administrativo de Canaã dos Carajás foi inaugurado em 6 de outubro de 2022, no bairro Novo Horizonte 3. O prédio tem rampas, elevador, salas climatizadas, salas de reunião e um amplo espaço de convivência. Ali funcionam gabinetes e áreas como Finanças, Administração, Planejamento e Procuradoria.",
+        "en": "The Canaã dos Carajás Administrative Center opened on October 6, 2022, in the Novo Horizonte 3 neighborhood. The building has ramps, an elevator, air-conditioned rooms, meeting rooms and a large common area. It houses executive offices and departments such as Finance, Administration, Planning and Legal.",
+        "es": "El Centro Administrativo de Canaã dos Carajás se inauguró el 6 de octubre de 2022, en el barrio Novo Horizonte 3. El edificio tiene rampas, ascensor, salas climatizadas, salas de reuniones y un amplio espacio de convivencia. Allí funcionan despachos y áreas como Finanzas, Administración, Planificación y Procuraduría."
+      },
+      "fotos": {
+        "capa": "assets/img/locais/prefeitura-capa.webp",
+        "miniatura": "assets/img/locais/prefeitura-capa-sm.webp"
+      },
+      "numeros": [
+        { "valor": 2022, "tipo": "ano", "rotulo": { "pt": "Inauguração da sede", "en": "Building opened", "es": "Inauguración de la sede" } },
+        { "valor": 6000, "sufixo": " m²", "rotulo": { "pt": "Mais de, em prédio", "en": "Over, in building area", "es": "Más de, en edificio" } },
+        { "valor": 15000, "sufixo": " m²", "rotulo": { "pt": "De lago em frente", "en": "Of lake out front", "es": "De lago enfrente" } }
+      ],
+      "curiosidades": [
+        {
+          "titulo": { "pt": "Feito para todos", "en": "Built for everyone", "es": "Hecho para todos" },
+          "texto": { "pt": "Com rampas e elevador, o prédio foi entregue como totalmente acessível.", "en": "With ramps and an elevator, the building was delivered as fully accessible.", "es": "Con rampas y ascensor, el edificio se entregó como totalmente accesible." }
+        },
+        {
+          "titulo": { "pt": "Grandes momentos", "en": "Big moments", "es": "Grandes momentos" },
+          "texto": { "pt": "Em setembro de 2026, o maior desfile cívico da história da cidade percorreu a Avenida São João até o Centro Administrativo.", "en": "In September 2026, the largest civic parade in the city's history marched along São João Avenue to the Administrative Center.", "es": "En septiembre de 2026, el mayor desfile cívico de la historia de la ciudad recorrió la Avenida São João hasta el Centro Administrativo." }
+        },
+        {
+          "titulo": { "pt": "Os símbolos da cidade", "en": "City symbols", "es": "Los símbolos de la ciudad" },
+          "texto": { "pt": "A bandeira, o hino e o brasão são os símbolos do município. O brasão mostra frutas, a serra, um cavalo e um boi; a bandeira traz uma estrela e o lema \"União de Todos\".", "en": "The flag, anthem and coat of arms are the city's symbols. The coat of arms shows fruit, the mountains, a horse and an ox; the flag features a star and the motto \"União de Todos\", Unity of All.", "es": "La bandera, el himno y el escudo son los símbolos del municipio. El escudo muestra frutas, la sierra, un caballo y un buey; la bandera lleva una estrella y el lema \"União de Todos\", Unión de Todos." }
+        }
+      ],
+      "falas": [
+        { "pt": "As cores da Prefeitura são branco, marrom, verde e amarelo. Reparou que eu uso todas?", "en": "City Hall's colors are white, brown, green and yellow. Notice I'm wearing them all?", "es": "Los colores de la Alcaldía son blanco, marrón, verde y amarillo. ¿Notó que los llevo todos?" },
+        { "pt": "Este brasão no meu peito lembra o da nossa cidade!", "en": "The crest on my chest is a nod to our city's coat of arms!", "es": "¡Este escudo en mi pecho recuerda al de nuestra ciudad!" }
+      ],
+      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 0, "pitch": 5, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
+      "creditos": "Prefeitura de Canaã dos Carajás."
+    },
+
+    {
+      "id": "parque-mirante",
+      "ativo": true,
+      "nome": { "pt": "Parque do Mirante", "en": "Lookout Park", "es": "Parque del Mirador" },
+      "categoria": { "pt": "Turismo e futuro", "en": "Tourism and future", "es": "Turismo y futuro" },
+      "frase": {
+        "pt": "Mirantes, elevadores panorâmicos e passarelas com vista para o pôr do sol.",
+        "en": "Lookouts, panoramic elevators and walkways facing the sunset.",
+        "es": "Miradores, ascensores panorámicos y pasarelas con vista al atardecer."
+      },
+      "introducao": {
+        "pt": "O Parque do Mirante é um projeto da Prefeitura voltado ao turismo e ao lazer, com área de mais de 40 mil m². Aproveitando a topografia do morro, ele prevê duas torres de elevador até a crista e uma trilha acessível ao redor do morro, levando o visitante até o ponto final para admirar o pôr do sol.",
+        "en": "Lookout Park is a City Hall project for tourism and leisure, covering over 40,000 m². Making the most of the hill's terrain, it includes two elevator towers up to the ridge and an accessible trail around the hill, leading visitors to a final viewpoint to enjoy the sunset.",
+        "es": "El Parque del Mirador es un proyecto de la Alcaldía dedicado al turismo y al ocio, con más de 40.000 m². Aprovechando la topografía del cerro, prevé dos torres de ascensor hasta la cresta y un sendero accesible alrededor del cerro, que lleva al visitante al punto final para admirar el atardecer."
+      },
+      "fotos": {
+        "capa": "assets/img/locais/parque-mirante-capa.webp",
+        "miniatura": "assets/img/locais/parque-mirante-capa-sm.webp"
+      },
+      "numeros": [
+        { "valor": 40204, "sufixo": " m²", "rotulo": { "pt": "Área do projeto", "en": "Project area", "es": "Área del proyecto" } },
+        { "valor": 2, "rotulo": { "pt": "Torres de elevador", "en": "Elevator towers", "es": "Torres de ascensor" } },
+        { "valor": 2024, "tipo": "ano", "rotulo": { "pt": "Prêmio nacional BIM", "en": "National BIM award", "es": "Premio nacional BIM" } }
+      ],
+      "curiosidades": [
+        {
+          "titulo": { "pt": "Projeto premiado", "en": "Award-winning design", "es": "Proyecto premiado" },
+          "texto": { "pt": "Em 2024, o Parque do Mirante foi premiado no 6º Congresso BIM CREA-SC, em Florianópolis, evento com mais de 500 profissionais do Brasil e de outros cinco países.", "en": "In 2024, Lookout Park won an award at the 6th BIM CREA-SC Congress in Florianópolis, attended by over 500 professionals from Brazil and five other countries.", "es": "En 2024, el Parque del Mirador fue premiado en el 6.º Congreso BIM CREA-SC, en Florianópolis, con más de 500 profesionales de Brasil y otros cinco países." }
+        },
+        {
+          "titulo": { "pt": "Visão futurista", "en": "A futuristic look", "es": "Visión futurista" },
+          "texto": { "pt": "As torres e os elevadores foram projetados com revestimento de vidro temperado.", "en": "The towers and elevators were designed with a tempered glass finish.", "es": "Las torres y los ascensores se proyectaron con revestimiento de vidrio templado." }
+        },
+        {
+          "titulo": { "pt": "Trilha para todos", "en": "A trail for everyone", "es": "Un sendero para todos" },
+          "texto": { "pt": "A trilha foi projetada circundando o morro e totalmente acessível, até o ponto de vista final.", "en": "The trail was designed to wrap around the hill and be fully accessible, all the way to the final viewpoint.", "es": "El sendero se proyectó rodeando el cerro y totalmente accesible, hasta el punto de vista final." }
+        }
+      ],
+      "falas": [
+        { "pt": "Este projeto ganhou um prêmio nacional de engenharia em 2024!", "en": "This project won a national engineering award in 2024!", "es": "¡Este proyecto ganó un premio nacional de ingeniería en 2024!" },
+        { "pt": "A imagem que você está vendo é do projeto do parque.", "en": "The image you're looking at shows the park's design.", "es": "La imagen que está viendo es del proyecto del parque." }
+      ],
+      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
+      "creditos": "imagem do projeto da Prefeitura de Canaã dos Carajás."
+    },
+
+    {
+      "id": "parque-veredas",
+      "ativo": true,
+      "nome": { "pt": "Parque Veredas", "en": "Veredas Park", "es": "Parque Veredas" },
+      "categoria": { "pt": "Cartão-postal", "en": "City landmark", "es": "Postal de la ciudad" },
+      "frase": {
+        "pt": "Natureza, trilhas e a subida até o mirante em um dos cartões-postais da cidade.",
+        "en": "Nature, trails and the climb to the lookout at one of the city's landmarks.",
+        "es": "Naturaleza, senderos y la subida al mirador en una de las postales de la ciudad."
+      },
+      "introducao": {
+        "pt": "A Prefeitura aponta o Parque Veredas como um dos principais cartões-postais de Canaã dos Carajás. O parque recebe trilhas até o mirante, corridas, ciclismo e visitas de escolas da rede municipal, que aprendem ali sobre a conservação da fauna e da flora.",
+        "en": "City Hall lists Veredas Park among the main landmarks of Canaã dos Carajás. The park hosts trails to the lookout, races, cycling and visits from municipal schools, whose students learn about protecting wildlife and plants.",
+        "es": "La Alcaldía señala el Parque Veredas como una de las principales postales de Canaã dos Carajás. El parque recibe senderos hasta el mirador, carreras, ciclismo y visitas de escuelas municipales, cuyos alumnos aprenden sobre la conservación de la fauna y la flora."
+      },
+      "fotos": {
+        "capa": "assets/img/locais/parque-veredas-capa.webp",
+        "miniatura": "assets/img/locais/parque-veredas-capa-sm.webp"
+      },
+      "curiosidades": [
+        {
+          "titulo": { "pt": "Subida ao mirante", "en": "Climbing to the lookout", "es": "Subida al mirador" },
+          "texto": { "pt": "A Trilha do Mirante faz parte da programação do parque e aproxima a população dos ecossistemas locais.", "en": "The Lookout Trail is part of the park's program and brings people closer to local ecosystems.", "es": "El Sendero del Mirador forma parte de la programación del parque y acerca a la población a los ecosistemas locales." }
+        },
+        {
+          "titulo": { "pt": "Sala de aula a céu aberto", "en": "An open-air classroom", "es": "Aula al aire libre" },
+          "texto": { "pt": "Alunos da rede municipal visitam o parque para aprender sobre a conservação e o aumento da biodiversidade.", "en": "Municipal school students visit the park to learn about conservation and growing biodiversity.", "es": "Alumnos de la red municipal visitan el parque para aprender sobre la conservación y el aumento de la biodiversidad." }
+        },
+        {
+          "titulo": { "pt": "Corrida Kids", "en": "Kids' Run", "es": "Carrera Kids" },
+          "texto": { "pt": "Em 2025, o parque recebeu a primeira Corrida Kids, no encerramento da Semana do Meio Ambiente.", "en": "In 2025, the park hosted its first Kids' Run, closing Environment Week.", "es": "En 2025, el parque recibió la primera Carrera Kids, en el cierre de la Semana del Medio Ambiente." }
+        }
+      ],
+      "falas": [
+        { "pt": "Olha que vista! Esse é um dos cartões-postais da nossa cidade.", "en": "What a view! This is one of our city's landmarks.", "es": "¡Qué vista! Esta es una de las postales de nuestra ciudad." },
+        { "pt": "Como bom guarda-parque, eu recomendo a Trilha do Mirante!", "en": "As a good park ranger, I recommend the Lookout Trail!", "es": "¡Como buen guardaparque, recomiendo el Sendero del Mirador!" }
+      ],
+      "streetView": { "lat": -6.531, "lng": -49.852, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas aproximadas [CONFIRMAR]" },
+      "creditos": "Prefeitura de Canaã dos Carajás."
+    },
+
+    {
+      "id": "rodoviaria",
+      "ativo": true,
+      "nome": { "pt": "Rodoviária", "en": "Bus Terminal", "es": "Terminal de Autobuses" },
+      "categoria": { "pt": "Chegadas e partidas", "en": "Arrivals and departures", "es": "Llegadas y salidas" },
+      "frase": {
+        "pt": "A porta de entrada de quem chega à cidade pela estrada.",
+        "en": "The gateway for everyone arriving in the city by road.",
+        "es": "La puerta de entrada para quien llega a la ciudad por carretera."
+      },
+      "introducao": {
+        "pt": "O Terminal Rodoviário de Canaã dos Carajás liga a cidade à região e a outros estados. Ao seu lado, a Avenida Minas Gerais recebe obras de infraestrutura desde julho de 2026. Destinos como Marabá, Redenção, Imperatriz, Belém e Goiânia aparecem em sites de passagens. [CONFIRMAR]",
+        "en": "The Canaã dos Carajás Bus Terminal connects the city to the region and to other states. Beside it, Minas Gerais Avenue has been under construction since July 2026. Destinations such as Marabá, Redenção, Imperatriz, Belém and Goiânia appear on ticket websites. [CONFIRMAR]",
+        "es": "La Terminal de Autobuses de Canaã dos Carajás conecta la ciudad con la región y con otros estados. A su lado, la Avenida Minas Gerais recibe obras de infraestructura desde julio de 2026. Destinos como Marabá, Redenção, Imperatriz, Belém y Goiânia aparecen en sitios de pasajes. [CONFIRMAR]"
+      },
+      "fotos": {
+        "capa": "assets/img/locais/rodoviaria-capa.webp",
+        "miniatura": "assets/img/locais/rodoviaria-capa-sm.webp"
+      },
+      "curiosidades": [
+        {
+          "titulo": { "pt": "Destinos", "en": "Destinations", "es": "Destinos" },
+          "texto": { "pt": "Sites de passagens listam viagens para cidades do Pará, do Maranhão, de Goiás e de São Paulo. [CONFIRMAR]", "en": "Ticket websites list trips to cities in Pará, Maranhão, Goiás and São Paulo. [CONFIRMAR]", "es": "Sitios de pasajes muestran viajes a ciudades de Pará, Maranhão, Goiás y São Paulo. [CONFIRMAR]" }
+        },
+        {
+          "titulo": { "pt": "Avenida em obras", "en": "A street in progress", "es": "Una avenida en obras" },
+          "texto": { "pt": "A obra da Avenida Minas Gerais, iniciada em julho de 2026, prevê 1,5 km de ciclovia, 3 km de calçadas revitalizadas e novos pontos de ônibus.", "en": "Work on Minas Gerais Avenue, begun in July 2026, includes 1.5 km of bike path, 3 km of renewed sidewalks and new bus stops.", "es": "La obra de la Avenida Minas Gerais, iniciada en julio de 2026, prevé 1,5 km de ciclovía, 3 km de aceras renovadas y nuevas paradas de autobús." }
+        }
+      ],
+      "falas": [
+        { "pt": "Muita gente chega a Canaã por aqui. Seja bem-vindo!", "en": "Many people arrive in Canaã right here. Welcome!", "es": "Mucha gente llega a Canaã por aquí. ¡Bienvenido!" }
+      ],
+      "streetView": { "lat": -6.51946, "lng": -49.8547, "heading": 0, "pitch": 0, "fov": 80, "_obs": "Coordenadas do OpenStreetMap" },
+      "creditos": "Prefeitura de Canaã dos Carajás."
+    }
+  ]
+}

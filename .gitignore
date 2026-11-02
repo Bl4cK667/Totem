@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+testes/
+.perfil-totem/
+.claude/settings.local.json

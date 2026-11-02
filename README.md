@@ -1,5 +1,7 @@
 # Totem Digital — Mirante de Canaã dos Carajás
 
+**Site publicado: https://totem-canaa.vercel.app**
+
 Totem touchscreen para o mirante da cidade. O visitante toca na tela, "chega" a Canaã a partir do planeta girando e explora os pontos da cidade: fotos, números, curiosidades, antes e depois e Street View.
 
 Feito para tela **vertical 1080×1920**. Também funciona na horizontal e em notebook (para apresentações).
@@ -62,7 +64,7 @@ Para um local novo, use o padrão `<id>-capa`, `<id>-antes` e `<id>-depois`, e a
    ```
    http://localhost:4173/*
    http://localhost:5173/*
-   https://endereco-do-seu-site.vercel.app/*
+   https://totem-canaa.vercel.app/*
    ```
 4. Cole a chave em `config.js`, no lugar de `COLE_AQUI`. **Não envie a chave verdadeira para o GitHub**, pois o repositório é público. No site publicado, ela fica nas configurações da Vercel (seção 11).
 
@@ -122,13 +124,13 @@ scripts/                  conversão de fotos, verificação de contraste, teste
 
 ## 11. Publicar com link fixo
 
-O site fica na Vercel, ligado ao repositório do GitHub: cada envio (commit e push) na branch `main` atualiza o site sozinho.
+O site fica em https://totem-canaa.vercel.app (projeto `totem-canaa` na Vercel), ligado a este repositório: cada envio (commit e push) na branch `main` atualiza o site sozinho.
 
-Configuração, feita uma vez só:
+A chave do Google fica na Vercel, feita uma vez só:
 
-1. Em [vercel.com/new](https://vercel.com/new), importe o repositório `Totem`. O projeto é reconhecido como Vite, sem precisar ajustar nada.
-2. Em **Environment Variables**, crie `GOOGLE_MAPS_KEY` com a sua chave do Google.
-3. Clique em **Deploy** e autorize o endereço do site na chave do Google (seção 5).
+1. No projeto, abra **Settings > Environment Variables** e crie `GOOGLE_MAPS_KEY` com a sua chave.
+2. Em **Deployments**, escolha o mais recente e clique em **Redeploy**.
+3. Autorize o endereço do site na chave do Google (seção 5).
 
 **Atenção:** o plano gratuito da Vercel só vale para uso pessoal e não comercial. Se alguém recebe para fazer o projeto, ele conta como comercial.
 

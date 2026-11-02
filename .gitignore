@@ -4,3 +4,6 @@ dist/
 testes/
 .perfil-totem/
 .claude/settings.local.json
+
+.vercel
+.env*

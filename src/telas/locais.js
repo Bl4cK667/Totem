@@ -9,8 +9,8 @@ import { preCarregar } from '../util/preload.js';
 const tela = document.querySelector('[data-tela="locais"]');
 const SETA = '<svg class="seta" viewBox="0 0 28 16" aria-hidden="true"><path d="M0 8h26M19 1l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
 
-const ESCALA_LADO = 0.84;    // tamanho dos cards vizinhos em relação ao ativo
-const APAGADO_LADO = 0.45;   // quanto os vizinhos ficam apagados
+const ESCALA_LADO = 0.85;    // tamanho dos cards vizinhos em relação ao ativo
+const APAGADO_LADO = 0.4;    // véu creme sobre os vizinhos: equivale a opacidade 0.6
 const ESPIADA = 0.11;        // fração da tela em que o card anterior aparece à esquerda
 const MOLA_FORCA = 70;
 const MOLA_ATRITO = 12.5;    // abaixo do amortecimento crítico: passa um pouco e volta
@@ -51,7 +51,6 @@ export function renderizar() {
             (l, i) => `
           <article class="card-local" data-id="${l.id}" data-i="${i}" role="option">
             <div class="card-local__foto"><img src="${l.fotos.miniatura || l.fotos.capa}" alt="" decoding="sync" /></div>
-            <div class="card-local__apagado"></div>
             <div class="card-local__veu"></div>
             <div class="card-local__texto">
               <p class="card-local__num serif">${dois(i + 1)}</p>
@@ -60,6 +59,7 @@ export function renderizar() {
               <p class="card-local__frase">${html(tr(l.frase))}</p>
               <span class="botao botao--ouro card-local__abrir">${html(t('locais.abrir'))}${SETA}</span>
             </div>
+            <div class="card-local__apagado"></div>
             <p class="card-local__lado serif">${html(tr(l.nome))}</p>
           </article>`
           )

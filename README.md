@@ -111,7 +111,7 @@ assets/img/globo/         texturas da Terra
 assets/img/marca/         brasão
 src/styles/tokens.css     paleta de cores e tipografia (único lugar das cores)
 src/telas/                início, transição, locais, página do local
-src/componentes/          planeta, mascote, contador, antes/depois, Street View, QR
+src/componentes/          planeta, mapa sobre o planeta, mascote, contador, antes/depois, Street View, QR
 src/core/                 idiomas, navegação, modo descanso, regras de quiosque
 scripts/                  conversão de fotos, verificação de contraste, teste automatizado
 ```

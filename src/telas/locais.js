@@ -13,6 +13,8 @@ let trilhoX = 0;
 let aoAbrir = () => {};
 let els = {};
 
+const QUASE_INVISIVEL = 0.001;
+
 const dois = (n) => String(n).padStart(2, '0');
 
 export function montarLocais({ aoAbrirLocal }) {
@@ -36,7 +38,7 @@ export function renderizar() {
           .map(
             (l, i) => `
           <article class="card-local" data-id="${l.id}" data-i="${i}" role="option">
-            <div class="card-local__foto"><img src="${l.fotos.miniatura || l.fotos.capa}" alt="" decoding="async" /></div>
+            <div class="card-local__foto"><img src="${l.fotos.miniatura || l.fotos.capa}" alt="" decoding="sync" /></div>
             <div class="card-local__veu"></div>
             <div class="card-local__texto">
               <p class="card-local__num serif">${dois(i + 1)}</p>
@@ -195,30 +197,61 @@ function ligarArraste() {
 }
 
 // --- Entrada / saída ----------------------------------------------------------
-export function entrarLocais({ circulo } = {}) {
+export function entrarLocais({ chegada = false } = {}) {
+  posicionar(false);
+  if (chegada) return entrarDaTransicao();
+
   estado.tela = 'locais';
   preCarregar(locaisAtivos().map((l) => l.fotos.capa));
   gsap.set(tela, { autoAlpha: 1 });
-  posicionar(false);
 
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-  if (circulo) {
-    const { x, y } = circulo;
-    tl.fromTo(
-      tela,
-      { clipPath: `circle(0px at ${x}px ${y}px)` },
-      { clipPath: `circle(${Math.hypot(innerWidth, innerHeight)}px at ${x}px ${y}px)`, duration: 1.1, ease: 'power3.inOut', clearProps: 'clipPath' },
-      0
-    );
-  }
-  const d = circulo ? 0.45 : 0;
-  tl.fromTo(tela.querySelector('.locais__sobretitulo'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 1.2 }, d)
-    .fromTo(tela.querySelector('.locais__titulo .linha > span'), { yPercent: 110 }, { yPercent: 0, duration: 1.4 }, d + 0.05)
+  tl.fromTo(tela.querySelector('.locais__sobretitulo'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 1.2 }, 0)
+    .fromTo(tela.querySelector('.locais__titulo .linha > span'), { yPercent: 110 }, { yPercent: 0, duration: 1.4 }, 0.05)
     // Os cards têm transform próprio (escala do carrossel): a entrada usa máscara + deslocamento do contêiner
-    .fromTo(els.carrossel, { x: () => innerWidth * 0.18 }, { x: 0, duration: 1.6 }, d + 0.1)
-    .fromTo(els.cards, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, stagger: 0.09, ease: 'expo.inOut', clearProps: 'clipPath' }, d + 0.05)
-    .fromTo(tela.querySelector('.locais__rodape'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 1.2 }, d + 0.4);
+    .fromTo(els.carrossel, { x: () => innerWidth * 0.18 }, { x: 0, duration: 1.6 }, 0.1)
+    .fromTo(els.cards, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, stagger: 0.09, ease: 'expo.inOut', clearProps: 'clipPath' }, 0.05)
+    .fromTo(tela.querySelector('.locais__rodape'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 1.2 }, 0.4);
   return tl;
+}
+
+/**
+ * Parte final da transição do planeta: o fundo bege já está na tela e os cards
+ * entram um depois do outro, a partir do card em destaque. Com menos movimento, só fade.
+ */
+function entrarDaTransicao() {
+  const calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sobe = (px) => (calmo ? 0 : px);
+  gsap.set(tela, { autoAlpha: 0 });
+  const tl = gsap.timeline({ defaults: { ease: 'power2.out', duration: 0.7 } });
+  if (calmo) tl.to(tela, { autoAlpha: 1, duration: 0.5 }, 0);
+  else tl.set(tela, { autoAlpha: 1 }, 0);
+  return tl
+    .fromTo(tela.querySelector('.locais__sobretitulo'), { autoAlpha: 0, y: sobe(16) }, { autoAlpha: 1, y: 0 }, 0)
+    .fromTo(tela.querySelector('.locais__titulo .linha > span'), { yPercent: 110 }, { yPercent: 0 }, 0.05)
+    .fromTo(
+      els.cards,
+      { opacity: 0, translate: `0px ${sobe(36)}px` },
+      { opacity: 1, translate: '0px 0px', duration: 0.6, stagger: { amount: 0.25, from: indice } },
+      0
+    )
+    .fromTo(tela.querySelector('.locais__rodape'), { autoAlpha: 0, y: sobe(20) }, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.3);
+}
+
+/**
+ * Mostra a tela e o mascote por um instante, quase invisíveis, para o navegador deixar as fotos
+ * prontas para desenhar e não engasgar quando elas aparecerem de verdade.
+ */
+export async function aquecerCards() {
+  await fotosDosCards();
+  if (estado.tela !== 'inicio') return;
+  gsap.set([tela, '.mascote'], { autoAlpha: QUASE_INVISIVEL });
+  gsap.delayedCall(0.3, () => estado.tela === 'inicio' && gsap.set([tela, '.mascote'], { autoAlpha: 0 }));
+}
+
+/** Espera as fotos dos cards decodificadas: a tela nunca aparece com um card vazio */
+export function fotosDosCards() {
+  return Promise.all(els.cards.map((c) => c.querySelector('img').decode().catch(() => {})));
 }
 
 export function sairLocais() {

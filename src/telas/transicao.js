@@ -1,49 +1,33 @@
-// Transição cinematográfica: planeta → Brasil → Pará → Canaã.
-// 1) O globo gira até Canaã e aproxima (Three.js)
-// 2) O mapa vetorial (contornos do IBGE) assume no mesmo enquadramento
-// 3) O "zoom" continua no SVG até o município, e um círculo revela a próxima tela
+// Transição cinematográfica: um único movimento de câmera, do planeta aos cards.
+// 1) Planeta gira até o Brasil enquanto o contorno se desenha sobre ele
+// 2) O planeta some e o mapa, colado na mesma esfera, continua no lugar
+// 3) A câmera desce sem parar até o Pará e Canaã, e o fundo vai do escuro ao verde
+// 4) O ponto de Canaã cresce e vira o fundo bege da tela dos cards
+// Uma timeline só, animando apenas posição da câmera e opacidade.
 import gsap from 'gsap';
-import { BRASIL, PARA, CANAA, PROJ } from '../componentes/mapa-dados.js';
 import { estado } from '../core/estado.js';
 import { sairInicio } from './inicio.js';
 
 const tela = document.querySelector('[data-tela="transicao"]');
-const svg = tela.querySelector('.mapa');
+const rotulos = tela.querySelector('.mapa__rotulos');
 const rotulo = (n) => tela.querySelector(`[data-rotulo="${n}"]`);
 
-// Lon/lat → coordenadas do SVG (mesma projeção do mapa-dados.js)
-const px = (lon) => (lon - PROJ.lon0) * PROJ.k;
-const py = (lat) => (PROJ.lat0 - lat) * PROJ.k;
+// Área mostrada em cada etapa da câmera: centro e tamanho em graus, e quanto da tela ela ocupa
+const BRASIL = { lat: -14.2, lon: -53, largura: 40, altura: 40, fracao: 0.92 };
+const PARA = { lat: -3.7, lon: -52.5, largura: 12.9, altura: 12.5, fracao: 0.84 };
+const CANAA = { lat: -6.48, lon: -50.1, largura: 0.95, altura: 0.5, fracao: 0.62 };
 
-function montarSvg() {
-  const { lat, lng } = estado.dados.config.cidade;
-  let grade = '';
-  for (let lon = -75; lon <= -30; lon += 5) grade += `<line x1="${px(lon)}" y1="${py(8)}" x2="${px(lon)}" y2="${py(-36)}"/>`;
-  for (let la = 5; la >= -35; la -= 5) grade += `<line x1="${px(-76)}" y1="${py(la)}" x2="${px(-32)}" y2="${py(la)}"/>`;
-
-  svg.innerHTML = `
-    <g class="mapa__grade">${grade}</g>
-    <path class="mapa__brasil" d="${BRASIL}" pathLength="1" vector-effect="non-scaling-stroke"/>
-    <path class="mapa__para" d="${PARA}" pathLength="1" vector-effect="non-scaling-stroke"/>
-    <path class="mapa__canaa" d="${CANAA}" pathLength="1" vector-effect="non-scaling-stroke"/>
-    <g class="mapa__ponto" transform="translate(${px(lng)} ${py(lat)})">
-      <circle class="mapa__onda" r="1" vector-effect="non-scaling-stroke"/>
-      <circle class="mapa__nucleo" r="0.6"/>
-    </g>`;
-}
-
-/** viewBox centrado em (cx, cy) com a largura pedida, na proporção da tela */
-function vb(cx, cy, largura) {
-  const aspect = window.innerWidth / window.innerHeight;
-  const altura = largura / aspect;
-  return `${cx - largura / 2} ${cy - altura / 2} ${largura} ${altura}`;
-}
-
-/** Largura do viewBox para caber uma área (em graus) ocupando "fracao" da tela */
-function encaixar(grausLon, grausLat, fracao) {
-  const aspect = window.innerWidth / window.innerHeight;
-  return Math.max((grausLon * PROJ.k) / fracao, ((grausLat * PROJ.k) / fracao) * aspect);
-}
+// Linha do tempo (segundos). Cada etapa da câmera começa antes de a anterior terminar
+const T = {
+  planeta: [0, 1.9],
+  brasil: [1.45, 1.7],
+  canaa: [2.7, 1.7],
+  ponto: 4.3, // só passa daqui com as fotos dos cards prontas
+  cards: 4.95,
+};
+const EASE = 'power2.inOut';
+const TOQUE_MINIMO = 350; // ms: um toque duplo no botão não conta como "pular"
+const TEMPO_DO_PULO = 0.65;
 
 function coordenadas() {
   const { lat, lng } = estado.dados.config.cidade;
@@ -55,82 +39,155 @@ function coordenadas() {
   return `${fmt(lat)} S · ${fmt(lng)} ${oeste}`;
 }
 
+/** Duração só para quem pediu menos movimento: fade simples entre as telas */
+function versaoCurta(tl, { sinalDasFotos, entrada, aoRevelar, aoAssentar }) {
+  tl.add(sairInicio(), 0).add(sinalDasFotos, 0.55).add(aoRevelar, 0.6).add(entrada, 0.6).add(aoAssentar, 0.9);
+}
+
 /**
- * Executa a transição. aoRevelar(x, y) é chamado no final com a posição
- * do ponto da cidade na tela, para a próxima tela abrir em círculo dali.
+ * Executa a transição.
+ * - fotos: promessa resolvida quando as imagens dos cards estão prontas
+ * - entrada: timeline de entrada da tela de cards (fica embutida nesta)
+ * - aoRevelar: o fundo bege já cobre a tela; aoAssentar: cards visíveis; aoTerminar: fim de tudo
  */
-export function executarTransicao({ globo, aoRevelar }) {
-  montarSvg();
+export function executarTransicao({ globo, fotos, entrada, aoRevelar, aoAssentar, aoTerminar }) {
+  const { pose, mapa, ponto } = globo;
+  const v = mapa.v;
+  const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   tela.querySelector('.mapa__coord').textContent = coordenadas();
-
-  const { lat, lng } = estado.dados.config.cidade;
-  const foco = globo.poseFoco();
-  const grausBrasil = globo.grausVisiveis(foco.dist);
-
-  const vbBrasil = vb(px(lng), py(lat), grausBrasil * PROJ.k);
-  const vbPara = vb(px(-52.5), py(-3.7), encaixar(12.9, 12.5, 0.84));
-  const vbCanaa = vb(px(-50.1), py(-6.48), encaixar(0.95, 0.5, 0.62));
-
-  const brasil = svg.querySelector('.mapa__brasil');
-  const para = svg.querySelector('.mapa__para');
-  const canaa = svg.querySelector('.mapa__canaa');
-  const ponto = svg.querySelector('.mapa__ponto');
-  const onda = svg.querySelector('.mapa__onda');
-
-  svg.setAttribute('viewBox', vbBrasil);
-  gsap.set([brasil, para, canaa], { strokeDasharray: 1, strokeDashoffset: 1, fillOpacity: 0 });
-  gsap.set(svg.querySelector('.mapa__grade'), { opacity: 0 });
-  gsap.set(ponto, { opacity: 0 });
   gsap.set(tela.querySelectorAll('.mapa__rotulo'), { autoAlpha: 0 });
-  gsap.set(tela, { autoAlpha: 0 });
+  gsap.set(rotulos, { opacity: 1 });
+  gsap.set(tela, { autoAlpha: 1 });
 
   // Se tocarem durante a aproximação inicial, a transição assume a câmera sem disputa
-  gsap.killTweensOf(globo.pose);
+  gsap.killTweensOf(pose);
   globo.emTransicao = true;
   globo.girando = false;
 
+  let fotosProntas = false;
+  fotos.then(() => (fotosProntas = true));
+
+  const inicio = performance.now();
+  const aoTocar = (e) => {
+    e.stopPropagation();
+    if (performance.now() - inicio > TOQUE_MINIMO) pular();
+  };
+  const soltarToques = () => {
+    window.removeEventListener('pointerdown', aoTocar, true);
+    window.removeEventListener('click', bloquearClique, true);
+  };
+  const bloquearClique = (e) => e.stopPropagation();
+
   const tl = gsap.timeline({
     onComplete: () => {
+      soltarToques();
       globo.emTransicao = false;
+      aoTerminar();
     },
   });
 
-  // 1) Globo: gira até Canaã e aproxima
+  /** Segura a timeline enquanto as fotos não chegam (o ponto continua pulsando) */
+  const sinalDasFotos = () => {
+    if (fotosProntas) return;
+    tl.pause();
+    fotos.then(() => tl.play());
+  };
+
+  window.addEventListener('pointerdown', aoTocar, true);
+  window.addEventListener('click', bloquearClique, true);
+
+  if (semMovimento) {
+    versaoCurta(tl, { sinalDasFotos, entrada, aoRevelar, aoAssentar });
+    return tl;
+  }
+
+  // Câmera: cada etapa soma sua parte ao movimento. Como elas se sobrepõem, ele nunca para
+  const voltas = Math.round((pose.rotY - globo.rotacaoPara(BRASIL.lat, BRASIL.lon).rotY) / (Math.PI * 2));
+  const quadro = (a) => {
+    const r = globo.rotacaoPara(a.lat, a.lon);
+    return { rotX: r.rotX, rotY: r.rotY + voltas * Math.PI * 2, alt: Math.log(globo.altitudePara(a.largura, a.altura, a.fracao)) };
+  };
+  const q0 = { rotX: pose.rotX, rotY: pose.rotY, alt: Math.log(pose.dist - 1) };
+  const q1 = quadro(BRASIL);
+  const q2 = quadro(PARA);
+  const q3 = quadro(CANAA);
+  const ini = { x: pose.x, y: pose.y, rotZ: pose.rotZ };
+  const etapas = { a: 0, b: 0, c: 0 };
+  const somar = (k) => q0[k] + etapas.a * (q1[k] - q0[k]) + etapas.b * (q2[k] - q1[k]) + etapas.c * (q3[k] - q2[k]);
+  const mover = () => {
+    pose.rotX = somar('rotX');
+    pose.rotY = somar('rotY');
+    pose.dist = 1 + Math.exp(somar('alt'));
+    pose.x = ini.x * (1 - etapas.a);
+    pose.y = ini.y * (1 - etapas.a);
+    pose.rotZ = ini.rotZ * (1 - etapas.a);
+  };
+  tl.eventCallback('onUpdate', mover);
+
+  const creme = { duration: 0.45, ease: 'power1.in' };
+
+  mapa.grupo.visible = true;
   tl.add(sairInicio(), 0)
-    .to(globo.pose, { rotY: foco.rotY, rotX: foco.rotX, rotZ: 0, x: 0, y: 0, duration: 1.25, ease: 'power3.inOut' }, 0)
-    .to(globo.pose, { dist: foco.dist, duration: 1.35, ease: 'power3.inOut' }, 0.05)
-    .to(globo.pose, { flutuar: 0, duration: 0.6, ease: 'power2.out' }, 0)
-    .to(globo.pose, { nuvens: 0, estrelas: 0, atmo: 0.4, duration: 0.9, ease: 'power1.in' }, 0.25)
+    .to(pose, { flutuar: 0, duration: 0.8, ease: 'power2.out' }, 0)
+    .to(pose, { nuvens: 0, estrelas: 0, atmo: 0, duration: 1.3, ease: 'power1.inOut' }, 0.3)
 
-    // 2) Mapa assume: Brasil desenhado em linha dourada
-    .set(tela, { autoAlpha: 1 }, 0.95)
-    .to(brasil, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, 0.95)
-    .to(brasil, { fillOpacity: 1, duration: 0.6 }, 1.2)
-    .to(svg.querySelector('.mapa__grade'), { opacity: 1, duration: 0.6 }, 1.1)
-    .to('#globo', { opacity: 0, duration: 0.5, ease: 'power1.inOut' }, 1.15)
-    .fromTo(rotulo('brasil'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 1.05)
+    // 1) Planeta → Brasil: o contorno se desenha enquanto a câmera chega
+    .to(etapas, { a: 1, duration: T.planeta[1], ease: EASE }, T.planeta[0])
+    .to(v, { brasilTraco: 1, duration: 1.15, ease: 'power1.inOut' }, 0.65)
 
-    // 3) Pará
-    .to(svg, { attr: { viewBox: vbPara }, duration: 0.75, ease: 'power3.inOut' }, 1.45)
-    .to(para, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut' }, 1.5)
-    .to(para, { fillOpacity: 1, duration: 0.5 }, 1.75)
-    .to(rotulo('brasil'), { autoAlpha: 0, y: -12, duration: 0.3 }, 1.55)
-    .fromTo(rotulo('para'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 1.7)
+    // Crossfade: o mapa aparece embaixo enquanto o planeta some
+    .to(v, { grade: 1, brasilFundo: 1, estados: 1, duration: 0.9, ease: EASE }, 1.25)
+    .to(pose, { planeta: 0, duration: 1, ease: EASE }, 1.25)
+    .fromTo(rotulo('brasil'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.3)
 
-    // 4) Canaã dos Carajás
-    .to(svg, { attr: { viewBox: vbCanaa }, duration: 0.8, ease: 'power3.inOut' }, 2.05)
-    .to(rotulo('para'), { autoAlpha: 0, y: -12, duration: 0.3 }, 2.1)
-    .to(canaa, { strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut' }, 2.35)
-    .to(canaa, { fillOpacity: 1, duration: 0.4 }, 2.5)
-    .to(ponto, { opacity: 1, duration: 0.3 }, 2.45)
-    .fromTo(onda, { attr: { r: 0.2 }, opacity: 1 }, { attr: { r: 2.2 }, opacity: 0, duration: 0.9, ease: 'power2.out' }, 2.5)
-    .fromTo(rotulo('cidade'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 2.45)
+    // 2) Brasil → Pará: os outros estados somem e o fundo vai ficando verde
+    .to(etapas, { b: 1, duration: T.brasil[1], ease: EASE }, T.brasil[0])
+    .to(v, { paraTraco: 1, duration: 0.8, ease: 'power1.inOut' }, 1.6)
+    .to(v, { paraFundo: 1, duration: 0.8, ease: EASE }, 1.85)
+    .to(v, { estados: 0, brasilFundo: 0, brasilAlfa: 0, grade: 0.4, duration: 1.2, ease: EASE }, 2)
+    .to(pose, { fundo: 1, duration: 1.7, ease: EASE }, 1.9)
+    .to(rotulo('brasil'), { autoAlpha: 0, y: -12, duration: 0.4, ease: 'power1.in' }, 1.95)
+    .fromTo(rotulo('para'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 2.3)
 
-    // 5) Revela a próxima tela a partir do ponto
-    .add(() => {
-      const r = ponto.getBoundingClientRect();
-      aoRevelar(r.left + r.width / 2, r.top + r.height / 2);
-    }, 2.85);
+    // 3) Pará → Canaã: o ponto pulsa e o nome da cidade sobe
+    .to(etapas, { c: 1, duration: T.canaa[1], ease: EASE }, T.canaa[0])
+    .to(rotulo('para'), { autoAlpha: 0, y: -12, duration: 0.4, ease: 'power1.in' }, 3)
+    .to(v, { canaaTraco: 1, duration: 0.6, ease: 'power1.inOut' }, 3.25)
+    .to(v, { canaaFundo: 1, duration: 0.5, ease: EASE }, 3.5)
+    .to(ponto, { alfa: 1, duration: 0.4, ease: 'power1.out' }, 3.3)
+    .fromTo(rotulo('cidade'), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 3.45)
+
+    // 4) Canaã → cards: o ponto vira o fundo bege
+    .add(sinalDasFotos, T.ponto)
+    .to(rotulo('cidade'), { autoAlpha: 0, y: -14, duration: 0.3, ease: 'power1.in' }, T.ponto)
+    .to(ponto, { mistura: 1, ...creme }, T.ponto)
+    .to(ponto, { raio: () => globo.raioParaCobrir() * 1.03, duration: T.cards - T.ponto, ease: 'power2.in' }, T.ponto)
+    .add(aoRevelar, T.cards)
+    .add(entrada, T.cards)
+    .add(aoAssentar, T.cards + 0.15);
+
+  /** Toque durante a transição: o bege cobre a tela e a timeline salta para os cards */
+  let pulou = false;
+  function pular() {
+    if (pulou) return;
+    pulou = true;
+    if (tl.time() >= T.ponto - TEMPO_DO_PULO) {
+      gsap.to(tl, { timeScale: 2.5, duration: 0.2 });
+      return;
+    }
+    fotos.then(() => {
+      if (tl.time() >= T.ponto - TEMPO_DO_PULO) return gsap.to(tl, { timeScale: 2.5, duration: 0.2 });
+      gsap.to(rotulos, { opacity: 0, duration: 0.25, ease: 'power1.out' });
+      gsap.to(ponto, { alfa: 1, mistura: 1, duration: 0.2, ease: 'power1.out', overwrite: true });
+      gsap.to(ponto, {
+        raio: Math.hypot(innerWidth, innerHeight) * 2.2, // cobre a tela mesmo com Canaã fora dela
+        duration: TEMPO_DO_PULO,
+        ease: 'power2.in',
+        onComplete: () => tl.seek(T.cards + 0.001, false),
+      });
+    });
+  }
 
   return tl;
 }
@@ -138,4 +195,5 @@ export function executarTransicao({ globo, aoRevelar }) {
 /** Esconde a tela de transição depois que a próxima já está visível */
 export function limparTransicao() {
   gsap.set(tela, { autoAlpha: 0 });
+  gsap.set(tela.querySelectorAll('.mapa__rotulo'), { autoAlpha: 0 });
 }

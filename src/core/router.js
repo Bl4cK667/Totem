@@ -5,20 +5,21 @@ import { estado, emitir, localPorId, em } from './estado.js';
 import { mudarIdioma } from './i18n.js';
 import { entrarInicio, definirDescanso } from '../telas/inicio.js';
 import { executarTransicao, limparTransicao } from '../telas/transicao.js';
-import { renderizar as renderizarLocais, entrarLocais, definirIndice } from '../telas/locais.js';
+import { renderizar as renderizarLocais, entrarLocais, definirIndice, fotosDosCards } from '../telas/locais.js';
 import { renderizarLocal, abrirLocal as animarAbertura, sairLocal, destruir as destruirLocal } from '../telas/local.js';
 import { preCarregar } from '../util/preload.js';
 
 const app = document.getElementById('app');
 const barra = document.querySelector('.barra-topo');
 const cortina = document.querySelector('.cortina');
+const ESPERA_MAXIMA_FOTOS = 15000; // ms: uma foto com defeito não pode travar o totem
 let globo = null;
 
 export function iniciarRotas(g) {
   globo = g;
   // Troca de idioma: refaz a tela atual sem perder a posição
   em('idioma', () => {
-    if (estado.tela === 'locais') renderizarLocais();
+    if (estado.tela === 'locais' || estado.tela === 'inicio') renderizarLocais();
     if (estado.tela === 'local') renderizarLocal(estado.localId, { manterRolagem: true });
   });
 }
@@ -45,19 +46,22 @@ function ocupar(segundos) {
 // --- Início → Locais -----------------------------------------------------------
 export function comecar() {
   if (estado.ocupado) return;
-  ocupar(4.2);
+  estado.ocupado = true;
   definirTela('transicao');
   executarTransicao({
     globo,
-    aoRevelar: (x, y) => {
-      definirTela('locais');
+    fotos: Promise.race([fotosDosCards(), new Promise((r) => setTimeout(r, ESPERA_MAXIMA_FOTOS))]),
+    entrada: entrarLocais({ chegada: true }),
+    aoRevelar: () => {
       barraClara();
       mostrarBarra(true);
-      entrarLocais({ circulo: { x, y } });
-      gsap.delayedCall(1.2, () => {
-        limparTransicao();
-        globo.pausar();
-      });
+    },
+    // O mascote reage a este aviso: entra quando os cards já estão na tela
+    aoAssentar: () => definirTela('locais'),
+    aoTerminar: () => {
+      limparTransicao();
+      globo.pausar();
+      estado.ocupado = false;
     },
   });
 }

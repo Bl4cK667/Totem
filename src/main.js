@@ -10,6 +10,7 @@ import './styles/componentes.css';
 
 import gsap from 'gsap';
 import { estado, locaisAtivos } from './core/estado.js';
+import { preCarregar } from './util/preload.js';
 import { aplicarTextos, montarSeletores } from './core/i18n.js';
 import { ativarModoQuiosque } from './core/kiosk.js';
 import { ativarOndaDeToque } from './core/touch-ripple.js';
@@ -18,12 +19,14 @@ import { iniciarRotas, comecar, abrirLocal, proximoLocal, voltarLocais, irInicio
 import { Globo } from './componentes/globo.js';
 import { montarMascote } from './componentes/mascote.js';
 import { montarInicio, entrarInicio } from './telas/inicio.js';
-import { montarLocais } from './telas/locais.js';
+import { montarLocais, aquecerCards } from './telas/locais.js';
 import { montarLocal } from './telas/local.js';
 
 async function iniciar() {
   estado.dados = await fetch('data/locais.json', { cache: 'no-cache' }).then((r) => r.json());
   const { config } = estado.dados;
+  // Fotos dos cards: carregam já na tela do planeta, para a transição nunca esperar por elas
+  preCarregar(locaisAtivos().flatMap((l) => [l.fotos.miniatura, l.fotos.capa]));
   document.body.classList.toggle('sem-confirmar', !config.mostrarMarcasConfirmar);
 
   ativarModoQuiosque();
@@ -58,6 +61,7 @@ async function iniciar() {
   gsap.fromTo('#globo', { opacity: 0 }, { opacity: 1, duration: 2.4, ease: 'power2.out' });
   gsap.from(globo.pose, { dist: globo.pose.dist * 1.2, duration: 3.6, ease: 'expo.out' });
   entrarInicio();
+  aquecerCards();
 
   registrarOffline();
 }

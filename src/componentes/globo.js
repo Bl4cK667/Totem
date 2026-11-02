@@ -4,16 +4,11 @@
 // - Atmosfera (halo), estrelas cintilando e um marcador dourado em Canaã.
 // - A "pose" (distância, posição e rotação) é animada pelo GSAP na transição.
 import * as THREE from 'three';
+import { MapaGlobo, latLonParaVetor } from './mapa-globo.js';
 
 const DEG = Math.PI / 180;
 const FOV = 35;
-
-/** Converte latitude/longitude em um ponto da esfera (mesmo mapeamento da SphereGeometry) */
-export function latLonParaVetor(lat, lon, r = 1) {
-  const phi = (lon + 180) * DEG;
-  const theta = (90 - lat) * DEG;
-  return new THREE.Vector3(-r * Math.cos(phi) * Math.sin(theta), r * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta));
-}
+const PONTO_RAIO = 9; // px
 
 const vertTerra = /* glsl */ `
   varying vec2 vUv;
@@ -37,6 +32,7 @@ const fragTerra = /* glsl */ `
   uniform float uTempo;
   uniform float uNuvensOpac;
   uniform vec3 uCorAtmo;
+  uniform float uOpac;
   varying vec2 vUv;
   varying vec3 vNormalW;
   varying vec3 vPosW;
@@ -72,7 +68,7 @@ const fragTerra = /* glsl */ `
     float fres = pow(1.0 - max(dot(n, v), 0.0), 3.0);
     cor += uCorAtmo * fres * (0.25 + 0.75 * dia) * 0.9;
 
-    gl_FragColor = vec4(cor, 1.0);
+    gl_FragColor = vec4(cor, uOpac);
     #include <colorspace_fragment>
   }
 `;
@@ -131,6 +127,35 @@ const fragEstrelas = /* glsl */ `
   }
 `;
 
+// Ponto de Canaã desenhado na própria tela: pulsa e depois cresce até cobri-la.
+// As cores já vão como na tela, para o bege final ser idêntico ao da tela de cards.
+const vertPonto = /* glsl */ `
+  void main() {
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`;
+
+const fragPonto = /* glsl */ `
+  uniform vec2 uCentro;
+  uniform float uRaio;
+  uniform float uAlfa;
+  uniform float uMistura;
+  uniform float uPulso;
+  uniform float uDpr;
+  uniform vec3 uOuro;
+  uniform vec3 uCreme;
+  void main() {
+    float d = distance(gl_FragCoord.xy, uCentro);
+    float disco = 1.0 - smoothstep(uRaio - 1.0, uRaio + 1.0, d);
+    float anelR = uRaio + uPulso * 30.0 * uDpr;
+    float anel = (1.0 - smoothstep(0.75 * uDpr, 1.75 * uDpr, abs(d - anelR))) * (1.0 - uPulso) * (1.0 - uMistura);
+    gl_FragColor = vec4(mix(uOuro, uCreme, uMistura), max(disco, anel) * uAlfa);
+  }
+`;
+
+/** Cor de um token do tokens.css */
+const token = (nome) => getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+
 export class Globo {
   constructor(canvas, { cidade }) {
     this.canvas = canvas;
@@ -155,10 +180,17 @@ export class Globo {
     this.scene.add(this.pivo);
 
     // Valores animáveis pelo GSAP
-    this.pose = { dist: 6, x: 0, y: 0, rotX: -0.22, rotZ: -0.16, rotY: 0, atmo: 1, nuvens: 1, estrelas: 1, flutuar: 1 };
+    this.pose = { dist: 6, x: 0, y: 0, rotX: -0.22, rotZ: -0.16, rotY: 0, atmo: 1, nuvens: 1, estrelas: 1, flutuar: 1, planeta: 1, fundo: 0 };
+    this.ponto = { alfa: 0, raio: PONTO_RAIO, mistura: 0 };
+
+    this.corNoite = new THREE.Color(token('--noite'));
+    this.corMata = new THREE.Color(token('--mata-800'));
+    this.corFundo = new THREE.Color();
 
     this.sol = new THREE.Vector3(-0.55, 0.38, 0.74).normalize();
-        this.tempo = 0;
+    this.tempo = 0;
+    this.tamanho = new THREE.Vector2();
+    this.projetado = new THREE.Vector3();
   }
 
   async carregar() {
@@ -200,9 +232,13 @@ export class Globo {
         uTempo: { value: 0 },
         uNuvensOpac: { value: 1 },
         uCorAtmo: { value: corAtmo },
+        uOpac: { value: 1 },
       },
+      transparent: true, // o planeta some aos poucos e revela o mapa
     });
-    this.terra.add(new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), this.matTerra));
+    this.esfera = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), this.matTerra);
+    this.esfera.renderOrder = -10;
+    this.terra.add(this.esfera);
 
     // Atmosfera: casca maior, só a parte de trás, mistura aditiva
     this.matAtmo = new THREE.ShaderMaterial({
@@ -224,10 +260,20 @@ export class Globo {
 
     this.criarEstrelas();
     this.criarMarcador();
+    this.criarPonto();
+    this.mapa = new MapaGlobo(this.terra, { ouro: token('--ouro'), ouroClaro: token('--ouro-claro'), mata: token('--mata-500') });
 
     // Rotação inicial: começa com as Américas entrando pela esquerda
-    this.pose.rotY = this.rotacaoParaCidade() - 0.45;
+    this.pose.rotY = this.rotacaoPara(this.cidade.lat, this.cidade.lng).rotY - 0.45;
     this.layout();
+
+    // Envia mapa e materiais à placa de vídeo agora (atrás da tela de carregamento),
+    // para a transição não engasgar ao usá-los pela primeira vez
+    this.mapa.grupo.traverse((o) => (o.visible = true));
+    this.camadaPonto.visible = true;
+    this.renderer.compile(this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera);
+    this.mapa.grupo.visible = this.camadaPonto.visible = false;
     window.addEventListener('resize', () => this.layout());
   }
 
@@ -262,25 +308,59 @@ export class Globo {
   criarMarcador() {
     const p = latLonParaVetor(this.cidade.lat, this.cidade.lng, 1.002);
     const grupo = new THREE.Group();
+    this.marcador = grupo;
     grupo.position.copy(p);
     grupo.lookAt(p.clone().multiplyScalar(2));
     const ouro = new THREE.Color('#e4c77e');
-    const ponto = new THREE.Mesh(
+    this.pontoPlaneta = new THREE.Mesh(
       new THREE.CircleGeometry(0.006, 24),
-      new THREE.MeshBasicMaterial({ color: ouro, transparent: true })
+      new THREE.MeshBasicMaterial({ color: ouro, transparent: true, depthWrite: false })
     );
     this.anel = new THREE.Mesh(
       new THREE.RingGeometry(0.012, 0.0145, 48),
-      new THREE.MeshBasicMaterial({ color: ouro, transparent: true, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: ouro, transparent: true, depthWrite: false, side: THREE.DoubleSide })
     );
-    grupo.add(ponto, this.anel);
+    grupo.add(this.pontoPlaneta, this.anel);
     this.terra.add(grupo);
   }
 
-  /** Rotação Y que deixa Canaã de frente para a câmera */
-  rotacaoParaCidade() {
-    const p = latLonParaVetor(this.cidade.lat, this.cidade.lng);
-    return Math.atan2(-p.x, p.z);
+  criarPonto() {
+    this.posCidade = latLonParaVetor(this.cidade.lat, this.cidade.lng, 1.0026);
+    this.matPonto = new THREE.ShaderMaterial({
+      vertexShader: vertPonto,
+      fragmentShader: fragPonto,
+      uniforms: {
+        uCentro: { value: new THREE.Vector2() },
+        uRaio: { value: 0 },
+        uAlfa: { value: 0 },
+        uMistura: { value: 0 },
+        uPulso: { value: 0 },
+        uDpr: { value: this.dpr },
+        uOuro: { value: new THREE.Color().setStyle(token('--ouro-claro'), THREE.LinearSRGBColorSpace) },
+        uCreme: { value: new THREE.Color().setStyle(token('--creme'), THREE.LinearSRGBColorSpace) },
+      },
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+    this.camadaPonto = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.matPonto);
+    this.camadaPonto.frustumCulled = false;
+    this.camadaPonto.renderOrder = 100;
+    this.camadaPonto.visible = false;
+    this.scene.add(this.camadaPonto);
+  }
+
+  /** Rotações que deixam um ponto (lat/lon) de frente para a câmera */
+  rotacaoPara(lat, lon) {
+    const p = latLonParaVetor(lat, lon);
+    return { rotX: lat * DEG, rotY: Math.atan2(-p.x, p.z) };
+  }
+
+  /** Altura da câmera para uma área (em graus) ocupar "fracao" da tela */
+  altitudePara(grausLargura, grausAltura, fracao) {
+    const tan = Math.tan((FOV / 2) * DEG);
+    const aspect = window.innerWidth / window.innerHeight;
+    return Math.max((grausLargura * DEG) / (fracao * 2 * tan * aspect), (grausAltura * DEG) / (fracao * 2 * tan));
   }
 
   /** Pose de repouso (tela inicial), conforme a orientação da tela */
@@ -302,34 +382,17 @@ export class Globo {
     return { dist, x: alturaVisivel * aspect * 0.2, y: -alturaVisivel * 0.02 };
   }
 
-  /** Pose final do zoom: Canaã no centro, Brasil ocupando boa parte da tela */
-  poseFoco() {
-    const aspect = window.innerWidth / window.innerHeight;
-    const tan = Math.tan((FOV / 2) * DEG);
-    const alvoSuperficie = 0.95; // largura (em raios) visível na superfície
-    const dist = 1 + alvoSuperficie / (2 * tan * Math.min(aspect, 1));
-    const alvoY = this.rotacaoParaCidade();
-    const voltas = Math.round((this.pose.rotY - alvoY) / (Math.PI * 2));
-    // Caminho mais curto até a cidade (sem dar uma volta inteira)
-    return { dist, x: 0, y: 0, rotX: this.cidade.lat * DEG, rotZ: 0, rotY: alvoY + voltas * Math.PI * 2 };
-  }
-
-  /** Largura visível (em graus de longitude) na superfície, com a pose atual — usada para alinhar o mapa SVG */
-  grausVisiveis(dist = this.pose.dist) {
-    const tan = Math.tan((FOV / 2) * DEG);
-    const aspect = window.innerWidth / window.innerHeight;
-    const larguraSuperficie = 2 * (dist - 1) * tan * aspect;
-    return larguraSuperficie / DEG;
-  }
-
   aplicarPoseInicial() {
-    Object.assign(this.pose, this.poseInicial(), { rotX: -0.22, rotZ: -0.16, atmo: 1, nuvens: 1, estrelas: 1, flutuar: 1 });
+    Object.assign(this.pose, this.poseInicial(), { rotX: -0.22, rotZ: -0.16, atmo: 1, nuvens: 1, estrelas: 1, flutuar: 1, planeta: 1, fundo: 0 });
+    Object.assign(this.ponto, { alfa: 0, raio: PONTO_RAIO, mistura: 0 });
+    this.mapa.restaurar();
   }
 
   layout() {
     const w = window.innerWidth;
     const h = window.innerHeight;
     this.renderer.setSize(w, h, false);
+    this.renderer.getDrawingBufferSize(this.tamanho);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     if (!this.emTransicao) Object.assign(this.pose, this.poseInicial());
@@ -376,8 +439,39 @@ export class Globo {
 
     const pulso = (this.tempo * 0.7) % 1;
     this.anel.scale.setScalar(1 + pulso * 2.2);
-    this.anel.material.opacity = 1 - pulso;
+    this.anel.material.opacity = (1 - pulso) * p.planeta;
+    this.pontoPlaneta.material.opacity = p.planeta;
+
+    // Planeta e mapa dividem a mesma câmera: só a opacidade troca um pelo outro
+    this.matTerra.uniforms.uOpac.value = p.planeta;
+    this.esfera.visible = this.marcador.visible = p.planeta > 0;
+    this.corFundo.lerpColors(this.corNoite, this.corMata, p.fundo);
+    this.renderer.setClearColor(this.corFundo, 1);
+    this.mapa.atualizar();
+    this.atualizarPonto();
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /** Raio (px) com que o ponto chega ao canto mais distante da tela */
+  raioParaCobrir() {
+    const { x, y } = this.matPonto.uniforms.uCentro.value;
+    return Math.hypot(Math.max(x, this.tamanho.x - x), Math.max(y, this.tamanho.y - y)) / this.dpr;
+  }
+
+  /** Coloca o ponto em cima de Canaã, com a mesma câmera deste quadro */
+  atualizarPonto() {
+    const { alfa, raio, mistura } = this.ponto;
+    this.camadaPonto.visible = alfa > 0;
+    if (!alfa) return;
+    this.scene.updateMatrixWorld();
+    this.camera.updateMatrixWorld();
+    const v = this.projetado.copy(this.posCidade).applyMatrix4(this.terra.matrixWorld).project(this.camera);
+    const u = this.matPonto.uniforms;
+    u.uCentro.value.set(((v.x + 1) / 2) * this.tamanho.x, ((v.y + 1) / 2) * this.tamanho.y);
+    u.uRaio.value = raio * this.dpr;
+    u.uAlfa.value = alfa;
+    u.uMistura.value = mistura;
+    u.uPulso.value = (this.tempo * 0.9) % 1;
   }
 }

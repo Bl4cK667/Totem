@@ -26,7 +26,7 @@ npm install
 
 > Sempre que trocar textos ou fotos, rode `npm run build` de novo antes de levar para o totem. O `config.js` não precisa: basta salvar e recarregar.
 >
-> O site precisa rodar por um desses endereços. Abrir o `index.html` com dois cliques não funciona, porque a chave do Google só aceita endereços autorizados.
+> O site precisa rodar por um desses endereços. Abrir o `index.html` com dois cliques não funciona.
 
 ## 3. Trocar textos, números e locais
 
@@ -39,7 +39,7 @@ npm install
 - **Curiosidades gerais:** em `"curiosidadesCidade"` ficam as falas do guia na tela de locais.
 - **Números:** `"valor"` é o número que o contador anima; `"tipo": "ano"` evita o separador de milhar (2015 e não 2.015); `"sufixo"` é a unidade (`" m²"`, `" m"`, `" h"`).
 - **Guia (mascote):** o que ele fala em cada local fica em `"falas"`. Ele também lê as curiosidades.
-- **Tempo do modo descanso:** `config.tempoDescansoSegundos` (padrão: 60). Com o Street View na tela, vale o `TEMPO_PARADO_SEGUNDOS` do `config.js` (padrão: 120).
+- **Tempo do modo descanso:** `config.tempoDescansoSegundos` (padrão: 120, ou seja, 2 minutos).
 
 ## 4. Trocar as fotos
 
@@ -54,27 +54,21 @@ Para um local novo, use o padrão `<id>-capa`, `<id>-antes` e `<id>-depois`, e a
 
 **Brasão:** fica em `assets/img/marca/brasao.svg`. Para trocar, use o mesmo nome. Se for PNG, troque também o nome nos `<img>` do `index.html`.
 
-## 5. Street View (chave do Google)
+## 5. Street View
 
-**Tudo fica no arquivo `config.js`, na raiz do projeto:** a chave, o tempo parado e a lista de locais. As explicações estão dentro do próprio arquivo.
+**Os links ficam no arquivo `config.js`, na raiz do projeto.** Não precisa de chave do Google. As instruções estão dentro do próprio arquivo.
 
-1. No Google Cloud Console, crie um projeto e ative a **Maps Embed API**. O uso é gratuito e sem limite, mas o Google exige o faturamento ativado no projeto.
-2. Crie uma **chave de API** e restrinja ao uso da Maps Embed API.
-3. Em "Restrições de aplicativos", escolha **Sites** e autorize:
-   ```
-   http://localhost:4173/*
-   http://localhost:5173/*
-   https://totem-canaa.vercel.app/*
-   ```
-4. Cole a chave em `config.js`, no lugar de `COLE_AQUI`. **Não envie a chave verdadeira para o GitHub**, pois o repositório é público. No site publicado, ela fica nas configurações da Vercel (seção 11).
+Para trocar ou adicionar um local:
 
-**Coordenadas de cada local:** no Google Maps, clique com o botão direito no ponto exato e copie os números (ex.: `-6.53, -49.85`). Coloque em `latitude` e `longitude`, no `config.js`. O ponto precisa estar a até 50 metros de um lugar com Street View; para ampliar a busca, acrescente `radius: 200`. As coordenadas atuais são **aproximadas** e precisam ser confirmadas.
+1. No Google Maps, abra o Street View no ponto e na direção que você quer.
+2. Clique em **Compartilhar > Incorporar um mapa > Copiar HTML**.
+3. Do código copiado, pegue só o que está entre as aspas de `src="..."` e cole em `link`, no `config.js`.
 
-Sem internet, sem chave ou se demorar mais de 15 segundos, o totem mostra uma imagem com a mensagem "Street View indisponível no momento", em PT/EN/ES. Quando a conexão volta, o Street View carrega sozinho.
+O link curto (`maps.app.goo.gl`) não funciona ali: o Google não deixa esse tipo de link abrir dentro do site.
 
-**Limites:** o site não enxerga o que acontece dentro do Street View do Google. Por isso:
-- chave errada ou local sem imagem mostram o aviso do próprio Google dentro da moldura;
-- toques simples contam como uso, mas quem só arrasta o dedo por 2 minutos seguidos pode ser levado à tela inicial.
+Sem link, sem internet ou se demorar mais de 15 segundos, o totem mostra uma imagem com a mensagem "Street View indisponível no momento", em PT/EN/ES. Quando a conexão volta, o Street View carrega sozinho.
+
+**Limite:** o site não enxerga o que acontece dentro do Street View do Google. Toques simples contam como uso, mas quem só arrasta o dedo por 2 minutos seguidos pode ser levado à tela inicial.
 
 ## 6. QR Code
 
@@ -109,7 +103,7 @@ Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos, 
 ## 10. Estrutura
 
 ```
-config.js                 chave do Google e coordenadas do Street View
+config.js                 links do Street View de cada local
 data/locais.json          conteúdo (textos PT/EN/ES, números, fotos)
 assets/fonts/             Cormorant Garamond e Manrope (locais)
 assets/img/locais/        fotos dos locais
@@ -125,12 +119,6 @@ scripts/                  conversão de fotos, verificação de contraste, teste
 ## 11. Publicar com link fixo
 
 O site fica em https://totem-canaa.vercel.app (projeto `totem-canaa` na Vercel), ligado a este repositório: cada envio (commit e push) na branch `main` atualiza o site sozinho.
-
-A chave do Google fica na Vercel, feita uma vez só:
-
-1. No projeto, abra **Settings > Environment Variables** e crie `GOOGLE_MAPS_KEY` com a sua chave.
-2. Em **Deployments**, escolha o mais recente e clique em **Redeploy**.
-3. Autorize o endereço do site na chave do Google (seção 5).
 
 **Atenção:** o plano gratuito da Vercel só vale para uso pessoal e não comercial. Se alguém recebe para fazer o projeto, ele conta como comercial.
 

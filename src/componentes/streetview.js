@@ -1,6 +1,6 @@
 // Street View (Google Maps Embed API) dentro da página do local.
-// Chave e coordenadas vêm de config.js (raiz do projeto).
-// Sem chave, sem internet ou demorando demais → mostra uma imagem elegante
+// O link de incorporação de cada local vem de config.js (raiz do projeto).
+// Sem link, sem internet ou demorando demais → mostra uma imagem elegante
 // com aviso, nunca uma tela quebrada. Se a conexão voltar, carrega sozinho.
 import { estado } from '../core/estado.js';
 import { t, html } from '../core/i18n.js';
@@ -17,34 +17,21 @@ function temInternet() {
   );
 }
 
-/* global GOOGLE_MAPS_KEY, LOCAIS_STREET_VIEW */
-function chave() {
-  const k = typeof GOOGLE_MAPS_KEY === 'string' ? GOOGLE_MAPS_KEY.trim() : '';
-  return k === 'COLE_AQUI' ? '' : k;
+/* global LOCAIS_STREET_VIEW */
+function linkDoLocal(id) {
+  if (typeof LOCAIS_STREET_VIEW === 'undefined') return '';
+  return LOCAIS_STREET_VIEW.find((l) => l.id === id)?.link?.trim() || '';
 }
 
-function dadosDoLocal(id) {
-  return typeof LOCAIS_STREET_VIEW === 'undefined' ? null : LOCAIS_STREET_VIEW.find((l) => l.id === id);
-}
-
-function urlStreetView(sv) {
-  const p = new URLSearchParams({
-    key: chave(),
-    location: `${sv.latitude},${sv.longitude}`,
-    heading: sv.heading ?? 0,
-    pitch: sv.pitch ?? 0,
-    fov: sv.fov ?? 80,
-    language: estado.idioma === 'pt' ? 'pt-BR' : estado.idioma,
-  });
-  if (sv.pano) p.set('pano', sv.pano);
-  if (sv.radius) p.set('radius', sv.radius);
-  return `https://www.google.com/maps/embed/v1/streetview?${p}`;
+// O idioma do link vale para os textos que o Google mostra na imagem
+function urlStreetView(link) {
+  return `${link}&hl=${estado.idioma === 'pt' ? 'pt-BR' : estado.idioma}`;
 }
 
 // Motivo → explicação para o visitante
 const SUBTITULOS = {
   offline: 'local.streetviewOffSub',
-  chave: 'local.streetviewPreparoSub',
+  preparo: 'local.streetviewPreparoSub',
   demora: 'local.streetviewDemoraSub',
 };
 
@@ -63,7 +50,7 @@ function fallback(caixa, motivo) {
 
 export function montarStreetView(moldura, id) {
   const caixa = moldura.querySelector('.streetview');
-  const sv = dadosDoLocal(id);
+  const link = linkDoLocal(id);
   let iframe = null;
   let timer = null;
   let pedido = false; // a pessoa já chegou perto do capítulo
@@ -96,7 +83,7 @@ export function montarStreetView(moldura, id) {
   const tentar = async () => {
     limpar();
     if (!navigator.onLine) return erro('offline');
-    if (!chave() || !sv) return erro('chave');
+    if (!link) return erro('preparo');
     moldura.classList.remove('sem-street-view');
     caixa.classList.remove('carregado');
     caixa.innerHTML = `<div class="streetview__carregando"><i></i><span class="legenda">${html(t('local.streetviewCarregando'))}</span></div>`;
@@ -116,7 +103,7 @@ export function montarStreetView(moldura, id) {
     iframe.allow = 'accelerometer; gyroscope; fullscreen';
     iframe.allowFullscreen = true;
     iframe.title = 'Street View';
-    iframe.src = urlStreetView(sv);
+    iframe.src = urlStreetView(link);
     iframe.addEventListener('load', () => {
       clearTimeout(timer);
       caixa.classList.add('carregado');

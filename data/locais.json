@@ -2,7 +2,7 @@
   "_leiame": "TODO o conteúdo do totem fica aqui. Textos em pt/en/es. Trechos marcados com [CONFIRMAR] são exemplos e precisam ser revisados com a Prefeitura. Para esconder as marcas [CONFIRMAR] na tela, mude config.mostrarMarcasConfirmar para false. Para adicionar um local, copie um bloco de 'locais' e troque id, textos, fotos e coordenadas.",
 
   "config": {
-    "tempoDescansoSegundos": 60,
+    "tempoDescansoSegundos": 120,
     "mostrarMarcasConfirmar": true,
     "qrUrlBase": "https://www.canaadoscarajas.pa.gov.br/novo/",
     "cidade": { "lat": -6.531, "lng": -49.852 },

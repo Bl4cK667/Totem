@@ -4,40 +4,34 @@
 //  Depois de salvar, é só recarregar o totem.
 // ============================================================================
 
-// 1) CHAVE DO GOOGLE
-// Troque COLE_AQUI pela sua chave, mantendo as aspas.
-// Enquanto estiver COLE_AQUI, o totem mostra a tela "Street View indisponível".
-// Atenção: não envie a chave verdadeira para o GitHub, pois o repositório é público.
-// No site publicado, a chave fica nas configurações da Vercel (veja o README).
-const GOOGLE_MAPS_KEY = "COLE_AQUI";
-
-// 2) TEMPO PARADO
-// Segundos sem toque, com o Street View na tela, até voltar para a tela inicial.
-const TEMPO_PARADO_SEGUNDOS = 120;
-
-// 3) LOCAIS
-// Como trocar a posição de um local:
-//   a) No Google Maps, clique com o botão direito no ponto e copie os números
-//      (exemplo: -6.53, -49.85). O primeiro é a latitude e o segundo, a longitude.
-//   b) Cole em "latitude" e "longitude". O ponto precisa estar a até 50 metros de
-//      uma rua com Street View. Para procurar mais longe, acrescente, por
-//      exemplo, radius: 200 (em metros).
+// Cada local tem um link de incorporação do Google Maps. Não precisa de chave.
 //
-// O que cada campo faz:
-//   id        liga ao local do site. NÃO altere (é o mesmo id de data/locais.json).
-//   nome      só para você se achar nesta lista.
-//   heading   para onde a câmera olha: 0 = norte, 90 = leste, 180 = sul, 270 = oeste.
-//   pitch     olhar para cima (até 90) ou para baixo (até -90). 0 = reto.
-//   fov       zoom: de 10 (bem perto) a 100 (bem aberto).
+// Como trocar ou adicionar o link de um local:
+//   a) No Google Maps, abra o Street View no ponto e na direção que você quer.
+//   b) Clique em Compartilhar > Incorporar um mapa > Copiar HTML.
+//   c) Do código copiado, pegue só o que está entre as aspas de src="...".
+//   d) Cole em "link", abaixo. O link começa com https://www.google.com/maps/embed
 //
-// ATENÇÃO: os valores abaixo são APROXIMADOS. Vários locais ainda usam o mesmo
-// ponto e precisam das coordenadas reais.
+// Local com link vazio ("") mostra a tela "Street View indisponível".
+// O "id" liga ao local do site: NÃO altere (é o mesmo id de data/locais.json).
 const LOCAIS_STREET_VIEW = [
-  { id: "cidade",          nome: "Canaã dos Carajás",  latitude: -6.49694, longitude: -49.87778, heading: 0,   pitch: 0, fov: 80 },
-  { id: "lago-prefeitura", nome: "Lago da Prefeitura", latitude: -6.531,   longitude: -49.852,   heading: 90,  pitch: 0, fov: 80 },
-  { id: "lago-buritis",    nome: "Lago dos Buritis",   latitude: -6.531,   longitude: -49.852,   heading: 180, pitch: 0, fov: 80 },
-  { id: "prefeitura",      nome: "Prefeitura",         latitude: -6.531,   longitude: -49.852,   heading: 0,   pitch: 5, fov: 80 },
-  { id: "parque-mirante",  nome: "Parque do Mirante",  latitude: -6.531,   longitude: -49.852,   heading: 0,   pitch: 0, fov: 80 },
-  { id: "parque-veredas",  nome: "Parque Veredas",     latitude: -6.531,   longitude: -49.852,   heading: 0,   pitch: 0, fov: 80 },
-  { id: "rodoviaria",      nome: "Rodoviária",         latitude: -6.51946, longitude: -49.8547,  heading: 0,   pitch: 0, fov: 80 },
+  {
+    id: "lago-prefeitura",
+    nome: "Lago da Prefeitura",
+    link: "https://www.google.com/maps/embed?pb=!4v1730000000000!6m8!1m7!1skJBdBrF35pl7t5LGv4rcbg!2m2!1d-6.549383!2d-49.8479887!3f167.04!4f1.12!5f0.78",
+  },
+  {
+    id: "lago-buritis",
+    nome: "Lago dos Buritis",
+    link: "https://www.google.com/maps/embed?pb=!4v1793600572350!6m8!1m7!1sCAoSHENJQUJJaEExQVVOQ3AtZzRBbzB5SUozbVgxa0o.!2m2!1d-6.521768408169661!2d-49.85137378687036!3f319.08!4f-2.25!5f0.7820865974627469",
+  },
+  {
+    id: "prefeitura",
+    nome: "Prefeitura",
+    link: "https://www.google.com/maps/embed?pb=!4v1730000000000!6m8!1m7!1snTva48pWX3Rhwqh616TfAg!2m2!1d-6.5509258!2d-49.8476188!3f12.01!4f0.85!5f0.78",
+  },
+  { id: "cidade",         nome: "Canaã dos Carajás", link: "" },
+  { id: "parque-mirante", nome: "Parque do Mirante", link: "" },
+  { id: "parque-veredas", nome: "Parque Veredas",    link: "" },
+  { id: "rodoviaria",     nome: "Rodoviária",        link: "" },
 ];

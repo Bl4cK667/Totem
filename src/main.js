@@ -48,11 +48,7 @@ async function iniciar() {
   document.querySelector('.barra-topo [data-acao="locais"]').addEventListener('click', voltarLocais);
 
   // Modo descanso após N segundos sem toque
-  iniciarDescanso({
-    segundos: config.tempoDescansoSegundos || 60,
-    segundosStreetView: typeof TEMPO_PARADO_SEGUNDOS === 'number' ? TEMPO_PARADO_SEGUNDOS : 120, // config.js
-    aoDescansar: () => irInicio({ descanso: true }),
-  });
+  iniciarDescanso({ segundos: config.tempoDescansoSegundos || 120, aoDescansar: () => irInicio({ descanso: true }) });
 
   // Só em desenvolvimento: permite aos testes desacelerar as animações
   if (import.meta.env.DEV) window.__gsap = gsap;

@@ -106,7 +106,7 @@ Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos, 
 ```
 config.js                 links do Street View de cada local
 data/locais.json          conteúdo (textos PT/EN/ES, números, fotos)
-assets/fonts/             Cormorant Garamond e Manrope (locais)
+assets/fonts/             Lora e Manrope (locais)
 assets/img/locais/        fotos dos locais
 assets/img/globo/         texturas da Terra
 assets/img/marca/         brasão
@@ -123,4 +123,4 @@ O site fica em https://totem-canaa.vercel.app (projeto `totem-canaa` na Vercel),
 
 **Atenção:** o plano gratuito da Vercel só vale para uso pessoal e não comercial. Se alguém recebe para fazer o projeto, ele conta como comercial.
 
-**Créditos:** as texturas da Terra são derivadas do *Blue Marble* da NASA (domínio público), via exemplos do three.js. Os contornos do Brasil, do Pará e do município vêm da malha territorial do IBGE. As fontes Cormorant Garamond e Manrope usam a licença SIL Open Font License.
+**Créditos:** as texturas da Terra são derivadas do *Blue Marble* da NASA (domínio público), via exemplos do three.js. Os contornos do Brasil, do Pará e do município vêm da malha territorial do IBGE. As fontes Lora e Manrope usam a licença SIL Open Font License.

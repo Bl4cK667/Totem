@@ -3,7 +3,7 @@
 // - Imagens, fontes, JS, CSS: cache primeiro
 // - Street View (Google) não passa por aqui: depende da internet
 // Ao trocar fotos mantendo o nome do arquivo, aumente a versão: o cache antigo é apagado
-const CACHE = 'totem-mirante-v3';
+const CACHE = 'totem-mirante-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) =>

@@ -177,8 +177,8 @@
         "miniatura": "assets/img/locais/cidade-capa-sm.webp",
         "antes": "assets/img/locais/cidade-antes.webp",
         "depois": "assets/img/locais/cidade-depois.webp",
-        "legendaAntes": { "pt": "Satélite, 2009", "en": "Satellite, 2009", "es": "Satélite, 2009" },
-        "legendaDepois": { "pt": "Satélite, 2022", "en": "Satellite, 2022", "es": "Satélite, 2022" }
+        "legendaAntes": { "pt": "Satélite, 2011", "en": "Satellite, 2011", "es": "Satélite, 2011" },
+        "legendaDepois": { "pt": "Satélite, 2026", "en": "Satellite, 2026", "es": "Satélite, 2026" }
       },
       "numeros": [
         { "valor": 1994, "tipo": "ano", "rotulo": { "pt": "Criação do município", "en": "Municipality created", "es": "Creación del municipio" } },
@@ -205,7 +205,7 @@
         }
       ],
       "falas": [
-        { "pt": "Deslize até o Antes e Depois para ver, do espaço, como a cidade cresceu de 2009 a 2022!", "en": "Scroll to Then and Now to see from space how the city grew from 2009 to 2022!", "es": "¡Deslice hasta Antes y Ahora para ver desde el espacio cómo creció la ciudad de 2009 a 2022!" },
+        { "pt": "Deslize até o Antes e Depois para ver, do espaço, como a cidade cresceu de 2011 a 2026!", "en": "Scroll to Then and Now to see from space how the city grew from 2011 to 2026!", "es": "¡Deslice hasta Antes y Ahora para ver desde el espacio cómo creció la ciudad de 2011 a 2026!" },
         { "pt": "A Feira do Produtor e o Mercado Municipal completaram 9 anos em 2025.", "en": "The Farmers' Fair and the Municipal Market turned 9 in 2025.", "es": "La Feria del Productor y el Mercado Municipal cumplieron 9 años en 2025." }
       ],
       "creditos": "Prefeitura de Canaã dos Carajás; satélite: INPE/OBT/DPI (CC BY-SA 4.0). Dados: IBGE."

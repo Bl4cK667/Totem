@@ -4,12 +4,10 @@
    Pares de cor aprovados (WCAG AA) estão listados em scripts/verificar-contraste.js
    ========================================================================== */
 
-@font-face { font-family: 'Cormorant'; font-weight: 300; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-300-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Cormorant'; font-weight: 400; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Cormorant'; font-weight: 500; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-500-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Cormorant'; font-weight: 600; font-style: normal; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Cormorant'; font-weight: 300; font-style: italic; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-300-italic.woff2') format('woff2'); }
-@font-face { font-family: 'Cormorant'; font-weight: 400; font-style: italic; font-display: block; src: url('../../assets/fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Lora'; font-weight: 400; font-style: normal; font-display: block; src: url('../../assets/fonts/lora-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Lora'; font-weight: 500; font-style: normal; font-display: block; src: url('../../assets/fonts/lora-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Lora'; font-weight: 600; font-style: normal; font-display: block; src: url('../../assets/fonts/lora-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Lora'; font-weight: 400; font-style: italic; font-display: block; src: url('../../assets/fonts/lora-latin-400-italic.woff2') format('woff2'); }
 @font-face { font-family: 'Manrope'; font-weight: 400; font-style: normal; font-display: block; src: url('../../assets/fonts/manrope-latin-400-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Manrope'; font-weight: 500; font-style: normal; font-display: block; src: url('../../assets/fonts/manrope-latin-500-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Manrope'; font-weight: 600; font-style: normal; font-display: block; src: url('../../assets/fonts/manrope-latin-600-normal.woff2') format('woff2'); }
@@ -45,10 +43,10 @@
   --linha-sobre-claro: rgba(122, 90, 23, 0.35);
 
   /* --- Tipografia --------------------------------------------------------- */
-  --serif: 'Cormorant', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --serif: 'Lora', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
 
-  --fs-legenda: max(0.6rem, 12px);      /* caixa alta espaçada */
+  --fs-legenda: max(0.75rem, 14px);      /* caixa alta espaçada */
   --fs-corpo: max(0.95rem, 15px);
   --fs-lead: max(1.35rem, 20px);
   --fs-h3: max(1.6rem, 22px);

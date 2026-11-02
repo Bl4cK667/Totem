@@ -40,6 +40,7 @@ npm install
 - **Números:** `"valor"` é o número que o contador anima; `"tipo": "ano"` evita o separador de milhar (2015 e não 2.015); `"sufixo"` é a unidade (`" m²"`, `" m"`, `" h"`).
 - **Guia (mascote):** o que ele fala em cada local fica em `"falas"`. Ele também lê as curiosidades.
 - **Tempo do modo descanso:** `config.tempoDescansoSegundos` (padrão: 120, ou seja, 2 minutos).
+- **Transição do planeta:** roda completa mesmo com as animações do Windows desligadas. Para usar um fade curto nesse caso, mude `config.transicaoCurtaSemAnimacoes` para `true`.
 
 ## 4. Trocar as fotos
 

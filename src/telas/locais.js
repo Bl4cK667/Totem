@@ -1,7 +1,7 @@
 // Tela de locais: carrossel arrastável com foto grande, nome e frase.
 // Toque no card central abre o local; toque num card lateral traz ele ao centro.
 import gsap from 'gsap';
-import { estado, locaisAtivos } from '../core/estado.js';
+import { estado, locaisAtivos, transicaoCurta } from '../core/estado.js';
 import { t, tr, html } from '../core/i18n.js';
 import { preCarregar } from '../util/preload.js';
 
@@ -217,10 +217,10 @@ export function entrarLocais({ chegada = false } = {}) {
 
 /**
  * Parte final da transição do planeta: o fundo bege já está na tela e os cards
- * entram um depois do outro, a partir do card em destaque. Com menos movimento, só fade.
+ * entram um depois do outro, a partir do card em destaque. Na versão curta, só fade.
  */
 function entrarDaTransicao() {
-  const calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const calmo = transicaoCurta();
   const sobe = (px) => (calmo ? 0 : px);
   gsap.set(tela, { autoAlpha: 0 });
   const tl = gsap.timeline({ defaults: { ease: 'power2.out', duration: 0.7 } });

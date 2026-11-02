@@ -21,6 +21,14 @@ export function emitir(evento, valor) {
   ouvintes.get(evento)?.forEach((fn) => fn(valor));
 }
 
+/**
+ * Versão curta da transição do planeta. Só vale se ligada em locais.json: num totem,
+ * as animações desligadas no Windows são da máquina, não uma escolha do visitante.
+ */
+export function transicaoCurta() {
+  return estado.dados.config.transicaoCurtaSemAnimacoes && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 /** Locais ativos, na ordem do JSON */
 export function locaisAtivos() {
   return estado.dados.locais.filter((l) => l.ativo !== false);

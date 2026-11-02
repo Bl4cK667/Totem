@@ -3,6 +3,7 @@
 
   "config": {
     "tempoDescansoSegundos": 120,
+    "transicaoCurtaSemAnimacoes": false,
     "mostrarMarcasConfirmar": true,
     "qrUrlBase": "https://www.canaadoscarajas.pa.gov.br/novo/",
     "cidade": { "lat": -6.531, "lng": -49.852 },

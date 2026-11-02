@@ -5,7 +5,7 @@
 // 4) O ponto de Canaã cresce e vira o fundo bege da tela dos cards
 // Uma timeline só, animando apenas posição da câmera e opacidade.
 import gsap from 'gsap';
-import { estado } from '../core/estado.js';
+import { estado, transicaoCurta } from '../core/estado.js';
 import { sairInicio } from './inicio.js';
 
 const tela = document.querySelector('[data-tela="transicao"]');
@@ -39,7 +39,7 @@ function coordenadas() {
   return `${fmt(lat)} S · ${fmt(lng)} ${oeste}`;
 }
 
-/** Duração só para quem pediu menos movimento: fade simples entre as telas */
+/** Fade simples entre as telas, quando a versão curta está ligada */
 function versaoCurta(tl, { sinalDasFotos, entrada, aoRevelar, aoAssentar }) {
   tl.add(sairInicio(), 0).add(sinalDasFotos, 0.55).add(aoRevelar, 0.6).add(entrada, 0.6).add(aoAssentar, 0.9);
 }
@@ -53,7 +53,6 @@ function versaoCurta(tl, { sinalDasFotos, entrada, aoRevelar, aoAssentar }) {
 export function executarTransicao({ globo, fotos, entrada, aoRevelar, aoAssentar, aoTerminar }) {
   const { pose, mapa, ponto } = globo;
   const v = mapa.v;
-  const semMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   tela.querySelector('.mapa__coord').textContent = coordenadas();
   gsap.set(tela.querySelectorAll('.mapa__rotulo'), { autoAlpha: 0 });
@@ -97,7 +96,7 @@ export function executarTransicao({ globo, fotos, entrada, aoRevelar, aoAssentar
   window.addEventListener('pointerdown', aoTocar, true);
   window.addEventListener('click', bloquearClique, true);
 
-  if (semMovimento) {
+  if (transicaoCurta()) {
     versaoCurta(tl, { sinalDasFotos, entrada, aoRevelar, aoAssentar });
     return tl;
   }

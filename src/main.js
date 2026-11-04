@@ -17,7 +17,7 @@ import { ativarOndaDeToque } from './core/touch-ripple.js';
 import { iniciarDescanso } from './core/idle.js';
 import { iniciarRotas, comecar, abrirLocal, proximoLocal, voltarLocais, irInicio } from './core/router.js';
 import { Globo } from './componentes/globo.js';
-import { montarMascote } from './componentes/mascote.js';
+import { montarMascote, fazerJoinha, despedir } from './componentes/mascote.js';
 import { montarInicio, entrarInicio } from './telas/inicio.js';
 import { montarLocais, aquecerCards } from './telas/locais.js';
 import { montarLocal } from './telas/local.js';
@@ -43,7 +43,7 @@ async function iniciar() {
   // Telas e navegação
   iniciarRotas(globo);
   montarInicio({ aoComecar: comecar });
-  montarLocais({ aoAbrirLocal: abrirLocal });
+  montarLocais({ aoAbrirLocal: abrirComJoinha });
   montarLocal({ aoVoltar: voltarLocais, aoProximo: proximoLocal });
   montarMascote();
 
@@ -51,7 +51,14 @@ async function iniciar() {
   document.querySelector('.barra-topo [data-acao="locais"]').addEventListener('click', voltarLocais);
 
   // Modo descanso após N segundos sem toque
-  iniciarDescanso({ segundos: config.tempoDescansoSegundos || 120, aoDescansar: () => irInicio({ descanso: true }) });
+  // (o mascote dá tchau e sai pulando antes da troca de tela)
+  iniciarDescanso({
+    segundos: config.tempoDescansoSegundos || 120,
+    aoDescansar: async () => {
+      await despedir();
+      irInicio({ descanso: true });
+    },
+  });
 
   // Só em desenvolvimento: permite aos testes desacelerar as animações
   if (import.meta.env.DEV) window.__gsap = gsap;
@@ -64,6 +71,15 @@ async function iniciar() {
   aquecerCards();
 
   registrarOffline();
+}
+
+/** "Conhecer": o mascote faz joinha e só então a foto do card voa para a tela cheia */
+async function abrirComJoinha(id, fotoEl) {
+  if (estado.ocupado) return;
+  estado.ocupado = true;
+  await fazerJoinha();
+  estado.ocupado = false;
+  abrirLocal(id, fotoEl);
 }
 
 /** Service worker: guarda em cache tudo o que o totem usa (funciona sem internet) */

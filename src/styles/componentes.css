@@ -30,78 +30,90 @@
 .m-bota { stroke: rgba(228, 199, 126, 0.42); stroke-width: 1.6; }
 .m-boca { opacity: 0; }
 
-/* Pontos de articulação, em coordenadas do viewBox */
-.m-tudo, .m-sombra, .m-superior, .m-cabeca, .m-braco-esq, .m-braco-dir { transform-box: view-box; }
-.m-tudo { transform-origin: 120px 284px; }
-.m-sombra { transform-origin: 120px 286px; }
-.m-cabeca { transform-origin: 120px 142px; }
-.m-braco-esq { transform-origin: 90px 162px; }
-.m-braco-dir { transform-origin: 150px 162px; }
-.m-olho { transform-box: fill-box; transform-origin: center; }
-.m-boca { transform-box: fill-box; transform-origin: 50% 0; }
+/* Todo o movimento do personagem é GSAP (mascote.js): o modo "menos movimento"
+   do Windows desliga animações CSS, e ele ficaria parado.
+   Camadas: "viagem" leva o personagem nos pulos (x/y) e "mola" achata e estica a partir dos pés. */
+.mascote__viagem, .mascote__mola { display: block; }
+.mascote--viajando .mascote__corpo { pointer-events: none; }
+/* Sombra que fica no chão (ou no card) enquanto ele está no ar */
+.mascote__chao {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--mascote-w) * 1.19); /* altura dos pés no SVG (286 de 300, largura 240) */
+  width: calc(var(--mascote-w) * 0.62);
+  height: calc(var(--mascote-w) * 0.09);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(18, 13, 9, 0.42), rgba(18, 13, 9, 0));
+  pointer-events: none;
+}
 
-/* Só anima quando o sistema não pede menos movimento */
 @media (prefers-reduced-motion: no-preference) {
-  .m-superior { animation: m-respirar 4.2s ease-in-out infinite; }
-  .m-cabeca { animation: m-inclinar 7s ease-in-out infinite; }
-  .m-braco-esq { animation: m-balancar 5s ease-in-out infinite; }
-  .m-olho { animation: m-piscar 6.4s linear infinite; }
+  .mascote__corpo { transition: transform 0.35s var(--ease-luxo); }
+  .mascote__corpo:active { transform: scale(0.94); }
+}
 
-  .acenando .m-braco-dir { animation: m-acenar 1.9s ease-in-out; }
-  .pulando .m-tudo { animation: m-pular 0.62s ease-out; }
-  .pulando .m-sombra { animation: m-sombra 0.62s ease-out; }
+/* Estrelinhas do toque: saem do peito do personagem */
+.mascote__estrela {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: -0.55rem 0 0 -0.55rem;
+  pointer-events: none;
+  fill: var(--ouro-claro);
+  filter: drop-shadow(0 0 4px rgba(228, 199, 126, 0.8));
+}
+.mascote__estrela svg { display: block; width: 100%; height: 100%; }
 
-  .falando .m-sorriso { opacity: 0; }
-  .falando .m-boca { opacity: 1; animation: m-falar 0.16s ease-in-out infinite alternate; }
-}
-@keyframes m-respirar { 50% { transform: translateY(-3px); } }
-@keyframes m-inclinar { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
-@keyframes m-balancar { 50% { transform: rotate(3deg); } }
-@keyframes m-piscar {
-  0%, 39%, 43%, 90%, 94%, 100% { transform: scaleY(1); }
-  41%, 92% { transform: scaleY(0.07); }
-}
-@keyframes m-acenar {
-  0%, 100% { transform: rotate(0deg); }
-  20% { transform: rotate(-104deg); }
-  32%, 56% { transform: rotate(-90deg); }
-  44%, 68% { transform: rotate(-116deg); }
-  80% { transform: rotate(-104deg); }
-}
-@keyframes m-pular {
-  0%, 62%, 100% { transform: none; }
-  30% { transform: translateY(-16px); }
-  70% { transform: scale(1.03, 0.97); }
-  84% { transform: translateY(-4px); }
-}
-@keyframes m-sombra { 30% { transform: scaleX(0.76); } }
-@keyframes m-falar { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
-
+/* Balão de vidro fosco (estilo iPhone). O vidro e o rabinho são camadas separadas do texto:
+   ao trocar de fala, só elas mudam de tamanho (transform), e o texto não deforma. */
 .mascote__balao {
   position: absolute;
   right: 82%;
   bottom: 60%;
   width: min(62vw, 24rem);
   padding: 1.4rem 1.6rem 1.3rem;
-  background: var(--creme);
   color: var(--txt-sobre-claro);
-  border: 1px solid var(--ouro);
-  border-radius: 1.2rem;
-  box-shadow: 0 1.4rem 3rem -1rem rgba(18, 13, 9, 0.5);
   pointer-events: auto;
 }
-/* Cauda do balão, apontando para o rosto do personagem */
-.mascote__balao::after {
+.mascote__vidro, .mascote__rabo {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.34);
+  /* brightness clareia o que está atrás: o texto escuro fica legível até sobre fotos escuras */
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.45);
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.45);
+  pointer-events: none;
+}
+.mascote__vidro {
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 24px;
+  box-shadow:
+    0 1.6rem 3rem -1.2rem rgba(18, 13, 9, 0.42),
+    0 0.3rem 0.8rem rgba(18, 13, 9, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+/* Reflexo de vidro na parte de cima */
+.mascote__vidro::before {
   content: '';
   position: absolute;
-  right: -0.5rem;
-  bottom: 1.8rem;
-  width: 1rem;
-  height: 1rem;
-  background: var(--creme);
-  border-top: 1px solid var(--ouro);
-  border-right: 1px solid var(--ouro);
-  transform: rotate(45deg);
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08) 42%, rgba(255, 255, 255, 0) 60%);
+}
+/* Rabinho apontando para o rosto do personagem (encosta 2px no vidro para não aparecer emenda) */
+.mascote__rabo {
+  right: calc(-1.4rem + 2px);
+  bottom: 1.2rem;
+  width: 1.4rem;
+  height: 1.8rem;
+  clip-path: polygon(0 0, 100% 92%, 0 100%);
+}
+.mascote__conteudo { position: relative; }
+/* Sem desfoque de fundo no navegador: bege claro quase opaco */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .mascote__vidro, .mascote__rabo { background: rgba(246, 241, 231, 0.96); }
 }
 .mascote__rotulo { color: var(--ouro-texto); }
 .mascote__balao--simples .mascote__rotulo, .mascote__balao--simples .mascote__dica { display: none; }

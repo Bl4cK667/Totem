@@ -53,7 +53,14 @@
       "mascote.saudacao": "Olá! Escolha um lugar e eu conto as curiosidades.",
       "mascote.convite": "Toque em um lugar para conhecer!",
       "mascote.dica": "Toque em mim para outra curiosidade",
-      "mascote.rotulo": "Você sabia?"
+      "mascote.rotulo": "Você sabia?",
+      "mascote.brincadeiras": [
+        "Hahaha! Faz cócegas! Escolha um lugar que eu conto tudo.",
+        "Opa! Quase derrubei o chapéu!",
+        "Hehe! Guarda-parque também gosta de atenção.",
+        "Hahaha! Sabia que eu já visitei todos esses lugares?",
+        "Ei, assim eu fico tonto! Que tal conhecer um lugar?"
+      ]
     },
     "en": {
       "prefeitura": "City of Canaã dos Carajás",
@@ -97,7 +104,14 @@
       "mascote.saudacao": "Hi! Pick a place and I'll tell you some fun facts.",
       "mascote.convite": "Tap a place to explore it!",
       "mascote.dica": "Tap me for another fact",
-      "mascote.rotulo": "Did you know?"
+      "mascote.rotulo": "Did you know?",
+      "mascote.brincadeiras": [
+        "Hahaha! That tickles! Pick a place and I'll tell you all about it.",
+        "Whoa! I almost dropped my hat!",
+        "Hehe! Park rangers like attention too.",
+        "Hahaha! Did you know I've visited every one of these places?",
+        "Hey, you're making me dizzy! How about exploring a place?"
+      ]
     },
     "es": {
       "prefeitura": "Alcaldía de Canaã dos Carajás",
@@ -141,7 +155,14 @@
       "mascote.saudacao": "¡Hola! Elija un lugar y le cuento curiosidades.",
       "mascote.convite": "¡Toque un lugar para conocerlo!",
       "mascote.dica": "Tóqueme para otra curiosidad",
-      "mascote.rotulo": "¿Sabía que?"
+      "mascote.rotulo": "¿Sabía que?",
+      "mascote.brincadeiras": [
+        "¡Jajaja! ¡Me hace cosquillas! Elija un lugar y le cuento todo.",
+        "¡Uy! ¡Casi se me cae el sombrero!",
+        "¡Jeje! A los guardaparques también nos gusta la atención.",
+        "¡Jajaja! ¿Sabía que ya visité todos estos lugares?",
+        "¡Oiga, así me mareo! ¿Qué tal conocer un lugar?"
+      ]
     }
   },
 

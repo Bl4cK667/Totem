@@ -2,7 +2,7 @@
 // Toque no card ativo abre o local; toque num card lateral traz ele para a frente.
 // O carrossel é infinito: do último card volta ao primeiro, sem pulo.
 import gsap from 'gsap';
-import { estado, locaisAtivos, transicaoCurta } from '../core/estado.js';
+import { estado, emitir, locaisAtivos, transicaoCurta } from '../core/estado.js';
 import { t, tr, html } from '../core/i18n.js';
 import { preCarregar } from '../util/preload.js';
 
@@ -160,8 +160,11 @@ function passoDaMola(_tempo, deltaMs) {
 }
 
 function soltarMola() {
+  const anterior = indice;
   indice = noCirculo(alvo);
   marcarIndice();
+  // O mascote reage à troca de card (setas ou arraste)
+  if (indice !== anterior) emitir('card', locaisAtivos()[indice]);
   if (molaLigada) return;
   molaLigada = true;
   gsap.ticker.add(passoDaMola);
@@ -255,12 +258,14 @@ export function entrarLocais({ chegada = false } = {}) {
   preCarregar(locaisAtivos().map((l) => l.fotos.capa));
   gsap.set(tela, { autoAlpha: 1 });
 
+  // A máscara de entrada mantém os cantos arredondados (o GSAP precisa do valor em px)
+  const RAIO = getComputedStyle(els.cards[0]).borderTopLeftRadius;
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
   tl.fromTo(tela.querySelector('.locais__sobretitulo'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 1.2 }, 0)
     .fromTo(tela.querySelector('.locais__titulo .linha > span'), { yPercent: 110 }, { yPercent: 0, duration: 1.4 }, 0.05)
     // Os cards têm transform próprio (escala do carrossel): a entrada usa máscara + deslocamento do contêiner
     .fromTo(els.carrossel, { x: () => innerWidth * 0.18 }, { x: 0, duration: 1.6 }, 0.1)
-    .fromTo(els.cards, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, stagger: 0.09, ease: 'expo.inOut', clearProps: 'clipPath' }, 0.05)
+    .fromTo(els.cards, { clipPath: `inset(100% 0% 0% 0% round ${RAIO})` }, { clipPath: `inset(0% 0% 0% 0% round ${RAIO})`, duration: 1.3, stagger: 0.09, ease: 'expo.inOut', clearProps: 'clipPath' }, 0.05)
     .fromTo(tela.querySelector('.locais__rodape'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 1.2 }, 0.4);
   return tl;
 }

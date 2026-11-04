@@ -62,6 +62,7 @@
   --toque: max(64px, 2.75rem);          /* altura mínima de área de toque */
   --margem: max(16px, 2.2rem);          /* margem lateral das telas */
   --raio: 2px;
+  --raio-card: max(1.4rem, 20px);       /* cards da tela de locais */
   --mascote-h: clamp(160px, 11rem, 200px);
   --mascote-w: calc(var(--mascote-h) * 0.8);
 

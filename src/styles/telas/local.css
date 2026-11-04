@@ -286,7 +286,8 @@
   .numeros--3 .numero:first-child { grid-column: auto; }
   .curiosidades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
   .curiosidade { grid-template-columns: 1fr; }
-  .comparar { aspect-ratio: 16 / 9; max-height: 74vh; }
+  /* Cabe inteira abaixo da barra do topo (logo, "Pontos da cidade" e idiomas) */
+  .comparar { aspect-ratio: 16 / 9; max-height: min(74vh, calc(100vh - var(--toque) - var(--margem) * 2.4)); }
   .streetview { height: 72vh; }
   .cap-final { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
   .final__voltar { grid-column: 1 / -1; }

@@ -262,6 +262,13 @@ function animar(l) {
           scrollTrigger: { trigger: comparar, start: 'top 80%', onEnter: () => gsap.delayedCall(1.1, slider.demonstrar) },
         }
       );
+      // As etiquetas ANTES/HOJE descem o necessário para nunca ficarem sob a barra do topo
+      const etiquetas = comparar.querySelectorAll('.comparar__tag');
+      const desviarDaBarra = () => {
+        const r = comparar.getBoundingClientRect();
+        gsap.set(etiquetas, { y: gsap.utils.clamp(0, r.height * 0.6, barra.getBoundingClientRect().bottom - r.top) });
+      };
+      ScrollTrigger.create({ trigger: comparar, start: 'top bottom', end: 'bottom top', onUpdate: desviarDaBarra, onRefresh: desviarDaBarra });
     }
 
     // Street View: só cria o iframe quando o capítulo se aproxima

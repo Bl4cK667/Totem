@@ -52,13 +52,24 @@
   width: 70vw;
   height: min(62vh, 100%);
   overflow: hidden;
-  border-radius: var(--raio);
+  border-radius: var(--raio-card);
   background: var(--terra-900);
   transform-origin: center;
   will-change: transform;
   box-shadow: 0 2rem 4rem -2rem rgba(42, 29, 20, 0.45);
+  /* Safari/Chrome: garante o recorte arredondado mesmo com filhos animados */
+  isolation: isolate;
 }
-.card-local__foto { position: absolute; inset: 0; overflow: hidden; }
+/* Fio claro por dentro da borda: dá acabamento ao arredondado sobre fotos escuras */
+.card-local::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(246, 241, 231, 0.14);
+  pointer-events: none;
+}
+.card-local__foto { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
 .card-local__foto img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
 .card-local__apagado { position: absolute; inset: 0; background: var(--creme); opacity: 0; }
 /* A sombra fica só na parte de baixo: o resto do card é foto */
@@ -104,6 +115,29 @@
 }
 .a-esquerda .card-local__lado { left: auto; right: 0.7rem; text-align: right; }
 
+/* --- Movimento dos cards (só quando o sistema não pede menos movimento) ------ */
+@media (prefers-reduced-motion: no-preference) {
+  /* A foto do card ativo "respira" devagar (a <img> já tem o parallax do JS) */
+  .card-local.atual .card-local__foto { animation: card-respirar 14s ease-in-out infinite alternate; }
+  /* Brilho que atravessa o botão e seta que chama para o toque */
+  .card-local__abrir { position: relative; overflow: hidden; }
+  .card-local__abrir::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: -60%;
+    width: 45%;
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-18deg);
+    pointer-events: none;
+  }
+  .card-local.atual .card-local__abrir::after { animation: botao-brilho 4.5s ease-in-out 1.2s infinite; }
+  .card-local.atual .card-local__abrir .seta { animation: seta-chamar 1.6s ease-in-out infinite; }
+  .seta-redonda:active .seta { transition: transform 0.2s; }
+}
+@keyframes card-respirar { from { transform: scale(1); } to { transform: scale(1.06); } }
+@keyframes botao-brilho { 0% { left: -60%; } 30%, 100% { left: 130%; } }
+@keyframes seta-chamar { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(0.35em); } }
+
 /* --- Rodapé: progresso e setas ---------------------------------------------- */
 .locais__rodape {
   display: flex;
@@ -129,9 +163,9 @@
   border-radius: 50%;
   border: 1px solid var(--terra-900);
   color: var(--terra-900);
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.3s, color 0.3s, transform 0.4s var(--ease-luxo);
 }
-.seta-redonda:active { background: var(--terra-900); color: var(--creme); }
+.seta-redonda:active { background: var(--terra-900); color: var(--creme); transform: scale(0.92); }
 .seta-redonda[data-dir='-1'] .seta { transform: scaleX(-1); }
 
 /* --- Horizontal --------------------------------------------------------- */

@@ -77,14 +77,16 @@ export async function abrirLocal(id, fotoEl) {
   const voando = document.createElement('div');
   voando.className = 'foto-voando';
   voando.innerHTML = `<img src="${l.fotos.capa}" alt="" />`;
-  Object.assign(voando.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  // Sai com os cantos arredondados do card e chega reta na tela cheia
+  const raio = getComputedStyle(fotoEl).borderTopLeftRadius;
+  Object.assign(voando.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px`, borderRadius: raio });
   app.appendChild(voando);
 
   mostrarBarra(false);
   await gsap
     .timeline()
     .fromTo(voando.querySelector('img'), { scale: 1.22 }, { scale: 1.12, duration: 1.05, ease: 'expo.inOut' }, 0)
-    .to(voando, { left: 0, top: 0, width: innerWidth, height: innerHeight, duration: 1.05, ease: 'expo.inOut' }, 0)
+    .to(voando, { left: 0, top: 0, width: innerWidth, height: innerHeight, borderRadius: 0, duration: 1.05, ease: 'expo.inOut' }, 0)
     .to('[data-tela="locais"]', { autoAlpha: 0, duration: 0.4 }, 0.5);
 
   await renderizarLocal(id);

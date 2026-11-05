@@ -19,6 +19,16 @@ const DEG = Math.PI / 180;
 // Mesmo campo de visão do planeta Three.js: os dois globos coincidem na troca
 export const FOV = 35;
 
+// O mapa é maior que a tela (MAIOR × a largura e a altura, centralizado e cortado nas bordas):
+// as bordas e os cantos, onde uma imagem pode chegar por último, ficam fora de vista, e o mapa já
+// carrega uma faixa de imagens em volta da tela. O campo de visão do MapLibre aumenta na mesma
+// proporção, então o que aparece na tela continua exatamente igual (e igual ao planeta Three.js).
+export const MAIOR = 1.15;
+const FOV_MAPA = (2 * Math.atan(MAIOR * Math.tan((FOV / 2) * (Math.PI / 180)))) / (Math.PI / 180);
+// Tela do totem (a parte visível do mapa), em px
+const telaW = () => innerWidth;
+const telaH = () => innerHeight;
+
 // Câmera final da transição e "vista geral" da cidade: do alto do Parque do Mirante,
 // olhando para o sul, com a cidade à frente
 export const VISTA = { lng: -49.8542, lat: -6.5147, zoom: 14, pitch: 55, bearing: 180, alturaDoFoco: 0.62 };
@@ -37,6 +47,14 @@ const ZOOM_APROXIMAR = 1.3; // zoom curto em direção ao pin, enquanto a tela d
 const FADE_DETALHE = 0.7; // s: a página do lugar aparece e some com fade
 const BRILHO_FINAL = 1; // satélite com o brilho natural: o escuro fica só na vinheta das bordas
 const PASSOS_SEM_MOVER = 8; // px: mais do que isso é arraste, não toque
+
+// Cor do chão onde a imagem ainda não chegou: azul de oceano no planeta inteiro (some no planeta
+// Three.js) e verde-musgo terroso perto da cidade (a média da imagem de satélite de Canaã)
+const COR_OCEANO = '#16324a';
+const COR_CHAO = '#5f5d3a';
+// Limites da vista da cidade (depois da transição): a câmera não sai da região de Canaã,
+// não inclina até o horizonte (onde não há imagem) e não se afasta nem se aproxima demais
+const LIMITES = { area: [[-50.25, -6.9], [-49.45, -6.15]], inclinacao: 60, zoomMin: 12, zoomMax: 16.5 };
 
 const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 const ATRIBUICAO = 'Imagens © Esri, Maxar, Earthstar Geographics e comunidade de usuários GIS';
@@ -65,8 +83,8 @@ export function montarMapa() {
         satelite: { type: 'raster', tiles: [SATELITE], tileSize: 256, maxzoom: 19, attribution: ATRIBUICAO },
       },
       layers: [
-        // Cor de oceano: onde a imagem ainda não chegou (borda do globo), não aparece um buraco escuro
-        { id: 'fundo', type: 'background', paint: { 'background-color': '#16324a' } },
+        // Onde a imagem ainda não chegou: oceano no planeta, cor do chão perto da cidade
+        { id: 'fundo', type: 'background', paint: { 'background-color': ['interpolate', ['linear'], ['zoom'], 6, COR_OCEANO, 9, COR_CHAO] } },
         { id: 'satelite', type: 'raster', source: 'satelite', paint: { 'raster-fade-duration': 250, 'raster-saturation': 0.14, 'raster-contrast': 0.08, 'raster-brightness-min': 0.03 } },
       ],
     },
@@ -74,7 +92,7 @@ export function montarMapa() {
     zoom: VISTA.zoom,
     pitch: VISTA.pitch,
     bearing: VISTA.bearing,
-    maxPitch: 70,
+    maxPitch: LIMITES.inclinacao,
     attributionControl: false,
     // Totem: sem rotação por mouse, sem inclinação por gesto, sem zoom por toque duplo
     dragRotate: false,
@@ -85,10 +103,11 @@ export function montarMapa() {
     boxZoom: false,
     fadeDuration: 0,
     cancelPendingTileRequestsWhileZooming: false, // na descida, as imagens chegam mesmo com a câmera em movimento
-    maxTileCacheSize: 600,
+    // Imagens já carregadas ficam na memória: a câmera volta sem piscar (a cidade inteira cabe aqui)
+    maxTileCacheSize: 2000,
     renderWorldCopies: false,
   });
-  mapa.setVerticalFieldOfView?.(FOV);
+  mapa.setVerticalFieldOfView?.(FOV_MAPA);
   if (import.meta.env.DEV) window.__mapa = mapa; // só para os testes
   mapa.addControl(new maplibregl.AttributionControl({ compact: false }), 'bottom-left');
   travar();
@@ -101,6 +120,10 @@ export function montarMapa() {
   criarPins();
   montarTela();
   mapa.on('move', espalharPins);
+  // Fundo da camada na cor do chão só perto da cidade: no planeta, ela é transparente
+  const perto = () => camada.classList.toggle('perto', mapa.getZoom() >= 9);
+  mapa.on('zoom', perto);
+  perto();
   window.addEventListener('resize', () => estado.tela === 'locais' && !aberto && mapa && irParaVista({ duracao: 0 }));
   em('idioma', aoMudarIdioma);
 
@@ -138,29 +161,30 @@ async function aquecerImagens() {
 // --- Câmera (usada pela transição) ------------------------------------------------
 /** Distância da câmera do planeta Three.js (em raios) → zoom do MapLibre com o mesmo tamanho na tela */
 export function zoomDaDistancia(dist, lat) {
-  const C = camada.clientHeight / 2 / Math.tan((FOV / 2) * DEG);
+  const C = telaH() / 2 / Math.tan((FOV / 2) * DEG);
   const raio = C / (dist - 1);
   return Math.log2((raio * 2 * Math.PI * Math.cos(lat * DEG)) / 512);
 }
 
 export function distanciaDoZoom(zoom, lat) {
-  const C = camada.clientHeight / 2 / Math.tan((FOV / 2) * DEG);
+  const C = telaH() / 2 / Math.tan((FOV / 2) * DEG);
   const raio = (512 * 2 ** zoom) / (2 * Math.PI * Math.cos(lat * DEG));
   return 1 + C / raio;
 }
 
 /** Zoom em que o planeta inteiro aparece, com folga, no lado menor da tela */
 export function zoomDoPlaneta(lat) {
-  const raio = Math.min(camada.clientWidth, camada.clientHeight) * 0.4;
+  const raio = Math.min(telaW(), telaH()) * 0.4;
   return Math.log2((raio * 2 * Math.PI * Math.cos(lat * DEG)) / 512);
 }
 
 /** Recuo do topo que deixa o foco da vista geral um pouco abaixo do meio da tela */
-export const recuoDaVista = () => ({ top: camada.clientHeight * (vista().alturaDoFoco - 0.5) * 2, bottom: 0, left: 0, right: 0 });
+export const recuoDaVista = () => ({ top: telaH() * (vista().alturaDoFoco - 0.5) * 2, bottom: 0, left: 0, right: 0 });
 
 export function prepararTransicao() {
   aquecendo = false;
   mapa.stop();
+  soltarLimites();
   fecharDetalhe({ voltar: false });
   pins.forEach((p) => gsap.set(p.el, { autoAlpha: 0 }));
 }
@@ -320,6 +344,34 @@ function pulsar(p, atraso) {
 /** Fim da transição. O mapa continua parado: os gestos ficam desligados no totem */
 export function liberarMapa() {
   travar();
+  prenderLimites();
+}
+
+/** Vista da cidade: a câmera fica na região de Canaã (a descida do planeta precisa do mundo todo) */
+function prenderLimites() {
+  mapa.setMinZoom(LIMITES.zoomMin);
+  mapa.setMaxZoom(LIMITES.zoomMax);
+  mapa.setMaxBounds(LIMITES.area);
+}
+function soltarLimites() {
+  mapa.setMaxBounds(null);
+  mapa.setMinZoom(0);
+  mapa.setMaxZoom(22);
+}
+
+export const imagensCarregadas = () => !mapa || mapa.areTilesLoaded();
+
+/** Imagens da tela já carregadas? Espera o mapa ficar ocioso, no máximo "limite" ms */
+export function esperarImagens(limite = 4000) {
+  return new Promise((ok) => {
+    if (imagensCarregadas()) return ok();
+    const fim = setTimeout(() => (mapa.off('idle', pronto), ok()), limite);
+    function pronto() {
+      clearTimeout(fim);
+      ok();
+    }
+    mapa.once('idle', pronto);
+  });
 }
 
 /** Timeline de entrada (vai embutida na transição: nada aparece antes da hora) */
@@ -342,6 +394,7 @@ export function resetarMapa() {
   mostrarCamada(0);
   if (!mapa) return;
   mapa.stop();
+  soltarLimites();
   brilho(BRILHO.inicio);
   mapa.jumpTo({ center: [PARA.lng, PARA.lat], zoom: 2.4, pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 } });
 }

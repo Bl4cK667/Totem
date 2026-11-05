@@ -104,7 +104,7 @@ Para sair do modo quiosque: **Alt + F4**.
 
 ## 8. Funcionamento offline
 
-Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos e planeta), então ele funciona **sem internet**. O Street View precisa de conexão. As imagens de satélite do mapa vêm da internet: o *service worker* guarda as que já foram vistas, e sem internet o mapa mostra só essas (lugares nunca vistos ficam em branco, mas os pins continuam funcionando). Um *service worker* também guarda os arquivos em cache, caso o totem seja servido por um endereço remoto.
+Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos e planeta), então ele funciona **sem internet**. O Street View precisa de conexão. As imagens de satélite do mapa vêm da internet: o *service worker* guarda as que já foram vistas, e sem internet o mapa mostra só essas (lugares nunca vistos aparecem borrados ou na cor do chão, mas os pins continuam funcionando). Um *service worker* também guarda os arquivos em cache, caso o totem seja servido por um endereço remoto.
 
 ## 9. Conferências de qualidade
 

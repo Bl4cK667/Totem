@@ -2,25 +2,33 @@
    MAPA DA CIDADE — satélite claro com vinheta, pins, página do lugar e Street View
    ========================================================================== */
 
-/* Camada do MapLibre: por cima do planeta, embaixo das telas */
+/* Camada do MapLibre: por cima do planeta, embaixo das telas.
+   15% maior que a tela (7,5% para cada lado), centralizada; o #app corta o que sobra. As bordas
+   e os cantos do mapa ficam fora de vista, e as imagens em volta da tela já chegam carregadas.
+   Esse número anda junto com MAIOR, em src/telas/mapa.js. */
 .mapa-cidade {
+  --sobra: 6.5217%; /* 7,5% da tela, medido no mapa (7,5 / 115) */
   position: absolute;
-  inset: 0;
+  inset: -7.5%;
   z-index: 1;
   opacity: 0;
 }
 .mapa-cidade .maplibregl-canvas { outline: none; }
+/* Perto da cidade, onde uma imagem ainda não chegou aparece a cor média do chão de Canaã,
+   não um buraco escuro (no planeta inteiro fica transparente: o planeta Three.js está atrás) */
+.mapa-cidade.perto,
+.mapa-cidade.perto .maplibregl-canvas { background: #5f5d3a; }
 
 /* Vinheta leve: só as bordas escurecem, como uma moldura; o centro fica com a cor natural */
 .mapa-cidade__veu {
   position: absolute;
-  inset: 0;
+  inset: var(--sobra); /* só a parte visível */
   pointer-events: none;
   background: radial-gradient(130% 95% at 50% 55%, rgba(18, 13, 9, 0) 58%, rgba(18, 13, 9, 0.42) 100%);
 }
 
 /* Atribuição das imagens: sempre visível, discreta e sem link (é um totem) */
-.mapa-cidade .maplibregl-ctrl-bottom-left { left: calc(var(--margem) * 0.5); bottom: 0.6rem; }
+.mapa-cidade .maplibregl-ctrl-bottom-left { left: calc(var(--sobra) + var(--margem) * 0.5); bottom: calc(var(--sobra) + 0.6rem); }
 .mapa-cidade .maplibregl-ctrl-attrib {
   margin: 0;
   padding: 0.25em 0.8em;

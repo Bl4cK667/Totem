@@ -106,6 +106,7 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
     M.camera({ ...M.vista(), recuo: 1 });
     M.brilho(M.BRILHO.fim);
     tl.add(sairInicio(), 0)
+      .add(() => esperarImagens(tl), 0.35)
       .fromTo('.mapa-cidade', { opacity: 0 }, { opacity: 1, duration: 0.6 }, 0.4)
       .to('#globo', { opacity: 0, duration: 0.6 }, 0.4)
       .add(() => globo.pausar(), 1)
@@ -187,6 +188,9 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
     .fromTo(rotulo('cidade'), { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0])
     .to(rotulo('cidade'), { autoAlpha: 0, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0] + FADE_TITULO + T.cidade[1])
 
+    // Antes dos pins, as imagens da cidade precisam estar na tela: se alguma ainda está chegando
+    // (internet lenta), a transição espera um pouco (no máximo 4 s) com o mapa parado
+    .add(() => esperarImagens(tl), T.pins - 0.05)
     // Pins, um por um, com a câmera parada; o guia entra quando o último assentou
     .add(M.entrarMapa(), T.pins)
     .add(aoAssentar, T.pins + M.DURACAO_PINS());
@@ -200,6 +204,13 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
   }
 
   return tl;
+}
+
+/** Pausa a timeline até as imagens do mapa carregarem (o fim da espera já tem limite) */
+function esperarImagens(tl) {
+  if (M.imagensCarregadas()) return;
+  tl.pause();
+  M.esperarImagens().then(() => atual === tl && tl.paused() && tl.resume());
 }
 
 /** Esconde a tela de transição (e interrompe a que estiver rodando, ao voltar ao início) */

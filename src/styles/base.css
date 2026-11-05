@@ -35,7 +35,11 @@ img { max-width: 100%; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; }
 a { color: inherit; }
 
-#app { position: fixed; inset: 0; overflow: hidden; }
+/* clip (e não só hidden): nem o navegador consegue rolar a tela para o lado ao focar um botão */
+#app { position: fixed; inset: 0; overflow: hidden; overflow: clip; }
+
+/* Modo totem (abrir-totem.bat ou tela cheia): sem cursor na tela */
+.modo-totem, .modo-totem * { cursor: none !important; }
 
 /* --- Telas ----------------------------------------------------------- */
 .tela {
@@ -146,14 +150,14 @@ a { color: inherit; }
 }
 .botao-inicio svg { width: 1.1em; height: 1.1em; }
 
-/* Fundo translúcido da barra quando a página rola sobre fotos */
+/* Degradê leve atrás do logo e dos idiomas: o texto fica legível sem virar uma faixa escura */
 .barra-topo::before {
   content: '';
-  position: absolute; inset: 0;
+  position: absolute; inset: 0 0 -35% 0;
   z-index: -1;
   opacity: 0;
   transition: opacity 0.5s;
-  background: linear-gradient(to bottom, rgba(18, 13, 9, 0.7), rgba(18, 13, 9, 0));
+  background: linear-gradient(to bottom, rgba(18, 13, 9, 0.46), rgba(18, 13, 9, 0.2) 55%, rgba(18, 13, 9, 0));
 }
 .barra-topo.com-veu::before { opacity: 1; }
 
@@ -166,11 +170,11 @@ a { color: inherit; }
   padding: 4px;
 }
 .idiomas button {
-  min-width: var(--toque);
-  min-height: var(--toque);
-  padding: 0 0.6em;
+  min-width: max(var(--toque), 72px);
+  min-height: max(var(--toque), 64px);
+  padding: 0 0.8em;
   border-radius: 999px;
-  font-size: max(0.62rem, 12px);
+  font-size: max(0.72rem, 16px);
   font-weight: 600;
   letter-spacing: 0.16em;
   transition: background-color 0.35s, color 0.35s;

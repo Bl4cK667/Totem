@@ -1,19 +1,18 @@
-// QR Code "Leve este passeio no seu celular" — gerado no próprio totem (offline).
-// A URL base vem de VITE_QR_URL_BASE (.env) ou de config.qrUrlBase (locais.json).
+// QR Code "Como chegar": abre o Google Maps no celular com o destino já preenchido.
+// Gerado no próprio totem pela biblioteca "qrcode" (instalada no projeto, sem internet).
 import QRCode from 'qrcode';
-import { estado } from '../core/estado.js';
 
-export function urlDoLocal(id) {
-  const base = import.meta.env.VITE_QR_URL_BASE || estado.dados.config.qrUrlBase || '';
-  const sep = base.includes('?') ? '&' : '?';
-  return `${base}${sep}local=${encodeURIComponent(id)}&lang=${estado.idioma}`;
+/** Link de rota do Google Maps até as coordenadas do pin */
+export function urlComoChegar({ lat, lng }) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
-export function gerarQr(id) {
-  return QRCode.toDataURL(urlDoLocal(id), {
-    margin: 0,
-    width: 420,
+/** Imagem (data URL) do QR: marrom bem escuro sobre branco, com margem branca para o celular ler fácil */
+export function gerarQrComoChegar(ponto) {
+  return QRCode.toDataURL(urlComoChegar(ponto), {
+    margin: 4,
+    width: 640,
     errorCorrectionLevel: 'M',
-    color: { dark: '#2a1d14', light: '#f6f1e7' },
+    color: { dark: '#1f150e', light: '#ffffff' },
   });
 }

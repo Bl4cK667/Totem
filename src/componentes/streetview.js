@@ -1,4 +1,4 @@
-// Street View (Google Maps Embed API) do painel do mapa.
+// Street View (Google Maps Embed API) da tela do lugar.
 // O link de incorporação de cada ponto vem de config.js (raiz do projeto).
 // Sem link, sem internet ou demorando demais → mostra uma imagem elegante
 // com aviso, nunca uma tela quebrada. Se a conexão voltar, carrega sozinho.
@@ -23,6 +23,16 @@ const chave = () => (typeof GOOGLE_MAPS_EMBED_KEY === 'string' ? GOOGLE_MAPS_EMB
 /** Pontos turísticos de config.js */
 export function pontosTuristicos() {
   return typeof PONTOS_TURISTICOS === 'undefined' ? [] : PONTOS_TURISTICOS;
+}
+
+/** Lugares com Street View de um ponto: o próprio ponto, ou a lista "assuntos" (dois lugares num pin) */
+export function assuntosDe(ponto) {
+  return ponto.assuntos?.length ? ponto.assuntos : [ponto];
+}
+
+/** Fotos das telas dos lugares (para carregar antes e guardar no cache) */
+export function fotosDosPontos() {
+  return pontosTuristicos().map((p) => p.foto).filter(Boolean);
 }
 
 /**
@@ -117,8 +127,7 @@ export function montarStreetView(moldura, ponto) {
     iframe = document.createElement('iframe');
     iframe.loading = 'lazy';
     iframe.referrerPolicy = 'no-referrer-when-downgrade';
-    iframe.allow = 'accelerometer; gyroscope; fullscreen';
-    iframe.allowFullscreen = true;
+    iframe.allow = 'accelerometer; gyroscope; fullscreen'; // "fullscreen" aqui já libera a tela cheia
     iframe.title = 'Street View';
     iframe.src = urlStreetView(link);
     iframe.addEventListener('load', () => {

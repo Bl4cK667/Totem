@@ -1,14 +1,18 @@
 // Mapa interativo da cidade (MapLibre GL, globo + satélite Esri).
 // - É o mesmo mapa da transição: a câmera desce do planeta até Canaã e fica aqui.
 // - Só os pontos turísticos (config.js) aparecem, como pins nas cores da Prefeitura.
-// - Toque no pin: a câmera voa até o local e abre o painel; "Voltar ao mapa" volta à vista geral.
+// - Toque no pin: o mapa dá um zoom curto em direção ao pin e a página do lugar aparece
+//   (rola para baixo, em blocos). "Voltar ao mapa" devolve o mapa como estava.
+// - Totem: depois que os pins entram, o mapa fica parado (sem arrastar nem zoom), para o
+//   visitante acertar o pin com o dedo.
 import * as maplibregl from 'maplibre-gl';
 // O MapLibre procura o worker ao lado do próprio arquivo, e o Vite muda esse caminho: aponta direto
 import urlDoWorker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import gsap from 'gsap';
-import { estado, em } from '../core/estado.js';
+import { estado, em, emitir } from '../core/estado.js';
 import { t, tr, html } from '../core/i18n.js';
-import { montarStreetView, pontosTuristicos } from '../componentes/streetview.js';
+import { montarStreetView, pontosTuristicos, assuntosDe } from '../componentes/streetview.js';
+import { gerarQrComoChegar, urlComoChegar } from '../componentes/qrcode.js';
 
 const DEG = Math.PI / 180;
 
@@ -29,9 +33,9 @@ export function vista() {
 }
 export const PARA = { lng: -52, lat: -4, zoom: 5.5 };
 
-const ZOOM_DO_PIN = 16.4;
-const PITCH_DO_PIN = 60;
-const BRILHO_FINAL = 0.66; // satélite escurecido para os pins se destacarem
+const ZOOM_APROXIMAR = 1.3; // zoom curto em direção ao pin, enquanto a tela do lugar aparece
+const FADE_DETALHE = 0.7; // s: a página do lugar aparece e some com fade
+const BRILHO_FINAL = 1; // satélite com o brilho natural: o escuro fica só na vinheta das bordas
 const PASSOS_SEM_MOVER = 8; // px: mais do que isso é arraste, não toque
 
 const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -44,7 +48,7 @@ const dois = (n) => String(n).padStart(2, '0');
 
 let mapa = null;
 let pins = [];
-let aberto = null; // ponto com o painel aberto
+let aberto = null; // ponto com a página aberta
 let streetview = null;
 let aquecendo = true;
 
@@ -63,7 +67,7 @@ export function montarMapa() {
       layers: [
         // Cor de oceano: onde a imagem ainda não chegou (borda do globo), não aparece um buraco escuro
         { id: 'fundo', type: 'background', paint: { 'background-color': '#16324a' } },
-        { id: 'satelite', type: 'raster', source: 'satelite', paint: { 'raster-fade-duration': 250, 'raster-saturation': -0.08 } },
+        { id: 'satelite', type: 'raster', source: 'satelite', paint: { 'raster-fade-duration': 250, 'raster-saturation': 0.14, 'raster-contrast': 0.08, 'raster-brightness-min': 0.03 } },
       ],
     },
     center: [VISTA.lng, VISTA.lat],
@@ -85,17 +89,17 @@ export function montarMapa() {
     renderWorldCopies: false,
   });
   mapa.setVerticalFieldOfView?.(FOV);
+  if (import.meta.env.DEV) window.__mapa = mapa; // só para os testes
   mapa.addControl(new maplibregl.AttributionControl({ compact: false }), 'bottom-left');
-  mapa.touchZoomRotate.disableRotation();
-  travar(true);
+  travar();
 
-  // Véu escuro com vinheta: fica entre a imagem e os pins
+  // Vinheta leve nas bordas: fica entre a imagem e os pins
   const veu = document.createElement('div');
   veu.className = 'mapa-cidade__veu';
   mapa.getCanvasContainer().after(veu);
 
   criarPins();
-  montarPainel();
+  montarTela();
   mapa.on('move', espalharPins);
   window.addEventListener('resize', () => estado.tela === 'locais' && !aberto && mapa && irParaVista({ duracao: 0 }));
   em('idioma', aoMudarIdioma);
@@ -105,28 +109,9 @@ export function montarMapa() {
 
 export const getMapa = () => mapa;
 
-/** Liga ou desliga os gestos do visitante (desligados durante a transição) */
-function travar(sim) {
-  for (const h of ['dragPan', 'scrollZoom', 'touchZoomRotate']) mapa[h][sim ? 'disable' : 'enable']();
-  if (!sim) mapa.touchZoomRotate.disableRotation();
-}
-
-/** Limites da cidade para o visitante não se perder arrastando o mapa */
-function limitar(sim) {
-  if (!sim) {
-    mapa.setMaxBounds(null);
-    mapa.setMinZoom(0);
-    return;
-  }
-  const lista = pontosTuristicos();
-  const lngs = [VISTA.lng, ...lista.map((p) => p.lng)];
-  const lats = [VISTA.lat, ...lista.map((p) => p.lat)];
-  const folga = 0.05;
-  mapa.setMaxBounds([
-    [Math.min(...lngs) - folga, Math.min(...lats) - folga],
-    [Math.max(...lngs) + folga, Math.max(...lats) + folga],
-  ]);
-  mapa.setMinZoom(12);
+/** Gestos do visitante no mapa: sempre desligados. O mapa só se move pelos toques nos pins */
+function travar() {
+  for (const h of ['dragPan', 'scrollZoom', 'touchZoomRotate']) mapa[h].disable();
 }
 
 /**
@@ -140,7 +125,6 @@ async function aquecerImagens() {
   });
   const etapas = [
     () => irParaVista({ duracao: 0 }),
-    ...pontosTuristicos().map((p) => () => mapa.jumpTo({ center: [p.lng, p.lat], zoom: ZOOM_DO_PIN, pitch: PITCH_DO_PIN, bearing: VISTA.bearing })),
     () => mapa.jumpTo({ center: [PARA.lng, PARA.lat], zoom: PARA.zoom, pitch: 0, bearing: 0 }),
     () => mapa.jumpTo({ center: [PARA.lng, PARA.lat], zoom: 2.4, pitch: 0, bearing: 0 }),
   ];
@@ -177,9 +161,7 @@ export const recuoDaVista = () => ({ top: camada.clientHeight * (vista().alturaD
 export function prepararTransicao() {
   aquecendo = false;
   mapa.stop();
-  limitar(false);
-  travar(true);
-  fecharPainel({ voltar: false });
+  fecharDetalhe({ voltar: false });
   pins.forEach((p) => gsap.set(p.el, { autoAlpha: 0 }));
 }
 
@@ -216,12 +198,14 @@ function criarPins() {
   pins = pontosTuristicos().map((ponto, i) => {
     const el = document.createElement('div');
     el.className = 'pin';
+    // "queda" leva o pin e o nome juntos: os dois entram ao mesmo tempo, sem nada solto
     el.innerHTML = `
       <span class="pin__chao" aria-hidden="true"><i class="pin__onda"></i></span>
-      <span class="pin__haste" aria-hidden="true"></span>
       <button class="pin__alvo" data-id="${ponto.id}">
-        <span class="pin__corpo">${SVG_PIN}<span class="pin__num serif">${dois(i + 1)}</span></span>
-        <span class="pin__nome"></span>
+        <span class="pin__queda">
+          <span class="pin__corpo">${SVG_PIN}<span class="pin__num serif">${dois(i + 1)}</span></span>
+          <span class="pin__nome"></span>
+        </span>
       </button>`;
     const alvo = el.querySelector('.pin__alvo');
     ligarToque(alvo, () => abrirPonto(ponto));
@@ -229,7 +213,7 @@ function criarPins() {
       .setLngLat([ponto.lng, ponto.lat])
       .addTo(mapa);
     gsap.set(el, { autoAlpha: 0 });
-    return { ponto, el, alvo, marcador, nome: el.querySelector('.pin__nome'), haste: el.querySelector('.pin__haste'), onda: el.querySelector('.pin__onda'), dx: 0, dy: 0 };
+    return { ponto, el, alvo, marcador, queda: el.querySelector('.pin__queda'), chao: el.querySelector('.pin__chao'), nome: el.querySelector('.pin__nome'), onda: el.querySelector('.pin__onda') };
   });
   escreverNomes();
 }
@@ -263,8 +247,9 @@ function medirPins() {
 }
 
 /**
- * Pins muito próximos (ex.: Prefeitura e lago) se afastam na tela, cada um com uma haste fina
- * apontando para o lugar exato. Quando o zoom aumenta e eles se separam, voltam ao lugar.
+ * Segurança para telas estreitas: se dois pins encostarem, eles se afastam um pouco na tela
+ * (o pin inteiro, com o ponto do chão junto, sem haste). Na vista geral, com os 4 pontos,
+ * nenhum deles precisa se mexer.
  */
 function espalharPins() {
   if (!pins.length || !pins[0].caixa) return;
@@ -300,41 +285,41 @@ function espalharPins() {
     const { x, y } = off[i];
     p.el.style.setProperty('--dx', `${x.toFixed(1)}px`);
     p.el.style.setProperty('--dy', `${y.toFixed(1)}px`);
-    const comprimento = Math.hypot(x, y);
-    p.haste.style.width = `${comprimento.toFixed(1)}px`;
-    p.haste.style.transform = `rotate(${Math.atan2(y, x)}rad)`;
-    p.haste.style.opacity = comprimento > 6 ? '1' : '0';
-    p.el.classList.toggle('afastado', comprimento > 6);
   });
 }
 
-/** Pins entram um por um: caem do alto, quicam e a onda dourada começa a pulsar */
+// Entrada: 150 ms entre um pin e outro. Cada um cai do alto, toca o chão e dá um quique curto
+const INTERVALO_PINS = 0.15;
+const QUEDA = 0.46;
+export const DURACAO_PINS = () => (pins.length - 1) * INTERVALO_PINS + QUEDA + 0.34;
+
+/** Pins entram um por um, já com o nome: caem, assentam com um quique leve e a onda pulsa */
 export function entrarPins() {
   medirPins();
   const tl = gsap.timeline();
+  const alto = -Math.max(90, innerHeight * 0.08);
   pins.forEach((p, i) => {
-    const corpo = p.el.querySelector('.pin__corpo');
-    const at = i * 0.2;
+    const at = i * INTERVALO_PINS;
     tl.set(p.el, { autoAlpha: 1 }, at)
-      .fromTo(corpo, { y: -70, scale: 0.6, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.75, ease: 'back.out(2.2)', transformOrigin: '50% 100%' }, at)
-      .fromTo(p.el.querySelector('.pin__chao'), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'power2.out' }, at + 0.35)
-      .fromTo(p.nome, { autoAlpha: 0, y: -8 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out' }, at + 0.4)
-      .add(() => pulsar(p, i * 0.35), at + 0.5);
+      .fromTo(p.queda, { y: alto, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: QUEDA, ease: 'power2.in', immediateRender: true }, at)
+      .to(p.queda, { y: -9, duration: 0.15, ease: 'power2.out' }, at + QUEDA)
+      .to(p.queda, { y: 0, duration: 0.19, ease: 'power2.in' }, at + QUEDA + 0.15)
+      .fromTo(p.chao, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }, at + QUEDA - 0.05)
+      .add(() => pulsar(p, i * 0.3), at + QUEDA + 0.34);
   });
   return tl;
 }
 
-/** Onda no chão (GSAP: o modo "menos movimento" do Windows desliga animações CSS) */
+/** Onda no chão: pulsa devagar, sem sair do lugar (GSAP: o modo "menos movimento" do Windows desliga CSS) */
 function pulsar(p, atraso) {
   gsap.killTweensOf(p.onda);
-  gsap.fromTo(p.onda, { scale: 0.4, opacity: 0.9 }, { scale: 2.6, opacity: 0, duration: 2.2, ease: 'power1.out', repeat: -1, delay: atraso });
+  gsap.fromTo(p.onda, { scale: 0.8, opacity: 0.55 }, { scale: 2, opacity: 0, duration: 2.6, ease: 'sine.out', repeat: -1, repeatDelay: 0.6, delay: atraso });
 }
 
 // --- Entrada / saída da tela ---------------------------------------------------------
-/** Fim da transição: o visitante já pode mexer no mapa */
+/** Fim da transição. O mapa continua parado: os gestos ficam desligados no totem */
 export function liberarMapa() {
-  limitar(true);
-  travar(false);
+  travar();
 }
 
 /** Timeline de entrada (vai embutida na transição: nada aparece antes da hora) */
@@ -347,54 +332,122 @@ export function entrarMapa() {
 /** Volta ao início: esconde tudo e deixa o mapa pronto para a próxima descida */
 export function resetarMapa() {
   fecharStreetView();
-  fecharPainel({ voltar: false });
+  fecharDetalhe({ voltar: false });
   pins.forEach((p) => {
-    gsap.killTweensOf([p.onda, p.el]);
+    p.el.classList.remove('visto');
+    gsap.killTweensOf([p.onda, p.el, p.queda, p.chao]);
     gsap.set(p.el, { autoAlpha: 0 });
   });
   gsap.set(tela, { autoAlpha: 0 });
   mostrarCamada(0);
   if (!mapa) return;
   mapa.stop();
-  travar(true);
-  limitar(false);
   brilho(BRILHO.inicio);
   mapa.jumpTo({ center: [PARA.lng, PARA.lat], zoom: 2.4, pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 } });
 }
 
-// --- Painel do ponto -----------------------------------------------------------------
-function montarPainel() {
+// --- Página do lugar ---------------------------------------------------------------------
+// Abre por cima do mapa e rola para baixo, um bloco por vez:
+// 1) abertura com a foto (100% da altura), 2) sobre o lugar e dados rápidos, 3) você sabia?
+// (com o guia), 4) como chegar (QR Code e Street View), 5) outros lugares.
+// A barra do topo (voltar ao mapa, início, idiomas) fica fixa enquanto a página rola.
+const ICONE_SV = '<svg class="icone-sv" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.6" fill="currentColor"/><path d="M9.5 9.5h5l1 6h-2l-.6 6h-2.8l-.6-6h-2z" fill="currentColor"/><ellipse cx="12" cy="21" rx="8" ry="2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
+const VOLTA = SETA.replace('class="seta"', 'class="seta seta--volta"');
+const ABAIXO = '<svg class="seta-baixo" viewBox="0 0 16 28" aria-hidden="true"><path d="M8 0v26M1 19l7 7 7-7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+
+let detalhe = null;
+let rolagem = null;
+let sv = null;
+let svAssunto = null; // lugar aberto no Street View
+let cameraSalva = null; // o mapa volta exatamente para cá
+let trocando = false;
+let observador = null;
+let setaDeslize = null;
+const guia = { pai: null, depois: null }; // de onde o guia saiu (ele volta para lá ao fechar)
+const qrs = new Map(); // QR Codes já gerados, por ponto
+
+const rotulo = (chave) => `<p class="legenda bloco__rotulo"><span class="filete"></span><span data-i18n="${chave}">${html(t(chave))}</span></p>`;
+
+function montarTela() {
   tela.innerHTML = `
     <header class="mapa__cabecalho">
       <p class="legenda mapa__sobretitulo"><span class="filete"></span><span data-i18n="locais.sobretitulo">${html(t('locais.sobretitulo'))}</span></p>
       <h2 class="mapa__titulo serif" data-i18n="mapa.titulo">${html(t('mapa.titulo'))}</h2>
-    </header>
+    </header>`;
 
-    <aside class="painel" aria-hidden="true">
-      <div class="painel__rolagem">
-        <figure class="painel__foto"><img alt="" /></figure>
-        <p class="legenda painel__sobre"></p>
-        <h2 class="painel__nome"></h2>
-        <p class="painel__descricao"></p>
-        <div class="painel__bloco-curiosidades">
-          <p class="legenda painel__titulo"><span class="filete"></span><span data-i18n="local.curiosidades">${html(t('local.curiosidades'))}</span></p>
-          <ol class="painel__curiosidades"></ol>
+  detalhe = document.createElement('section');
+  detalhe.className = 'detalhe';
+  detalhe.setAttribute('aria-hidden', 'true');
+  detalhe.innerHTML = `
+    <div class="detalhe__rolagem">
+      <header class="bloco abertura">
+        <div class="abertura__fundo"></div>
+        <p class="legenda abertura__legenda-foto" hidden></p>
+        <div class="abertura__texto">
+          <p class="legenda abertura__etiqueta"></p>
+          <h2 class="abertura__nome serif"></h2>
+          <p class="abertura__frase"></p>
         </div>
-      </div>
-      <div class="painel__acoes">
-        <button class="botao botao--ouro painel__sv" data-acao="street-view">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.6" fill="currentColor"/><path d="M9.5 9.5h5l1 6h-2l-.6 6h-2.8l-.6-6h-2z" fill="currentColor"/><ellipse cx="12" cy="21" rx="8" ry="2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
-          <span data-i18n="mapa.streetview">${html(t('mapa.streetview'))}</span>
-        </button>
-        <button class="botao botao--contorno-escuro painel__voltar" data-acao="voltar-mapa">
-          ${SETA}<span data-i18n="mapa.voltar">${html(t('mapa.voltar'))}</span>
-        </button>
-      </div>
-    </aside>
+        <button class="abertura__deslize" data-acao="deslize"><span class="legenda" data-i18n="detalhe.deslize">${html(t('detalhe.deslize'))}</span>${ABAIXO}</button>
+      </header>
 
-`;
+      <section class="bloco bloco--claro sobre">
+        <div class="bloco__dentro" data-revelar>
+          ${rotulo('detalhe.sobre')}
+          <p class="sobre__texto"></p>
+          <ul class="sobre__dados"></ul>
+        </div>
+      </section>
 
-  // Street View fica fora da tela do mapa: precisa cobrir também a barra do topo e o mascote
+      <section class="bloco bloco--verde sabia">
+        <div class="bloco__dentro" data-revelar data-contar>
+          <div class="sabia__topo">
+            <h3 class="bloco__titulo serif" data-i18n="detalhe.voceSabia">${html(t('detalhe.voceSabia'))}</h3>
+            <div class="sabia__guia"></div>
+          </div>
+          <ol class="sabia__cards"></ol>
+        </div>
+      </section>
+
+      <section class="bloco bloco--claro chegar">
+        <div class="bloco__dentro" data-revelar>
+          ${rotulo('detalhe.comoChegar')}
+          <div class="chegar__grade">
+            <figure class="chegar__qr">
+              <img alt="QR Code" width="640" height="640" />
+              <figcaption data-i18n="detalhe.qr">${html(t('detalhe.qr'))}</figcaption>
+            </figure>
+            <div class="chegar__sv">
+              <h3 class="bloco__titulo serif">Street View</h3>
+              <p class="chegar__sv-texto" data-i18n="detalhe.streetviewTexto">${html(t('detalhe.streetviewTexto'))}</p>
+              <button class="botao botao--ouro chegar__botao" data-acao="street-view">${ICONE_SV}<span data-i18n="mapa.streetview">${html(t('mapa.streetview'))}</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="bloco bloco--escuro fim">
+        <div class="bloco__dentro" data-revelar>
+          ${rotulo('detalhe.outros')}
+          <div class="fim__lugares">
+            <button class="fim__lugar" data-acao="anterior">
+              <span class="legenda fim__direcao">${VOLTA}<span data-i18n="detalhe.anterior">${html(t('detalhe.anterior'))}</span></span>
+              <span class="fim__nome serif"></span>
+            </button>
+            <button class="fim__lugar fim__lugar--proximo" data-acao="proximo">
+              <span class="legenda fim__direcao"><span data-i18n="detalhe.proximo">${html(t('detalhe.proximo'))}</span>${SETA}</span>
+              <span class="fim__nome serif"></span>
+            </button>
+          </div>
+          <button class="botao botao--ouro fim__voltar" data-acao="voltar-mapa">${VOLTA}<span data-i18n="mapa.voltar">${html(t('mapa.voltar'))}</span></button>
+        </div>
+      </footer>
+    </div>
+    <div class="detalhe__progresso" aria-hidden="true"><i></i></div>`;
+  document.getElementById('app').appendChild(detalhe);
+  rolagem = detalhe.querySelector('.detalhe__rolagem');
+
+  // Street View em tela cheia, com "Fechar" para voltar à página do lugar
   sv = document.createElement('div');
   sv.className = 'sv-tela';
   sv.setAttribute('aria-hidden', 'true');
@@ -402,111 +455,232 @@ function montarPainel() {
     <div class="sv-tela__moldura"><div class="streetview"></div></div>
     <div class="sv-tela__barra">
       <p class="sv-tela__nome serif"></p>
-      <button class="botao botao--ouro" data-acao="fechar-sv">${SETA}<span data-i18n="mapa.voltarPainel">${html(t('mapa.voltarPainel'))}</span></button>
+      <div class="sv-tela__lugares"></div>
+      <button class="botao botao--ouro sv-tela__fechar" data-acao="fechar-sv"><span data-i18n="detalhe.fechar">${html(t('detalhe.fechar'))}</span></button>
     </div>`;
   document.getElementById('app').appendChild(sv);
 
-  tela.querySelector('[data-acao="voltar-mapa"]').addEventListener('click', () => fecharPainel());
-  tela.querySelector('[data-acao="street-view"]').addEventListener('click', abrirStreetView);
-  sv.querySelector('[data-acao="fechar-sv"]').addEventListener('click', fecharStreetView);
-}
-
-let sv = null;
-const painel = () => tela.querySelector('.painel');
-const retrato = () => innerHeight > innerWidth;
-
-function preencherPainel(ponto) {
-  const p = painel();
-  const lista = pontosTuristicos();
-  const img = p.querySelector('.painel__foto img');
-  p.querySelector('.painel__foto').hidden = !ponto.foto;
-  if (ponto.foto && img.getAttribute('src') !== ponto.foto) img.src = ponto.foto;
-  p.querySelector('.painel__sobre').textContent = `${dois(lista.indexOf(ponto) + 1)} / ${dois(lista.length)}`;
-  p.querySelector('.painel__nome').innerHTML = html(tr(ponto.nome));
-  p.querySelector('.painel__descricao').innerHTML = html(tr(ponto.descricao));
-  const curiosidades = ponto.curiosidades || [];
-  p.querySelector('.painel__bloco-curiosidades').hidden = !curiosidades.length;
-  p.querySelector('.painel__curiosidades').innerHTML = curiosidades
-    .map((c, i) => `<li><span class="painel__num serif">${dois(i + 1)}</span><p>${html(tr(c))}</p></li>`)
-    .join('');
-}
-
-/**
- * Espaço que o painel ocupa: a câmera centraliza o local na parte livre do mapa.
- * Usa a posição de layout (sem transform): na hora do cálculo, o painel ainda está entrando
- */
-function recuoDoPainel() {
-  const p = painel();
-  const topo = parseFloat(getComputedStyle(tela.querySelector('.mapa__cabecalho')).top) || 0;
-  return retrato()
-    ? { top: topo * 0.6, bottom: p.offsetHeight, left: 0, right: 0 }
-    : { top: topo * 0.6, bottom: 0, left: 0, right: innerWidth - p.offsetLeft };
-}
-
-function abrirPonto(ponto) {
-  if (estado.tela !== 'locais' || estado.ocupado) return;
-  const trocando = !!aberto;
-  aberto = ponto;
-  pins.forEach((p) => p.el.classList.toggle('ativo', p.ponto === ponto));
-  document.body.classList.add('painel-aberto');
-
-  const p = painel();
-  const conteudo = p.querySelector('.painel__rolagem');
-  const mostrar = () => {
-    preencherPainel(ponto);
-    conteudo.scrollTop = 0;
-  };
-  p.setAttribute('aria-hidden', 'false');
-  gsap.killTweensOf([p, conteudo]);
-  if (trocando) {
-    gsap.timeline().to(conteudo, { autoAlpha: 0, duration: 0.2 }).add(mostrar).to(conteudo, { autoAlpha: 1, duration: 0.45 });
-  } else {
-    mostrar();
-    gsap.set(conteudo, { autoAlpha: 1 });
-    const de = retrato() ? { yPercent: 105, xPercent: 0 } : { xPercent: 105, yPercent: 0 };
-    gsap.fromTo(p, { ...de, autoAlpha: 1 }, { xPercent: 0, yPercent: 0, duration: 0.9, ease: 'expo.out' });
-    gsap.fromTo(tela.querySelector('.mapa__cabecalho'), { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.3 });
+  // "Voltar ao mapa": no fim da página e na barra do topo (fixa enquanto rola)
+  for (const b of [...detalhe.querySelectorAll('[data-acao="voltar-mapa"]'), document.querySelector('.barra-topo__voltar')]) {
+    b.addEventListener('click', () => fecharDetalhe());
   }
+  detalhe.querySelector('[data-acao="street-view"]').addEventListener('click', () => abrirStreetView());
+  detalhe.querySelector('[data-acao="anterior"]').addEventListener('click', () => passar(-1));
+  detalhe.querySelector('[data-acao="proximo"]').addEventListener('click', () => passar(1));
+  detalhe.querySelector('[data-acao="deslize"]').addEventListener('click', () => {
+    rolagem.scrollTo({ top: detalhe.querySelector('.sobre').offsetTop, behavior: 'smooth' });
+  });
+  rolagem.addEventListener('scroll', mostrarProgresso, { passive: true });
+  sv.querySelector('[data-acao="fechar-sv"]').addEventListener('click', fecharStreetView);
+  // Prefeitura e Lago: um botão para cada Street View
+  sv.querySelector('.sv-tela__lugares').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-lugar]');
+    if (!b || !aberto) return;
+    svAssunto = assuntosDe(aberto)[Number(b.dataset.lugar)];
+    carregarStreetView();
+  });
+  window.addEventListener('resize', () => aberto && medirBarra());
+}
 
-  mapa.flyTo({
+/** Linha dourada fina à direita: quanto da página já rolou */
+function mostrarProgresso() {
+  const total = rolagem.scrollHeight - rolagem.clientHeight;
+  detalhe.querySelector('.detalhe__progresso i').style.transform = `scaleY(${total > 0 ? (rolagem.scrollTop / total).toFixed(4) : 0})`;
+}
+
+/** Altura da barra fixa: os blocos param logo abaixo dela */
+function medirBarra() {
+  const barra = document.querySelector('.barra-topo');
+  detalhe.style.setProperty('--barra-h', `${barra.offsetHeight}px`);
+}
+
+/** Foto da abertura (ou o espaço marcado "Foto em breve", se o lugar ainda não tem foto certa) */
+function fotoDaAbertura(ponto) {
+  if (ponto.foto) return `<img class="abertura__foto" src="${ponto.foto}" alt="" />`;
+  return `<div class="abertura__sem-foto"><span class="legenda">${html(t('detalhe.semFoto'))}</span><span class="abertura__sem-foto-nome serif">${html(tr(ponto.nome))}</span></div>`;
+}
+
+const vizinho = (ponto, direcao) => {
+  const lista = pontosTuristicos();
+  return lista[(lista.indexOf(ponto) + direcao + lista.length) % lista.length];
+};
+
+/** Conteúdo da página (sem animação: usado também na troca de idioma) */
+function preencherDetalhe(ponto) {
+  const lista = pontosTuristicos();
+  detalhe.setAttribute('aria-label', tr(ponto.nome));
+  detalhe.querySelector('.abertura__fundo').innerHTML = fotoDaAbertura(ponto);
+  const legenda = detalhe.querySelector('.abertura__legenda-foto');
+  legenda.textContent = ponto.fotoProjeto ? t('detalhe.fotoProjeto') : '';
+  legenda.hidden = !ponto.fotoProjeto;
+  detalhe.querySelector('.abertura__etiqueta').textContent = `${dois(lista.indexOf(ponto) + 1)} / ${dois(lista.length)} · Canaã dos Carajás`;
+  detalhe.querySelector('.abertura__nome').innerHTML = html(tr(ponto.nome));
+  detalhe.querySelector('.abertura__frase').innerHTML = html(tr(ponto.frase));
+
+  detalhe.querySelector('.sobre__texto').innerHTML = html(tr(ponto.descricao));
+  const dados = (ponto.dados || []).slice(0, 3);
+  const listaDados = detalhe.querySelector('.sobre__dados');
+  listaDados.style.setProperty('--n', dados.length);
+  listaDados.hidden = !dados.length;
+  listaDados.innerHTML = dados.map((d) => `<li><span class="sobre__valor serif">${html(tr(d.valor))}</span><span class="sobre__legenda">${html(tr(d.legenda))}</span></li>`).join('');
+
+  const cur = (ponto.curiosidades || []).slice(0, 3);
+  const cards = detalhe.querySelector('.sabia__cards');
+  cards.style.setProperty('--n', cur.length);
+  cards.innerHTML = cur.map((c, i) => `<li><span class="sabia__num serif">${dois(i + 1)}</span><p>${html(tr(c))}</p></li>`).join('');
+
+  const [ant, prox] = [vizinho(ponto, -1), vizinho(ponto, 1)];
+  detalhe.querySelector('[data-acao="anterior"] .fim__nome').innerHTML = html(tr(ant.nome));
+  detalhe.querySelector('[data-acao="proximo"] .fim__nome').innerHTML = html(tr(prox.nome));
+  mostrarQr(ponto);
+}
+
+/** QR Code "Como chegar" (Google Maps com o destino do pin), gerado no próprio totem */
+async function mostrarQr(ponto) {
+  const img = detalhe.querySelector('.chegar__qr img');
+  img.dataset.destino = urlComoChegar(ponto);
+  if (!qrs.has(ponto.id)) qrs.set(ponto.id, gerarQrComoChegar(ponto));
+  const src = await qrs.get(ponto.id);
+  if (aberto === ponto) img.src = src;
+}
+
+/** Cada bloco aparece com fade e leve subida quando entra na tela (uma vez por abertura) */
+function prepararRevelacao() {
+  observador?.disconnect();
+  const blocos = [...detalhe.querySelectorAll('[data-revelar]')];
+  gsap.killTweensOf(blocos);
+  gsap.set(blocos, { autoAlpha: 0, y: 28 });
+  observador = new IntersectionObserver(
+    (entradas) => {
+      for (const e of entradas) {
+        if (!e.isIntersecting) continue;
+        observador.unobserve(e.target);
+        gsap.to(e.target, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power2.out' });
+        if (e.target.hasAttribute('data-contar')) emitir('contar', detalhe.querySelector('.sabia__cards'));
+      }
+    },
+    { root: rolagem, threshold: 0.18 }
+  );
+  blocos.forEach((b) => observador.observe(b));
+}
+
+/** O guia sai do canto do mapa e fica ao lado das curiosidades, como se estivesse contando */
+function guiaNaPagina(sim) {
+  const m = document.querySelector('.mascote');
+  if (sim && m.parentElement !== detalhe.querySelector('.sabia__guia')) {
+    guia.pai = m.parentElement;
+    guia.depois = m.nextSibling;
+    detalhe.querySelector('.sabia__guia').appendChild(m);
+  } else if (!sim && guia.pai) {
+    guia.pai.insertBefore(m, guia.depois);
+    guia.pai = null;
+  }
+}
+
+function marcarVisto(ponto) {
+  pins.forEach((p) => p.el.classList.toggle('visto', p.ponto === ponto));
+}
+
+/** Abertura: sempre no topo, com a seta "deslize para baixo" balançando devagar */
+function irParaOTopo() {
+  rolagem.scrollTop = 0;
+  mostrarProgresso();
+  prepararRevelacao();
+}
+
+/** Toque no pin: zoom curto em direção a ele e, ao mesmo tempo, a página do lugar aparece */
+function abrirPonto(ponto) {
+  if (estado.tela !== 'locais' || estado.ocupado || aberto) return;
+  aberto = ponto;
+  marcarVisto(ponto);
+  cameraSalva = { center: mapa.getCenter(), zoom: mapa.getZoom(), pitch: mapa.getPitch(), bearing: mapa.getBearing(), padding: mapa.getPadding() };
+
+  preencherDetalhe(ponto);
+  document.body.classList.add('detalhe-aberto');
+  medirBarra();
+  detalhe.setAttribute('aria-hidden', 'false');
+  irParaOTopo();
+  guiaNaPagina(true);
+  emitir('ponto', ponto);
+  setaDeslize?.kill();
+  setaDeslize = gsap.fromTo(detalhe.querySelector('.seta-baixo'), { y: -3 }, { y: 7, duration: 1.3, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+
+  mapa.easeTo({
     center: [ponto.lng, ponto.lat],
-    zoom: ZOOM_DO_PIN,
-    pitch: PITCH_DO_PIN,
-    bearing: mapa.getBearing(),
-    padding: recuoDoPainel(),
-    duration: 2200,
-    curve: 1.25,
+    zoom: mapa.getZoom() + ZOOM_APROXIMAR,
+    duration: FADE_DETALHE * 1000 + 300,
+    easing: (x) => 1 - (1 - x) ** 3,
     essential: true, // sem isto o MapLibre pula a animação com "menos movimento" ligado no Windows
   });
+  gsap.killTweensOf([detalhe, rolagem]);
+  gsap.set(rolagem, { autoAlpha: 1 });
+  gsap.fromTo(detalhe, { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_DETALHE, ease: 'sine.inOut' });
+  gsap.fromTo(detalhe.querySelector('.abertura__texto'), { y: 18 }, { y: 0, duration: FADE_DETALHE + 0.3, ease: 'power3.out' });
 }
 
-function fecharPainel({ voltar = true } = {}) {
+/** Anterior / próximo: troca de lugar sem voltar ao mapa, e a página volta ao topo */
+function passar(direcao) {
+  if (!aberto || trocando) return;
+  const ponto = vizinho(aberto, direcao);
+  trocando = true;
+  gsap
+    .timeline({ onComplete: () => (trocando = false) })
+    .to(rolagem, { autoAlpha: 0, duration: 0.35, ease: 'sine.in' })
+    .add(() => {
+      aberto = ponto;
+      marcarVisto(ponto);
+      preencherDetalhe(ponto);
+      irParaOTopo();
+      emitir('ponto', ponto);
+    })
+    .to(rolagem, { autoAlpha: 1, duration: 0.5, ease: 'sine.out' });
+}
+
+/** "Voltar ao mapa": a página some com fade e o mapa volta exatamente como estava */
+function fecharDetalhe({ voltar = true } = {}) {
   if (!aberto) return;
   aberto = null;
-  pins.forEach((p) => p.el.classList.remove('ativo'));
-  document.body.classList.remove('painel-aberto');
-  const p = painel();
-  p.setAttribute('aria-hidden', 'true');
-  gsap.killTweensOf(p);
+  trocando = false;
+  observador?.disconnect();
+  setaDeslize?.kill();
+  detalhe.setAttribute('aria-hidden', 'true');
+  emitir('ponto', null);
+  gsap.killTweensOf([detalhe, rolagem]);
+  const sair = () => {
+    document.body.classList.remove('detalhe-aberto');
+    guiaNaPagina(false);
+  };
   if (!voltar) {
-    gsap.set(p, { autoAlpha: 0 });
+    gsap.set(detalhe, { autoAlpha: 0 });
+    sair();
+    cameraSalva = null;
     return;
   }
-  const para = retrato() ? { yPercent: 105 } : { xPercent: 105 };
-  gsap.to(p, { ...para, duration: 0.6, ease: 'power3.in', onComplete: () => gsap.set(p, { autoAlpha: 0 }) });
-  gsap.to(tela.querySelector('.mapa__cabecalho'), { autoAlpha: 1, duration: 0.6, delay: 0.5 });
-  irParaVista();
+  // O guia e a barra voltam ao normal só depois do fade (nada pula na frente da pessoa)
+  gsap.to(detalhe, { autoAlpha: 0, duration: FADE_DETALHE, ease: 'sine.inOut', onComplete: () => !aberto && sair() });
+  if (cameraSalva) mapa.easeTo({ ...cameraSalva, duration: FADE_DETALHE * 1000 + 300, easing: (x) => 1 - (1 - x) ** 3, essential: true });
+  cameraSalva = null;
 }
 
 // --- Street View em tela cheia ---------------------------------------------------------
 function abrirStreetView() {
   if (!aberto) return;
-  sv.querySelector('.sv-tela__nome').innerHTML = html(tr(aberto.nome));
+  svAssunto = assuntosDe(aberto)[0];
   sv.setAttribute('aria-hidden', 'false');
+  carregarStreetView();
+  gsap.fromTo(sv, { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_DETALHE, ease: 'sine.inOut' });
+}
+
+function carregarStreetView() {
+  const lugares = assuntosDe(aberto);
+  sv.querySelector('.sv-tela__nome').innerHTML = html(tr(lugares.length > 1 ? aberto.nome : svAssunto.nome));
+  sv.querySelector('.sv-tela__lugares').innerHTML =
+    lugares.length > 1
+      ? lugares.map((l, i) => `<button class="botao botao--contorno-claro" data-lugar="${i}" aria-pressed="${l === svAssunto}">${html(tr(l.nome))}</button>`).join('')
+      : '';
   streetview?.destruir();
-  streetview = montarStreetView(sv.querySelector('.sv-tela__moldura'), aberto);
+  streetview = montarStreetView(sv.querySelector('.sv-tela__moldura'), svAssunto);
   streetview.carregar();
-  gsap.fromTo(sv, { autoAlpha: 0, scale: 1.03 }, { autoAlpha: 1, scale: 1, duration: 0.6, ease: 'expo.out' });
 }
 
 function fecharStreetView() {
@@ -514,8 +688,8 @@ function fecharStreetView() {
   sv.setAttribute('aria-hidden', 'true');
   gsap.to(sv, {
     autoAlpha: 0,
-    duration: 0.4,
-    ease: 'power2.out',
+    duration: 0.5,
+    ease: 'sine.inOut',
     onComplete: () => {
       streetview?.destruir();
       streetview = null;
@@ -526,11 +700,8 @@ function fecharStreetView() {
 
 function aoMudarIdioma() {
   escreverNomes();
-  if (aberto) preencherPainel(aberto);
-  if (aberto && sv.getAttribute('aria-hidden') === 'false') {
-    sv.querySelector('.sv-tela__nome').innerHTML = html(tr(aberto.nome));
-    streetview?.destruir();
-    streetview = montarStreetView(sv.querySelector('.sv-tela__moldura'), aberto);
-    streetview.carregar();
-  }
+  if (!aberto) return;
+  preencherDetalhe(aberto); // a rolagem fica onde estava
+  medirBarra();
+  if (svAssunto && sv.getAttribute('aria-hidden') === 'false') carregarStreetView();
 }

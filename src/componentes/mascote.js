@@ -1,10 +1,11 @@
 // Guia do totem: guarda-parque ilustrado em SVG inline (funciona sem internet).
 // Cada parte (cabeça, chapéu, olhos, boca, braços, mãos) é um grupo do SVG animado pelo GSAP:
-// entrada pulando sobre os cards, respiração, balanço e piscadas, gestos aleatórios e reações
-// à troca de card, ao toque e ao botão "Conhecer". Por fora do grupo de cada gesto há um
+// entrada pela direita, respiração, balanço e piscadas, gestos aleatórios e reações
+// ao toque nele e nos pins do mapa. Por fora do grupo de cada gesto há um
 // grupo "mola": a cada quadro ele segue o corpo com atraso e balança antes de parar.
 // Nada depende de animação CSS, que o modo "menos movimento" do Windows desliga.
-// O balão de vidro brota da boca e "digita" o texto letra por letra.
+// O balão (creme, borda fina marrom) brota da boca e "digita" o texto letra por letra.
+// No mapa, as dicas trocam sozinhas a cada 8 segundos.
 import gsap from 'gsap';
 import { estado, em, transicaoCurta } from '../core/estado.js';
 import { t, tr, limpo, temConfirmar } from '../core/i18n.js';
@@ -15,6 +16,7 @@ const el = (s) => raiz.querySelector(s);
 const ESTRELAS_DO_TOQUE = 7;
 const TEMPO_CONVITE = 6000; // ms
 const TEMPO_CURIOSIDADE = 7000;
+const TEMPO_DICA = 8000; // no mapa, uma frase nova a cada 8 s
 const CURIOSIDADE_CURTA = 80; // caracteres: acima disso não cabe no balão pequeno da lista
 // Pontos de articulação, em coordenadas do viewBox (240 × 300)
 const ORIGEM = {
@@ -205,6 +207,9 @@ let loops = [];
 let ultimoGesto = '';
 let ultimaBrincadeira = -1;
 let balaoAberto = false;
+let timerDicas = null;
+let indiceDica = 0;
+let reacaoPonto = null;
 let escala = 1; // px na tela por unidade do viewBox
 const vistas = new Map(); // quantas curiosidades de cada lugar ele já contou na lista
 // 'fora' | 'entrando' | 'parado' | 'saindo'
@@ -301,9 +306,57 @@ export function montarMascote() {
   em('idioma', () => {
     p.corpo.setAttribute('aria-label', t('mascote.dica'));
     if (fase !== 'parado') return;
-    if (estado.tela === 'locais') convidar();
-    else if (falas.length) falar(falas[indiceFala]);
+    if (estado.tela === 'locais') {
+      if (!detalheAberto()) convidar();
+    } else if (falas.length) falar(falas[indiceFala]);
   });
+  em('ponto', aoTocarPonto);
+  em('contar', aoContar);
+}
+
+const detalheAberto = () => document.body.classList.contains('detalhe-aberto');
+
+/**
+ * Página de um lugar: ele vai para o bloco "Você sabia?" e fica quieto (sem balão).
+ * Ao voltar ao mapa, volta às dicas
+ */
+function aoTocarPonto(ponto) {
+  if (fase === 'fora' || fase === 'saindo') return;
+  terminarEntrada();
+  reacaoPonto?.kill();
+  esconderBalao();
+  if (ponto) return pararDicas();
+  reacaoPonto = gsap.delayedCall(1.4, () => fase === 'parado' && estado.tela === 'locais' && !detalheAberto() && convidar());
+}
+
+/** O bloco "Você sabia?" apareceu: ele olha e aponta para as curiosidades, como quem conta */
+function aoContar(alvo) {
+  if (fase !== 'parado' || calmo() || !detalheAberto()) return;
+  reacaoPonto?.kill();
+  reacaoPonto = gsap.delayedCall(0.5, () => {
+    gesto(apontarCard(alvo));
+    agendarGesto();
+  });
+}
+
+// --- Dicas do mapa: uma frase por vez, trocando sozinha ------------------------------
+function iniciarDicas() {
+  pararDicas();
+  timerDicas = setInterval(proximaDica, TEMPO_DICA);
+}
+
+function pararDicas() {
+  clearInterval(timerDicas);
+  timerDicas = null;
+}
+
+function proximaDica() {
+  if (fase !== 'parado' || estado.tela !== 'locais' || detalheAberto()) return;
+  const lista = t('mascote.dicasMapa');
+  if (!Array.isArray(lista) || !lista.length) return;
+  indiceDica = (indiceDica + 1) % lista.length;
+  // Fica aberto até a próxima: o balão só troca de texto, sem sumir e voltar
+  falar(lista[indiceDica], TEMPO_DICA + 1500, { simples: true });
 }
 
 // --- Aparecer e sumir ------------------------------------------------------------
@@ -333,28 +386,22 @@ function entrar() {
 }
 
 /**
- * Entrada pulando: vem de fora da tela pela esquerda, pousa no card ativo,
- * depois no seguinte, e salta até o canto. O card afunda um pouco quando ele cai.
+ * Entrada pela direita: vem de fora da tela com dois pulinhos curtos até o canto,
+ * longe dos pins (o mapa fica no meio da tela).
  */
 function montarEntrada() {
   const r = repouso();
-  const cards = cardsDaEntrada(r);
-  const pousos = cards.map((c) => pousoNoCard(c, r));
-  const primeiro = pousos[0] || { x: -r.x * 0.5, y: 0 };
-  const inicio = { x: -r.x - r.w, y: primeiro.y + r.h * 0.3 };
+  const fora = { x: innerWidth - r.x + r.w, y: 0 };
+  const passo = { x: r.w * 0.55, y: 0 };
 
   usarSombraDeChao(true);
-  gsap.set(p.viagem, { x: inicio.x, y: inicio.y });
+  gsap.set(p.viagem, { x: fora.x, y: fora.y });
   gsap.set(raiz, { autoAlpha: 1 });
 
-  const tl = gsap.timeline({ onComplete: chegou });
-  let de = inicio;
-  pousos.forEach((pouso, i) => {
-    tl.add(pulo(de, pouso, { r, duracao: i ? 0.6 : 0.68, card: cards[i], agachar: i > 0 }));
-    de = pouso;
-  });
-  tl.add(pulo(de, { x: 0, y: 0 }, { r, duracao: 0.78, recuperar: 0.5 }));
-  tlEntrada = tl;
+  tlEntrada = gsap
+    .timeline({ onComplete: chegou })
+    .add(pulo(fora, passo, { r, duracao: 0.62, agachar: false, recuperar: 0.2 }))
+    .add(pulo(passo, { x: 0, y: 0 }, { r, duracao: 0.5, recuperar: 0.5 }));
 }
 
 /** Ao parar no canto: tira o chapéu, dá tchau e o balão convida */
@@ -378,6 +425,8 @@ function esconder() {
   fase = 'fora';
   tlEntrada?.kill();
   tlEntrada = null;
+  pararDicas();
+  reacaoPonto?.kill();
   reacaoCard?.kill();
   reacaoToque?.kill();
   clearTimeout(timerGesto);
@@ -403,6 +452,7 @@ export function despedir() {
   if (fase === 'fora' || fase === 'saindo') return Promise.resolve();
   terminarEntrada();
   esconderBalao();
+  pararDicas();
   if (calmo()) return Promise.resolve();
   fase = 'saindo';
   clearTimeout(timerGesto);
@@ -444,28 +494,6 @@ function repouso() {
   const b = p.corpo.getBoundingClientRect();
   const s = b.width / 240;
   return { x: b.left + b.width / 2, y: b.top + PES_Y * s, w: b.width, h: ALTURA_DOS_PES_AO_CHAPEU * s, s };
-}
-
-/** O card ativo e o seguinte, se aparecer o bastante na tela */
-function cardsDaEntrada(r) {
-  const atual = document.querySelector('[data-tela="locais"] .card-local.atual');
-  if (!atual) return [];
-  const todos = document.querySelectorAll('[data-tela="locais"] .card-local');
-  const seguinte = todos[(Number(atual.dataset.i) + 1) % todos.length];
-  const c = seguinte?.getBoundingClientRect();
-  const visivel = c ? Math.min(c.right, innerWidth) - Math.max(c.left, 0) : 0;
-  return seguinte && seguinte !== atual && visivel > r.w * 0.6 ? [atual, seguinte] : [atual];
-}
-
-/** Ponto de pouso em cima do card: na parte visível, sem o chapéu sair da tela */
-function pousoNoCard(card, r) {
-  const c = card.getBoundingClientRect();
-  const esq = Math.max(c.left, 0);
-  const dir = Math.min(c.right, innerWidth);
-  const folga = r.w / 2 + 8;
-  const x = gsap.utils.clamp(folga, innerWidth - folga, esq + (dir - esq) * 0.45);
-  const y = Math.max(c.top + 3 * r.s, r.h + 8);
-  return { x: x - r.x, y: y - r.y };
 }
 
 /** Quem está no chão: sombra da pose (no SVG) ou sombra separada que fica no chão durante o pulo */
@@ -893,8 +921,8 @@ function miraPara(alvo) {
 }
 
 /** Aponta para o card ativo: os olhos vão primeiro, a cabeça e o corpo inclinam, o braço recua e estica */
-function apontarCard() {
-  const card = document.querySelector('[data-tela="locais"] .card-local.atual');
+function apontarCard(alvo = null) {
+  const card = alvo || document.querySelector('[data-tela="locais"] .card-local.atual');
   if (!card) return olharLados();
   const { rotacao, dx, dy } = miraPara(card);
   const lado = dx < 0 ? -1 : 1;
@@ -1014,9 +1042,11 @@ function soltarEstrelas() {
 }
 
 // --- Balão de fala -------------------------------------------------------------------
-/** Convite curto da lista de locais, sem o título "Você sabia?" */
+/** Convite curto do mapa, sem o título "Você sabia?". Depois dele, as dicas trocam a cada 8 s */
 function convidar() {
-  falar(t('mascote.convite'), TEMPO_CONVITE, { simples: true });
+  falar(t('mascote.convite'), TEMPO_DICA + 1500, { simples: true });
+  indiceDica = 0; // a primeira dica é o próprio convite
+  iniciarDicas();
 }
 
 function proximaFala() {

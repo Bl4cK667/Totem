@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAPA DA CIDADE — satélite escurecido, pins da Prefeitura, painel e Street View
+   MAPA DA CIDADE — satélite claro com vinheta, pins, página do lugar e Street View
    ========================================================================== */
 
 /* Camada do MapLibre: por cima do planeta, embaixo das telas */
@@ -11,14 +11,12 @@
 }
 .mapa-cidade .maplibregl-canvas { outline: none; }
 
-/* Vinheta: escurece as bordas e deixa o centro mais vivo (fica entre a imagem e os pins) */
+/* Vinheta leve: só as bordas escurecem, como uma moldura; o centro fica com a cor natural */
 .mapa-cidade__veu {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(120% 85% at 50% 58%, rgba(18, 13, 9, 0) 40%, rgba(18, 13, 9, 0.55) 100%),
-    linear-gradient(to bottom, rgba(18, 13, 9, 0.55), rgba(18, 13, 9, 0) 22%);
+  background: radial-gradient(130% 95% at 50% 55%, rgba(18, 13, 9, 0) 58%, rgba(18, 13, 9, 0.42) 100%);
 }
 
 /* Atribuição das imagens: sempre visível, discreta e sem link (é um totem) */
@@ -46,34 +44,43 @@
   left: var(--margem);
   right: var(--margem);
   pointer-events: none;
-  text-shadow: 0 1px 12px rgba(18, 13, 9, 0.6);
+  text-shadow: 0 1px 10px rgba(18, 13, 9, 0.45);
+}
+/* Fundo suave atrás do título: sem borda, some nas beiradas e não bate nos pins */
+.mapa__cabecalho::before {
+  content: '';
+  position: absolute;
+  inset: -2.2rem -3rem -2.4rem calc(var(--margem) * -1);
+  z-index: -1;
+  background: radial-gradient(farthest-side at 30% 50%, rgba(18, 13, 9, 0.42), rgba(18, 13, 9, 0.18) 60%, rgba(18, 13, 9, 0));
 }
 .mapa__sobretitulo { display: flex; align-items: center; gap: 1em; color: var(--ouro-claro); font-size: var(--fs-locais); letter-spacing: 0.2em; }
 .mapa__sobretitulo .filete { width: 2.4rem; background: var(--ouro-claro); opacity: 1; }
 .mapa__titulo {
   margin-top: 0.7rem;
-  max-width: 14em;
-  font-size: var(--fs-h2);
+  max-width: 13em;
+  font-size: max(2.7rem, 36px);
   line-height: 1.08;
   color: var(--creme);
 }
+@media (orientation: landscape) { .mapa__titulo { max-width: 11em; } }
 
 /* --- Pins ------------------------------------------------------------------ */
 /* O marcador tem tamanho zero e fica exatamente no local; tudo se posiciona a partir dele.
-   --dx/--dy afastam pins muito próximos (mapa.js), e a haste liga o pin ao local exato */
-.pin { width: 0; height: 0; --pin-w: max(2.6rem, 60px); }
+   --dx/--dy só afastam pins que encostariam numa tela estreita (mapa.js); o ponto do chão vai junto */
+.pin { width: 0; height: 0; --pin-w: max(2.6rem, 64px); }
 .pin__alvo {
   position: absolute;
   left: 0;
   top: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   transform: translate(calc(-50% + var(--dx, 0px)), calc(var(--pin-w) * -1.25 + var(--dy, 0px)));
   min-width: var(--toque);
   padding: 0;
   touch-action: none;
 }
+/* Área de toque: pelo menos 64 px em volta do pin, mesmo errando um pouco o dedo */
+.pin__alvo::before { content: ''; position: absolute; inset: -16px -12px; }
+.pin__queda { display: flex; flex-direction: column; align-items: center; }
 .pin__corpo {
   position: relative;
   display: block;
@@ -89,31 +96,32 @@
   left: 0; right: 0;
   top: 22%;
   text-align: center;
-  font-size: max(0.78rem, 17px);
+  font-size: max(0.82rem, 19px);
   font-weight: 600;
   line-height: 1;
   color: var(--creme);
 }
+/* Etiqueta: no mínimo 22 px, legível a 1,5 m do totem */
 .pin__nome {
-  margin-top: 0.65rem;
-  padding: 0.35em 0.95em;
+  margin-top: 0.6rem;
+  padding: 0.38em 1em;
   border-radius: 999px;
-  background: rgba(246, 241, 231, 0.94);
+  background: rgba(246, 241, 231, 0.96);
   color: var(--txt-sobre-claro);
   font-family: var(--sans);
-  font-size: max(0.72rem, 17px);
+  font-size: max(0.8rem, 22px);
   font-weight: 600;
   line-height: 1.25;
   white-space: nowrap;
-  box-shadow: 0 0.4rem 1rem -0.3rem rgba(18, 13, 9, 0.6);
+  box-shadow: var(--sombra);
   transition: background-color 0.4s, color 0.4s;
 }
 
-/* Ponto exato no chão, com a onda dourada pulsando */
+/* Ponto exato no chão (embaixo da ponta do pin), com a onda dourada pulsando devagar */
 .pin__chao {
   position: absolute;
-  left: -0.4rem;
-  top: -0.4rem;
+  left: calc(-0.4rem + var(--dx, 0px));
+  top: calc(-0.4rem + var(--dy, 0px));
   width: 0.8rem;
   height: 0.8rem;
   border-radius: 50%;
@@ -124,126 +132,246 @@
   position: absolute;
   inset: -0.5rem;
   border-radius: 50%;
-  border: 2px solid var(--ouro-claro);
+  border: 1.5px solid var(--ouro-claro);
   opacity: 0;
 }
-.pin__haste {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 2px;
-  margin-top: -1px;
-  transform-origin: 0 50%;
-  background: var(--ouro-claro);
-  opacity: 0;
-  pointer-events: none;
-}
-/* Pin escolhido: gota dourada, nome em marrom */
-.pin.ativo { z-index: 2; }
-.pin.ativo .pin__forma { fill: var(--ouro-claro); stroke: var(--terra-900); }
-.pin.ativo .pin__miolo { fill: var(--terra-900); }
-.pin.ativo .pin__nome { background: var(--terra-900); color: var(--creme); }
+/* Último lugar visto: ao voltar ao mapa, o pin fica levemente destacado */
+.pin.visto { z-index: 2; }
+.pin.visto .pin__forma { stroke-width: 4; }
+.pin.visto .pin__nome { box-shadow: 0 0 0 2px var(--ouro-claro), var(--sombra); }
 
-/* --- Painel do ponto --------------------------------------------------------- */
-/* Vertical: sobe de baixo. Horizontal: entra pela direita */
-.painel {
+/* --- Página do lugar ------------------------------------------------------------ */
+/* Abre por cima do mapa e rola para baixo, um bloco por vez, com parada leve em cada um.
+   Mesmo espaço entre todos os blocos (--espaco). A barra do topo fica fixa por cima */
+.detalhe {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  max-height: 60vh;
+  inset: 0;
+  z-index: 12;
+  overflow: clip;
   background: var(--creme);
-  color: var(--txt-sobre-claro);
-  border-radius: var(--raio-card) var(--raio-card) 0 0;
-  box-shadow: 0 -2rem 4rem -1.5rem rgba(18, 13, 9, 0.6);
   visibility: hidden;
   opacity: 0;
-  overflow: hidden;
+  --espaco: calc(var(--margem) * 2.4);
 }
-@media (orientation: landscape) {
-  .painel {
-    left: auto;
-    top: calc(var(--toque) + var(--margem) * 1.2);
-    right: var(--margem);
-    bottom: var(--margem);
-    width: min(40vw, 34rem);
-    max-height: none;
-    border-radius: var(--raio-card);
-    box-shadow: 0 2rem 4rem -1.5rem rgba(18, 13, 9, 0.7);
-  }
-}
-
-.painel__rolagem {
-  flex: 1;
-  min-height: 0;
+.detalhe__rolagem {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 1.6rem var(--margem) 2.2rem;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: var(--barra-h, 0px);
   touch-action: pan-y;
-  /* O texto esmaece no pé: mostra que há mais para rolar */
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 3rem), transparent);
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 3rem), transparent);
 }
-.painel__foto {
-  margin: 0 0 1.4rem;
-  aspect-ratio: 16 / 9;
-  max-height: 17vh;
-  width: 100%;
-  overflow: hidden;
-  border-radius: calc(var(--raio-card) * 0.7);
-  background: var(--creme-2);
-}
-@media (orientation: landscape) { .painel__foto { max-height: 30vh; } }
-.painel__foto img { width: 100%; height: 100%; object-fit: cover; }
-.painel__sobre { color: var(--ouro-texto); }
-.painel__nome {
-  margin-top: 0.4rem;
-  font-family: var(--serif);
-  font-size: var(--fs-h2);
-  font-weight: 400;
-  line-height: 1.05;
-}
-.painel__descricao {
-  margin-top: 0.9rem;
-  font-size: max(0.92rem, 19px);
-  line-height: 1.5;
-  color: var(--txt-sobre-claro-2);
-}
-.painel__bloco-curiosidades { margin-top: 1.5rem; }
-.painel__titulo { display: flex; align-items: center; gap: 1em; color: var(--ouro-texto); }
-.painel__titulo .filete { width: 2rem; background: var(--ouro-texto); opacity: 1; }
-.painel__curiosidades { list-style: none; margin-top: 0.6rem; }
-.painel__curiosidades li {
-  display: grid;
-  grid-template-columns: 2.4rem 1fr;
-  gap: 0.6rem;
-  padding: 0.8rem 0;
-  border-top: 1px solid var(--linha-sobre-claro);
-  font-size: max(0.88rem, 18px);
-  line-height: 1.45;
-}
-.painel__curiosidades li:first-child { border-top: 0; }
-.painel__num { color: var(--mata-500); font-size: 1.15em; font-weight: 600; line-height: 1.3; }
+.bloco { position: relative; scroll-snap-align: start; padding: var(--espaco) var(--margem); }
+.bloco__dentro { max-width: 64rem; margin: 0 auto; }
+.bloco--claro { background: var(--creme); color: var(--txt-sobre-claro); }
+.bloco--verde { background: var(--mata-800); color: var(--creme); }
+.bloco--escuro { background: var(--terra-900); color: var(--creme); }
+.bloco__rotulo { display: flex; align-items: center; gap: 1em; margin-bottom: 1.8rem; color: var(--ouro-texto); }
+.bloco__rotulo .filete { width: 2.4rem; background: currentColor; opacity: 1; }
+.bloco--verde .bloco__rotulo, .bloco--escuro .bloco__rotulo { color: var(--ouro-claro); }
+.bloco__titulo { font-size: var(--fs-h2); line-height: 1.1; }
 
-.painel__acoes {
+/* Linha fina dourada à direita: quanto da página já rolou */
+.detalhe__progresso {
+  position: absolute;
+  z-index: 2;
+  top: var(--barra-h, 0px);
+  right: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(201, 162, 74, 0.18);
+  pointer-events: none;
+}
+.detalhe__progresso i { display: block; height: 100%; background: var(--ouro-claro); transform-origin: 50% 0; transform: scaleY(0); }
+
+/* 1) Abertura: foto na altura toda da tela, degradê só embaixo, três textos e "deslize" */
+.abertura {
+  height: 100vh;
+  height: 100dvh;
+  padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  padding: 1rem var(--margem) calc(var(--margem) * 0.9);
-  border-top: 1px solid var(--linha-sobre-claro);
-  background: var(--creme);
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: var(--noite);
+  color: var(--creme);
 }
-.painel__acoes .botao { flex: 1 1 14rem; min-height: max(var(--toque), 72px); font-size: max(0.72rem, 16px); }
-.painel__sv svg { width: 1.5em; height: 1.5em; }
-.painel__voltar .seta { transform: scaleX(-1); }
+.abertura__fundo { position: absolute; inset: 0; }
+.abertura__foto { width: 100%; height: 100%; object-fit: cover; }
+.abertura__fundo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(18, 13, 9, 0.88) 0%, rgba(18, 13, 9, 0.5) 24%, rgba(18, 13, 9, 0) 50%);
+}
+.abertura__texto { position: relative; padding: 0 var(--margem) calc(var(--margem) + 7rem); }
+.abertura__etiqueta { color: var(--ouro-claro); font-size: max(0.8rem, 18px); letter-spacing: 0.26em; }
+.abertura__nome { margin-top: 0.6rem; max-width: 12em; font-size: max(4rem, 56px); line-height: 1.02; color: var(--branco); }
+.abertura__frase { margin-top: 1rem; max-width: 24em; font-size: max(1.2rem, 26px); line-height: 1.4; color: var(--creme); }
+.abertura__deslize {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--margem) * 0.7);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0.6rem 1.6rem;
+  color: var(--creme);
+}
+.seta-baixo { width: 1rem; height: 1.8rem; color: var(--ouro-claro); }
+/* Imagem do projeto (não é foto) */
+.abertura__legenda-foto {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--barra-h, 0px) + 1rem);
+  right: var(--margem);
+  padding: 0.45em 1em;
+  border-radius: 999px;
+  background: rgba(18, 13, 9, 0.6);
+  color: var(--creme);
+  font-size: max(0.6rem, 13px);
+  letter-spacing: 0.18em;
+}
+.abertura__legenda-foto[hidden] { display: none; }
+/* Lugar ainda sem foto certa: espaço marcado, em vez de uma foto errada */
+.abertura__sem-foto {
+  position: absolute;
+  top: calc(var(--barra-h, 0px) + var(--margem));
+  left: var(--margem);
+  right: var(--margem);
+  bottom: 48%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  border: 1.5px dashed var(--ouro);
+  border-radius: var(--raio-card);
+  color: var(--ouro-claro);
+  text-align: center;
+}
+.abertura__sem-foto-nome { font-size: var(--fs-h3); color: var(--txt-sobre-escuro-2); }
 
-/* Painel aberto: o mascote desce e sai da frente (translate é independente do GSAP) */
-.mascote { translate: 0 0; transition: translate 0.6s var(--ease-luxo); }
-.painel-aberto .mascote { translate: 0 130%; }
+/* 2) Sobre o lugar: coluna estreita e centralizada, dados rápidos em cards pequenos */
+.sobre .bloco__dentro { max-width: 46rem; }
+.sobre__texto { font-size: max(1.15rem, 24px); line-height: 1.6; color: var(--txt-sobre-claro); }
+.sobre__dados {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: calc(var(--espaco) * 0.6);
+}
+.sobre__dados[hidden] { display: none; }
+.sobre__dados li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  background: var(--branco);
+  border: 1px solid var(--linha-sobre-claro);
+  border-radius: var(--raio-card);
+}
+.sobre__valor { font-size: max(1.7rem, 34px); line-height: 1.05; color: var(--ouro-texto); white-space: nowrap; }
+.sobre__legenda { font-size: max(0.75rem, 18px); line-height: 1.35; color: var(--txt-sobre-claro-2); }
 
-/* --- Street View em tela cheia --------------------------------------------------- */
+/* 3) Você sabia?: um card por curiosidade; o guia ao lado do título, como quem conta */
+.sabia__topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: calc(var(--espaco) * 0.5); }
+.sabia__topo .bloco__titulo { padding-bottom: 0.4rem; }
+.sabia__guia { --mascote-w: max(120px, 6rem); position: relative; flex: none; width: var(--mascote-w); }
+.sabia__guia .mascote { position: relative; right: auto; bottom: auto; z-index: auto; width: 100%; }
+.sabia__guia .mascote__balao { display: none; }
+/* Sem o brilho claro atrás do corpo (ele existe para separar o guia de fotos escuras) */
+.sabia__guia .mascote__svg > ellipse:first-of-type { display: none; }
+.sabia__cards { list-style: none; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 1.2rem; }
+.sabia__cards li {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem 1.8rem;
+  background: rgba(246, 241, 231, 0.04);
+  border: 1px solid var(--linha-sobre-escuro);
+  border-radius: var(--raio-card);
+}
+.sabia__num { font-size: max(1.4rem, 28px); line-height: 1; color: var(--ouro-claro); }
+.sabia__cards p { font-size: max(1.05rem, 24px); line-height: 1.5; color: var(--creme); }
+
+/* 4) Como chegar: QR Code grande e, ao lado, o Street View */
+.chegar__grade { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: calc(var(--espaco) * 0.6); }
+.chegar__qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 0;
+  padding: 2rem;
+  background: var(--branco);
+  border: 1px solid var(--linha-sobre-claro);
+  border-radius: var(--raio-card);
+}
+.chegar__qr img { width: max(220px, 11rem); height: auto; }
+.chegar__qr figcaption { max-width: 14em; font-size: max(0.95rem, 22px); line-height: 1.4; text-align: center; color: var(--txt-sobre-claro); }
+.chegar__sv { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+.chegar__sv-texto { font-size: max(1.05rem, 22px); line-height: 1.5; color: var(--txt-sobre-claro-2); }
+.chegar__botao { margin-top: 0.6rem; min-height: max(var(--toque), 80px); padding: 0 2.4em; font-size: max(0.78rem, 17px); }
+.icone-sv { width: 1.5em; height: 1.5em; }
+
+/* 5) Fim: anterior e próximo (com o nome do lugar) e "Voltar ao mapa" */
+.fim { padding-bottom: calc(var(--espaco) * 1.2); }
+.fim__lugares { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.fim__lugar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.8rem;
+  min-height: max(8rem, 120px);
+  padding: 1.6rem 1.8rem;
+  text-align: left;
+  color: var(--creme);
+  border: 1px solid var(--linha-sobre-escuro);
+  border-radius: var(--raio-card);
+  transition: background-color 0.4s;
+}
+.fim__lugar:active { background: rgba(246, 241, 231, 0.06); }
+.fim__lugar--proximo { align-items: flex-end; text-align: right; }
+.fim__direcao { display: flex; align-items: center; gap: 0.8em; color: var(--ouro-claro); }
+.fim__nome { font-size: var(--fs-h3); line-height: 1.15; }
+.fim__voltar { display: flex; width: fit-content; margin: calc(var(--espaco) * 0.6) auto 0; min-height: max(var(--toque), 80px); padding: 0 2.6em; font-size: max(0.78rem, 17px); }
+.seta--volta { transform: scaleX(-1); }
+.casa { width: 1.35em; height: 1.35em; flex: none; }
+
+/* Vertical: as curiosidades se empilham e o "como chegar" fica centralizado */
+@media (orientation: portrait) {
+  .sabia__cards { grid-template-columns: 1fr; }
+  .chegar__grade { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .chegar__sv { align-items: center; }
+}
+
+/* Barra do topo na página: pequena e translúcida, com "Voltar ao mapa", "Início" e idiomas */
+.barra-topo__voltar, .barra-topo__inicio { display: none; }
+.barra-topo .botao { min-height: max(var(--toque), 64px); padding: 0 1.4em; font-size: max(0.66rem, 15px); }
+.detalhe-aberto .barra-topo {
+  padding-top: calc(var(--margem) * 0.35);
+  padding-bottom: calc(var(--margem) * 0.35);
+  background: rgba(18, 13, 9, 0.62);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.detalhe-aberto .barra-topo::before { opacity: 0; }
+.detalhe-aberto .barra-topo__marca { display: none; }
+.detalhe-aberto .barra-topo__voltar, .detalhe-aberto .barra-topo__inicio { display: inline-flex; }
+
+/* --- Street View em tela cheia ------------------------------------------------- */
 .sv-tela {
   position: fixed;
   inset: 0;
@@ -261,13 +389,19 @@
 .sv-tela__barra {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   padding: 0 calc(var(--margem) * 0.4);
 }
-.sv-tela__nome { font-size: var(--fs-h3); color: var(--creme); }
-.sv-tela__barra .botao { min-height: max(var(--toque), 72px); padding: 0 2.2em; font-size: max(0.72rem, 16px); }
-.sv-tela__barra .seta { transform: scaleX(-1); }
+.sv-tela__nome { flex: 1 1 auto; font-size: var(--fs-h3); color: var(--creme); }
+.sv-tela__lugares { display: flex; gap: 0.7rem; }
+.sv-tela__lugares:empty { display: none; }
+.sv-tela__lugares [aria-pressed='true'] { background: var(--creme); color: var(--terra-900); border-color: var(--creme); }
+.sv-tela__barra .botao { min-height: max(var(--toque), 72px); padding: 0 2em; font-size: max(0.72rem, 16px); white-space: nowrap; }
+.sv-tela__fechar { min-width: 12rem; }
+@media (orientation: portrait) {
+  .sv-tela__barra { flex-direction: column; align-items: stretch; }
+  .sv-tela__lugares .botao { flex: 1 1 0; }
+}
 
 .streetview {
   position: relative;

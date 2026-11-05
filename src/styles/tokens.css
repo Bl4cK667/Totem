@@ -62,7 +62,11 @@
   --toque: max(64px, 2.75rem);          /* altura mínima de área de toque */
   --margem: max(16px, 2.2rem);          /* margem lateral das telas */
   --raio: 2px;
-  --raio-card: max(1.4rem, 20px);       /* cards da tela de locais */
+  --raio-card: max(1.4rem, 20px);       /* moldura do Street View e espaço sem foto */
+  --raio-balao: max(0.8rem, 14px);      /* balão do guia */
+  --borda-fina: rgba(94, 69, 50, 0.55); /* marrom: borda de 1px sobre creme */
+  /* Uma sombra só, para tudo que flutua sobre o mapa (balão e etiquetas) */
+  --sombra: 0 0.9rem 2rem -0.9rem rgba(18, 13, 9, 0.55);
   --mascote-h: clamp(160px, 11rem, 200px);
   --mascote-w: calc(var(--mascote-h) * 0.8);
 

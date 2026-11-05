@@ -20,13 +20,16 @@ import { Globo } from './componentes/globo.js';
 import { montarMascote, despedir } from './componentes/mascote.js';
 import { montarInicio, entrarInicio } from './telas/inicio.js';
 import { montarMapa } from './telas/mapa.js';
-import { pontosTuristicos } from './componentes/streetview.js';
+import { fotosDosPontos } from './componentes/streetview.js';
 
 async function iniciar() {
   estado.dados = await fetch('data/locais.json', { cache: 'no-cache' }).then((r) => r.json());
   const { config } = estado.dados;
-  // Fotos do painel: carregam já na tela do planeta
-  preCarregar(pontosTuristicos().map((p) => p.foto).filter(Boolean));
+  // Fotos das telas dos lugares: carregam já na tela do planeta
+  preCarregar(fotosDosPontos());
+  // Modo totem (abrir-totem.bat abre com ?totem, ou tela cheia): sem cursor
+  const totem = new URLSearchParams(location.search).has('totem') || matchMedia('(display-mode: fullscreen)').matches;
+  document.documentElement.classList.toggle('modo-totem', totem);
   document.body.classList.toggle('sem-confirmar', !config.mostrarMarcasConfirmar);
 
   ativarModoQuiosque();
@@ -46,12 +49,13 @@ async function iniciar() {
   montarMapa();
   montarMascote();
 
-  document.querySelector('.barra-topo [data-acao="inicio"]').addEventListener('click', () => irInicio());
+  // Botões "Início": marca da barra do topo e tela do lugar
+  document.addEventListener('click', (e) => e.target.closest('[data-acao="inicio"]') && irInicio());
 
-  // Modo descanso após N segundos sem toque
+  // Modo descanso após N segundos sem toque: volta ao planeta e o idioma volta para PT
   // (o mascote dá tchau e sai pulando antes da troca de tela)
   iniciarDescanso({
-    segundos: config.tempoDescansoSegundos || 120,
+    segundos: config.tempoDescansoSegundos || 60,
     aoDescansar: async () => {
       await despedir();
       irInicio({ descanso: true });
@@ -75,7 +79,7 @@ function registrarOffline() {
   if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return;
   navigator.serviceWorker.register('./sw.js').then(async () => {
     const sw = (await navigator.serviceWorker.ready).active;
-    const fotos = pontosTuristicos().map((p) => p.foto).filter(Boolean);
+    const fotos = fotosDosPontos();
     const recursos = performance.getEntriesByType('resource').map((r) => r.name).filter((u) => u.startsWith(location.origin));
     sw?.postMessage({
       tipo: 'precache',

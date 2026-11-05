@@ -16,7 +16,7 @@ timeout /t 4 /nobreak >nul
 set CHROME="C:\Program Files\Google\Chrome\Application\chrome.exe"
 if not exist %CHROME% set CHROME="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 
-start "" %CHROME% --kiosk --app=http://localhost:4173 ^
+start "" %CHROME% --kiosk --app=http://localhost:4173/?totem ^
   --user-data-dir="%~dp0.perfil-totem" ^
   --noerrdialogs --disable-infobars --disable-session-crashed-bubble ^
   --disable-pinch --overscroll-history-navigation=0 ^

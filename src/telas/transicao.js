@@ -3,7 +3,8 @@
 //    funde com o globo de satélite do MapLibre, que tem o mesmo tamanho e a mesma posição
 // 2) Pará: a câmera desce e enquadra o estado
 // 3) Canaã dos Carajás: desce até a cidade, inclina em 3D e para no Parque do Mirante
-// Os pins aparecem no fim, um por um. Uma timeline só (GSAP) move as duas câmeras.
+// Quando a cidade já aparece, entra o título "Canaã dos Carajás". A câmera para, o título sai
+// e os pins aparecem, um por um, com o mapa parado. Uma timeline só (GSAP) move as duas câmeras.
 import gsap from 'gsap';
 import { estado, transicaoCurta } from '../core/estado.js';
 import { sairInicio } from './inicio.js';
@@ -20,9 +21,11 @@ const T = {
   mundo: [0.15, 2.75],
   fusao: [1.5, 1], // o globo do MapLibre aparece por cima do planeta
   para: [2.6, 2.8],
-  canaa: [5.15, 4.3],
-  pins: 9.2,
+  canaa: [5.15, 4.3], // a câmera para em 9,45 s
+  cidade: [8.9, 1.3], // título: entra com a cidade já nítida na tela, fica 1,3 s e sai até 11,4 s
+  pins: 11.4, // o mapa já está parado e o título já saiu: um de cada vez
 };
+const FADE_TITULO = 0.6;
 const EASE = 'power2.inOut';
 const TOQUE_MINIMO = 350; // ms: um toque duplo no botão não conta como "pular"
 let atual = null;
@@ -180,12 +183,13 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
 
     // 3) Canaã dos Carajás: desce até a cidade, inclina e gira para olhar a cidade do Mirante
     .to(e, { c: 1, duration: T.canaa[1], ease: EASE }, T.canaa[0])
-    .fromTo(rotulo('cidade'), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 7.2)
-    .to(rotulo('cidade'), { autoAlpha: 0, y: -14, duration: 0.5, ease: 'power1.in' }, T.pins + 0.6)
+    // Título da cidade: fade suave de 600 ms, só quando a cidade já está visível
+    .fromTo(rotulo('cidade'), { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0])
+    .to(rotulo('cidade'), { autoAlpha: 0, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0] + FADE_TITULO + T.cidade[1])
 
-    // Pins, um por um
+    // Pins, um por um, com a câmera parada; o guia entra quando o último assentou
     .add(M.entrarMapa(), T.pins)
-    .add(aoAssentar, T.pins + 0.3);
+    .add(aoAssentar, T.pins + M.DURACAO_PINS());
 
   /** Toque durante a transição: acelera até o fim, sem corte */
   let pulou = false;

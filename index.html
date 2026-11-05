@@ -70,7 +70,16 @@
         <img src="assets/img/marca/brasao.svg" alt="" />
         <span class="legenda" data-i18n="prefeitura"></span>
       </button>
+      <!-- Só na página de um lugar (fica visível enquanto ela rola) -->
+      <button class="botao botao--contorno-claro barra-topo__voltar" data-acao="voltar-mapa">
+        <svg class="seta seta--volta" viewBox="0 0 28 16" aria-hidden="true"><path d="M0 8h26M19 1l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span data-i18n="mapa.voltar"></span>
+      </button>
       <div class="barra-topo__direita">
+        <button class="botao botao--contorno-claro barra-topo__inicio" data-acao="inicio">
+          <svg class="casa" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7M6 9.5V20h4.5v-5.5h3V20H18V9.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <span data-i18n="inicio"></span>
+        </button>
         <div class="idiomas" role="group" data-i18n-aria="idioma"></div>
       </div>
     </header>

@@ -1,16 +1,20 @@
 // Service worker do totem: guarda os arquivos para funcionar sem internet.
 // - HTML, JSON e config.js: tenta a rede primeiro (para receber atualizações) e cai no cache
 // - Imagens, fontes, JS, CSS: cache primeiro
+// - Imagens de satélite do mapa (Esri): cache primeiro, num cache próprio que não é apagado
+//   ao trocar a versão. Assim o mapa abre sem internet nos lugares que já foram vistos
 // - Street View (Google) não passa por aqui: depende da internet
 // Ao trocar fotos mantendo o nome do arquivo, aumente a versão: o cache antigo é apagado
-const CACHE = 'totem-mirante-v4';
+const CACHE = 'totem-mirante-v5';
+const CACHE_MAPA = 'totem-mapa-v1';
+const SATELITE = 'server.arcgisonline.com';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) =>
   e.waitUntil(
     caches
       .keys()
-      .then((nomes) => Promise.all(nomes.filter((n) => n !== CACHE).map((n) => caches.delete(n))))
+      .then((nomes) => Promise.all(nomes.filter((n) => n !== CACHE && n !== CACHE_MAPA).map((n) => caches.delete(n))))
       .then(() => self.clients.claim())
   )
 );
@@ -25,6 +29,22 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+
+  if (url.hostname === SATELITE) {
+    e.respondWith(
+      caches.open(CACHE_MAPA).then((c) =>
+        c.match(req).then(
+          (r) =>
+            r ||
+            fetch(req).then((res) => {
+              if (res.ok) c.put(req, res.clone());
+              return res;
+            })
+        )
+      )
+    );
+    return;
+  }
   if (url.origin !== self.location.origin) return;
 
   const daRede = () =>

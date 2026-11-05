@@ -55,17 +55,24 @@ Para um local novo, use o padrão `<id>-capa`, `<id>-antes` e `<id>-depois`, e a
 
 **Brasão:** fica em `assets/img/marca/brasao.svg`. Para trocar, use o mesmo nome. Se for PNG, troque também o nome nos `<img>` do `index.html`.
 
-## 5. Street View
+## 5. Mapa da cidade e Street View
 
-**Os links ficam no arquivo `config.js`, na raiz do projeto.** Não precisa de chave do Google. As instruções estão dentro do próprio arquivo.
+Depois do planeta, o totem mostra um **mapa de satélite da cidade** (MapLibre + imagens Esri, gratuitos). Só os pontos turísticos aparecem, como pins. Tocar num pin abre um painel com descrição, curiosidades e o botão "Ver no Street View".
 
-Para trocar ou adicionar um local:
+**Os pontos ficam no arquivo `config.js`, na raiz do projeto**, no array `PONTOS_TURISTICOS`: nome, lat, lng, foto, descrição, curiosidades e link do Street View. As instruções estão dentro do próprio arquivo. Coordenadas marcadas com `CONFERIR NO GOOGLE MAPS` são aproximadas.
+
+- **Adicionar um ponto:** copie um bloco `{ ... }` inteiro, troque o `id` e os dados.
+- **Vista final do mapa** (centro, zoom, inclinação e direção): constante `VISTA` em `src/telas/mapa.js`. Hoje ela fica no Parque do Mirante, olhando para o sul, com a cidade à frente.
+
+Para o Street View de um ponto:
 
 1. No Google Maps, abra o Street View no ponto e na direção que você quer.
 2. Clique em **Compartilhar > Incorporar um mapa > Copiar HTML**.
-3. Do código copiado, pegue só o que está entre as aspas de `src="..."` e cole em `link`, no `config.js`.
+3. Do código copiado, pegue só o que está entre as aspas de `src="..."` e cole em `streetView`, no `config.js`.
 
 O link curto (`maps.app.goo.gl`) não funciona ali: o Google não deixa esse tipo de link abrir dentro do site.
+
+**Chave da Google Maps Embed API (opcional):** cole em `GOOGLE_MAPS_EMBED_KEY`, no topo do `config.js`. Ela só é usada nos pontos sem link: o totem abre o Street View mais próximo do lat/lng do ponto.
 
 Sem link, sem internet ou se demorar mais de 15 segundos, o totem mostra uma imagem com a mensagem "Street View indisponível no momento", em PT/EN/ES. Quando a conexão volta, o Street View carrega sozinho.
 
@@ -92,7 +99,7 @@ Para sair do modo quiosque: **Alt + F4**.
 
 ## 8. Funcionamento offline
 
-Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos, mapa e planeta), então ele funciona **sem internet**. Só o Street View precisa de conexão. Um *service worker* também guarda os arquivos em cache, caso o totem seja servido por um endereço remoto.
+Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos e planeta), então ele funciona **sem internet**. O Street View precisa de conexão. As imagens de satélite do mapa vêm da internet: o *service worker* guarda as que já foram vistas, e sem internet o mapa mostra só essas (lugares nunca vistos ficam em branco, mas os pins continuam funcionando). Um *service worker* também guarda os arquivos em cache, caso o totem seja servido por um endereço remoto.
 
 ## 9. Conferências de qualidade
 
@@ -104,14 +111,14 @@ Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos, 
 ## 10. Estrutura
 
 ```
-config.js                 links do Street View de cada local
-data/locais.json          conteúdo (textos PT/EN/ES, números, fotos)
+config.js                 pontos turísticos do mapa, links do Street View e chave do Google
+data/locais.json          textos da interface (PT/EN/ES) e falas do mascote
 assets/fonts/             Lora e Manrope (locais)
 assets/img/locais/        fotos dos locais
 assets/img/globo/         texturas da Terra
 assets/img/marca/         brasão
 src/styles/tokens.css     paleta de cores e tipografia (único lugar das cores)
-src/telas/                início, transição, locais, página do local
+src/telas/                início, transição, mapa da cidade (pins, painel, Street View)
 src/componentes/          planeta, mapa sobre o planeta, mascote, contador, antes/depois, Street View, QR
 src/core/                 idiomas, navegação, modo descanso, regras de quiosque
 scripts/                  conversão de fotos, verificação de contraste, teste automatizado

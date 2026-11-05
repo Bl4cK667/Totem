@@ -1,5 +1,5 @@
-// Street View (Google Maps Embed API) dentro da página do local.
-// O link de incorporação de cada local vem de config.js (raiz do projeto).
+// Street View (Google Maps Embed API) do painel do mapa.
+// O link de incorporação de cada ponto vem de config.js (raiz do projeto).
 // Sem link, sem internet ou demorando demais → mostra uma imagem elegante
 // com aviso, nunca uma tela quebrada. Se a conexão voltar, carrega sozinho.
 import { estado } from '../core/estado.js';
@@ -17,15 +17,31 @@ function temInternet() {
   );
 }
 
-/* global LOCAIS_STREET_VIEW */
-function linkDoLocal(id) {
-  if (typeof LOCAIS_STREET_VIEW === 'undefined') return '';
-  return LOCAIS_STREET_VIEW.find((l) => l.id === id)?.link?.trim() || '';
+/* global GOOGLE_MAPS_EMBED_KEY, PONTOS_TURISTICOS */
+const chave = () => (typeof GOOGLE_MAPS_EMBED_KEY === 'string' ? GOOGLE_MAPS_EMBED_KEY.trim() : '');
+
+/** Pontos turísticos de config.js */
+export function pontosTuristicos() {
+  return typeof PONTOS_TURISTICOS === 'undefined' ? [] : PONTOS_TURISTICOS;
+}
+
+/**
+ * Link do Street View de um ponto (ou do id de um ponto): o link de incorporação
+ * do config.js; sem ele, a Embed API no lat/lng do ponto, se houver chave.
+ */
+export function linkStreetView(ponto) {
+  const p = typeof ponto === 'string' ? pontosTuristicos().find((x) => x.id === ponto) : ponto;
+  if (!p) return '';
+  const link = p.streetView?.trim();
+  if (link) return link;
+  if (!chave() || !Number.isFinite(p.lat) || !Number.isFinite(p.lng)) return '';
+  return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(chave())}&location=${p.lat},${p.lng}&fov=90`;
 }
 
 // O idioma do link vale para os textos que o Google mostra na imagem
 function urlStreetView(link) {
-  return `${link}&hl=${estado.idioma === 'pt' ? 'pt-BR' : estado.idioma}`;
+  const idioma = estado.idioma === 'pt' ? 'pt-BR' : estado.idioma;
+  return `${link}${link.includes('?') ? '&' : '?'}${link.includes('/embed/v1/') ? 'language' : 'hl'}=${idioma}`;
 }
 
 // Motivo → explicação para o visitante
@@ -48,9 +64,10 @@ function fallback(caixa, motivo) {
     </div>`;
 }
 
-export function montarStreetView(moldura, id) {
+/** moldura: elemento com um .streetview dentro; ponto: ponto de config.js (ou o id dele) */
+export function montarStreetView(moldura, ponto) {
   const caixa = moldura.querySelector('.streetview');
-  const link = linkDoLocal(id);
+  const link = linkStreetView(ponto);
   let iframe = null;
   let timer = null;
   let pedido = false; // a pessoa já chegou perto do capítulo

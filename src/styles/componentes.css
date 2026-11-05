@@ -4,8 +4,6 @@
 
 /* Barra superior sobre seções claras */
 .barra-topo.veu-claro::before { background: linear-gradient(to bottom, rgba(246, 241, 231, 0.95), rgba(246, 241, 231, 0)); }
-.barra-topo .botao-voltar-locais { display: none; }
-.barra-topo.no-local .botao-voltar-locais { display: inline-flex; }
 
 /* --- Mascote --------------------------------------------------------------- */
 .mascote {

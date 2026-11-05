@@ -13,6 +13,9 @@
     <!-- Planeta (Three.js) -->
     <canvas id="globo" aria-hidden="true"></canvas>
 
+    <!-- Mapa da cidade (MapLibre): aparece por cima do planeta na transição e fica -->
+    <div class="mapa-cidade"></div>
+
     <!-- 1. Tela inicial (vitrine) -->
     <section class="tela tela-inicio" data-tela="inicio" aria-label="Início">
       <div class="inicio__topo">
@@ -46,10 +49,10 @@
       </div>
     </section>
 
-    <!-- 2. Transição Terra → Brasil → Pará → Canaã -->
+    <!-- 2. Transição Mundo → Pará → Canaã -->
     <section class="tela tela-transicao" data-tela="transicao" aria-hidden="true">
       <div class="mapa__rotulos">
-        <p class="legenda mapa__rotulo" data-rotulo="brasil"><span data-i18n="transicao.brasil"></span></p>
+        <p class="legenda mapa__rotulo" data-rotulo="mundo"><span data-i18n="transicao.mundo"></span></p>
         <p class="legenda mapa__rotulo" data-rotulo="para"><span data-i18n="transicao.para"></span></p>
         <p class="mapa__rotulo mapa__rotulo--cidade" data-rotulo="cidade">
           <span class="serif" data-i18n="transicao.cidade"></span>
@@ -58,13 +61,8 @@
       </div>
     </section>
 
-    <!-- 3. Tela de locais -->
-    <section class="tela tela-locais" data-tela="locais" aria-label="Locais"></section>
-
-    <!-- 4. Página do local -->
-    <section class="tela tela-local" data-tela="local">
-      <div class="local-scroll"><div class="local-conteudo"></div></div>
-    </section>
+    <!-- 3. Mapa da cidade: título, painel do ponto e Street View (montados em telas/mapa.js) -->
+    <section class="tela tela-locais" data-tela="locais" aria-label="Mapa da cidade"></section>
 
     <!-- Barra superior das telas internas -->
     <header class="barra-topo">
@@ -73,10 +71,6 @@
         <span class="legenda" data-i18n="prefeitura"></span>
       </button>
       <div class="barra-topo__direita">
-        <button class="botao-inicio botao-voltar-locais" data-acao="locais">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
-          <span class="legenda" data-i18n="locais.sobretitulo"></span>
-        </button>
         <div class="idiomas" role="group" data-i18n-aria="idioma"></div>
       </div>
     </header>

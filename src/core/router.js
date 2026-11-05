@@ -1,36 +1,23 @@
 // Navegação entre as telas, com as transições entre elas.
-// Fluxo: inicio → (transição) → locais ⇄ local → … → inicio (botão ou descanso)
+// Fluxo: inicio → (transição do planeta) → mapa da cidade → … → inicio (botão ou descanso)
 import gsap from 'gsap';
-import { estado, emitir, localPorId, em } from './estado.js';
+import { estado, emitir } from './estado.js';
 import { mudarIdioma } from './i18n.js';
 import { entrarInicio, definirDescanso } from '../telas/inicio.js';
 import { executarTransicao, limparTransicao } from '../telas/transicao.js';
-import { renderizar as renderizarLocais, entrarLocais, definirIndice, fotosDosCards } from '../telas/locais.js';
-import { renderizarLocal, abrirLocal as animarAbertura, sairLocal, destruir as destruirLocal } from '../telas/local.js';
-import { preCarregar } from '../util/preload.js';
+import { resetarMapa } from '../telas/mapa.js';
 
-const app = document.getElementById('app');
 const barra = document.querySelector('.barra-topo');
 const cortina = document.querySelector('.cortina');
-const ESPERA_MAXIMA_FOTOS = 15000; // ms: uma foto com defeito não pode travar o totem
 let globo = null;
 
 export function iniciarRotas(g) {
   globo = g;
-  // Troca de idioma: refaz a tela atual sem perder a posição
-  em('idioma', () => {
-    if (estado.tela === 'locais' || estado.tela === 'inicio') renderizarLocais();
-    if (estado.tela === 'local') renderizarLocal(estado.localId, { manterRolagem: true });
-  });
 }
 
 function definirTela(nome) {
   estado.tela = nome;
   emitir('tela', nome);
-}
-
-function barraClara() {
-  barra.classList.remove('sobre-escuro', 'com-veu', 'veu-claro', 'no-local');
 }
 
 function mostrarBarra(mostrar) {
@@ -43,20 +30,20 @@ function ocupar(segundos) {
   gsap.delayedCall(segundos, () => (estado.ocupado = false));
 }
 
-// --- Início → Locais -----------------------------------------------------------
+// --- Início → Mapa da cidade -----------------------------------------------------
 export function comecar() {
   if (estado.ocupado) return;
   estado.ocupado = true;
   definirTela('transicao');
   executarTransicao({
     globo,
-    fotos: Promise.race([fotosDosCards(), new Promise((r) => setTimeout(r, ESPERA_MAXIMA_FOTOS))]),
-    entrada: entrarLocais({ chegada: true }),
     aoRevelar: () => {
-      barraClara();
+      // Barra clara sobre o mapa escuro
+      barra.classList.remove('veu-claro', 'no-local');
+      barra.classList.add('sobre-escuro', 'com-veu');
       mostrarBarra(true);
     },
-    // O mascote reage a este aviso: entra quando os cards já estão na tela
+    // O mascote reage a este aviso: entra quando os pins já estão na tela
     aoAssentar: () => definirTela('locais'),
     aoTerminar: () => {
       limparTransicao();
@@ -64,72 +51,6 @@ export function comecar() {
       estado.ocupado = false;
     },
   });
-}
-
-// --- Locais → Local (a foto do card "voa" até a tela cheia) ----------------------
-export async function abrirLocal(id, fotoEl) {
-  if (estado.ocupado) return;
-  ocupar(1.8);
-  const l = localPorId(id);
-  await Promise.race([preCarregar(l.fotos.capa), new Promise((r) => setTimeout(r, 700))]);
-
-  const r = fotoEl.getBoundingClientRect();
-  const voando = document.createElement('div');
-  voando.className = 'foto-voando';
-  voando.innerHTML = `<img src="${l.fotos.capa}" alt="" />`;
-  // Sai com os cantos arredondados do card e chega reta na tela cheia
-  const raio = getComputedStyle(fotoEl).borderTopLeftRadius;
-  Object.assign(voando.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px`, borderRadius: raio });
-  app.appendChild(voando);
-
-  mostrarBarra(false);
-  await gsap
-    .timeline()
-    .fromTo(voando.querySelector('img'), { scale: 1.22 }, { scale: 1.12, duration: 1.05, ease: 'expo.inOut' }, 0)
-    .to(voando, { left: 0, top: 0, width: innerWidth, height: innerHeight, borderRadius: 0, duration: 1.05, ease: 'expo.inOut' }, 0)
-    .to('[data-tela="locais"]', { autoAlpha: 0, duration: 0.4 }, 0.5);
-
-  await renderizarLocal(id);
-  definirTela('local');
-  barra.classList.add('no-local');
-  mostrarBarra(true);
-  animarAbertura();
-  gsap.to(voando, { autoAlpha: 0, duration: 0.35, delay: 0.05, onComplete: () => voando.remove() });
-}
-
-// --- Local → próximo local (cortina com a foto do próximo subindo) -------------
-export async function proximoLocal(id) {
-  if (estado.ocupado) return;
-  ocupar(1.6);
-  const l = localPorId(id);
-  await Promise.race([preCarregar(l.fotos.capa), new Promise((r) => setTimeout(r, 700))]);
-
-  const voando = document.createElement('div');
-  voando.className = 'foto-voando';
-  voando.innerHTML = `<img src="${l.fotos.capa}" alt="" />`;
-  Object.assign(voando.style, { inset: '0' });
-  app.appendChild(voando);
-
-  await gsap
-    .timeline()
-    .fromTo(voando, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'expo.inOut' })
-    .fromTo(voando.querySelector('img'), { scale: 1.3, yPercent: 8 }, { scale: 1.12, yPercent: 0, duration: 1.3, ease: 'expo.out' }, 0);
-
-  await renderizarLocal(id);
-  animarAbertura();
-  gsap.to(voando, { autoAlpha: 0, duration: 0.35, delay: 0.05, onComplete: () => voando.remove() });
-}
-
-// --- Local → Locais -------------------------------------------------------------
-export async function voltarLocais() {
-  if (estado.ocupado || estado.tela !== 'local') return;
-  ocupar(1.2);
-  definirIndice(estado.localId);
-  await sairLocal();
-  destruirLocal();
-  barraClara();
-  definirTela('locais');
-  entrarLocais();
 }
 
 // --- Qualquer tela → Início -------------------------------------------------------
@@ -145,14 +66,15 @@ export async function irInicio({ descanso = false } = {}) {
 
   await gsap.to(cortina, { opacity: 1, duration: descanso ? 1.4 : 0.7, ease: 'power2.inOut' });
 
-  destruirLocal();
   mostrarBarra(false);
   gsap.set('.tela:not(.tela-inicio)', { autoAlpha: 0 });
   limparTransicao();
+  resetarMapa();
   definirTela('inicio');
 
   // Planeta volta: começa próximo e se afasta até a pose de repouso
   gsap.killTweensOf(globo.pose);
+  globo.emTransicao = false;
   globo.aplicarPoseInicial();
   const final = { ...globo.pose };
   Object.assign(globo.pose, { dist: final.dist * 0.72, nuvens: 0.4, estrelas: 0, atmo: 0.6 });

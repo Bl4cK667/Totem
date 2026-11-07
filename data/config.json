@@ -1,0 +1,4 @@
+{
+  "_leiame": "Chave da Google Maps Embed API (opcional). Só é usada nos pontos de Street View sem link. Se estiver vazia, vencida ou errada, o totem continua funcionando.",
+  "googleMapsEmbedKey": ""
+}

@@ -25,5 +25,5 @@ export function iniciarDescanso({ segundos, aoDescansar }) {
     }
   }, 1000);
 
-  return { reiniciar: tocar };
+  return { reiniciar: tocar, semToqueHa: () => performance.now() - ultimo };
 }

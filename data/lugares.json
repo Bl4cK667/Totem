@@ -1,0 +1,1151 @@
+{
+  "_leiame": [
+    "TODOS os lugares do totem ficam aqui. Depois de salvar, é só recarregar o totem.",
+    "Explicação de cada campo: veja o README, seção 3. Para conferir o arquivo e atualizar CONFIRMAR.md e FALTA-CONTEUDO.md: npm run conteudo",
+    "status: \"publicado\" aparece no totem; \"rascunho\" só aparece no modo de edição (endereço terminado em ?edicao).",
+    "Textos: pt, en e es. Se faltar en ou es, o totem mostra o português. Trechos com [CONFIRMAR] precisam ser revisados pela Prefeitura."
+  ],
+  "categorias": [
+    {
+      "id": "prefeitura",
+      "nome": {
+        "pt": "Prefeitura",
+        "en": "City Hall",
+        "es": "Alcaldía"
+      }
+    },
+    {
+      "id": "lagos",
+      "nome": {
+        "pt": "Lagos",
+        "en": "Lakes",
+        "es": "Lagos"
+      }
+    },
+    {
+      "id": "transporte",
+      "nome": {
+        "pt": "Transporte",
+        "en": "Transport",
+        "es": "Transporte"
+      }
+    },
+    {
+      "id": "cultura",
+      "nome": {
+        "pt": "Cultura",
+        "en": "Culture",
+        "es": "Cultura"
+      }
+    },
+    {
+      "id": "lazer",
+      "nome": {
+        "pt": "Lazer",
+        "en": "Leisure",
+        "es": "Ocio"
+      }
+    },
+    {
+      "id": "comercio",
+      "nome": {
+        "pt": "Comércio",
+        "en": "Shopping",
+        "es": "Comercio"
+      }
+    },
+    {
+      "id": "saude",
+      "nome": {
+        "pt": "Saúde",
+        "en": "Health",
+        "es": "Salud"
+      }
+    },
+    {
+      "id": "educacao",
+      "nome": {
+        "pt": "Educação",
+        "en": "Education",
+        "es": "Educación"
+      }
+    },
+    {
+      "id": "obras",
+      "nome": {
+        "pt": "Obras da gestão",
+        "en": "City projects",
+        "es": "Obras de la gestión"
+      }
+    }
+  ],
+  "lugares": [
+    {
+      "id": "prefeitura-lago",
+      "numero": 1,
+      "status": "publicado",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Prefeitura e Lago",
+        "en": "City Hall and Lake",
+        "es": "Alcaldía y Lago"
+      },
+      "categoria": "prefeitura",
+      "latitude": -6.5502,
+      "longitude": -49.8478,
+      "textos": {
+        "pt": {
+          "frase": "A sede da Prefeitura, de frente para o lago.",
+          "descricao": "O Centro Administrativo foi inaugurado em outubro de 2022, no bairro Novo Horizonte 3. O prédio tem rampas, elevador e um amplo espaço de convivência. Em frente, o lago tem pista de caminhada, playground e academia ao ar livre.",
+          "curiosidades": [
+            "Com rampas e elevador, o prédio foi entregue totalmente acessível.",
+            "No Natal de 2025, o lago teve telão e fogos.",
+            "A bandeira da cidade tem o lema \"União de Todos\"."
+          ],
+          "dados": [
+            {
+              "valor": "2022",
+              "legenda": "Inauguração"
+            },
+            {
+              "valor": "6 mil m²",
+              "legenda": "Área do prédio"
+            },
+            {
+              "valor": "15 mil m²",
+              "legenda": "Lago em frente"
+            }
+          ],
+          "dica_guia": "A Prefeitura fica de frente para um lago. Toque no pin {numero}!"
+        },
+        "en": {
+          "frase": "City Hall, right in front of the lake.",
+          "descricao": "The Administrative Center opened in October 2022 in the Novo Horizonte 3 neighborhood. The building has ramps, an elevator and a large common area. In front, the lake has a walking track, a playground and an outdoor gym.",
+          "curiosidades": [
+            "With ramps and an elevator, the building was delivered fully accessible.",
+            "At Christmas 2025, the lake had a big screen and fireworks.",
+            "The city flag bears the motto \"União de Todos\"."
+          ],
+          "dados": [
+            {
+              "valor": "2022",
+              "legenda": "Opened"
+            },
+            {
+              "valor": "6,000 m²",
+              "legenda": "Building area"
+            },
+            {
+              "valor": "15,000 m²",
+              "legenda": "Lake in front"
+            }
+          ],
+          "dica_guia": "City Hall faces a lake. Tap pin {numero}!"
+        },
+        "es": {
+          "frase": "La sede de la Alcaldía, frente al lago.",
+          "descricao": "El Centro Administrativo se inauguró en octubre de 2022, en el barrio Novo Horizonte 3. El edificio tiene rampas, ascensor y un amplio espacio de convivencia. Enfrente, el lago tiene pista para caminar, parque infantil y gimnasio al aire libre.",
+          "curiosidades": [
+            "Con rampas y ascensor, el edificio se entregó totalmente accesible.",
+            "En Navidad de 2025, el lago tuvo pantalla y fuegos.",
+            "La bandera lleva el lema \"União de Todos\"."
+          ],
+          "dados": [
+            {
+              "valor": "2022",
+              "legenda": "Inauguración"
+            },
+            {
+              "valor": "6.000 m²",
+              "legenda": "Área del edificio"
+            },
+            {
+              "valor": "15.000 m²",
+              "legenda": "Lago enfrente"
+            }
+          ],
+          "dica_guia": "La Alcaldía está frente a un lago. ¡Toque el pin {numero}!"
+        }
+      },
+      "foto": {
+        "arquivo": "assets/img/locais/prefeitura-capa.webp",
+        "credito": "Prefeitura de Canaã dos Carajás (site oficial)",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "O Centro Administrativo e o lago ao pôr do sol, com gramado e pista de caminhada.",
+          "en": "The Administrative Center and the lake at sunset, with lawns and a walking track.",
+          "es": "El Centro Administrativo y el lago al atardecer, con césped y pista para caminar."
+        }
+      },
+      "galeria": [
+        {
+          "arquivo": "assets/img/locais/lago-prefeitura-capa.webp",
+          "credito": "Prefeitura de Canaã dos Carajás (site oficial)",
+          "alt": {
+            "pt": "Gramado com mudas de árvores e pista de caminhada perto do lago.",
+            "en": "Lawn with young trees and a walking track near the lake.",
+            "es": "Césped con árboles jóvenes y pista para caminar cerca del lago."
+          }
+        }
+      ],
+      "antes_agora": [],
+      "audio": {
+        "pt": "audio/pt/prefeitura-lago.mp3",
+        "en": "audio/en/prefeitura-lago.mp3",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": true,
+        "ano": 2022
+      },
+      "street_view": [
+        {
+          "nome": {
+            "pt": "Prefeitura",
+            "en": "City Hall",
+            "es": "Alcaldía"
+          },
+          "latitude": -6.5509,
+          "longitude": -49.8476,
+          "link": "https://www.google.com/maps/embed?pb=!4v1730000000000!6m8!1m7!1snTva48pWX3Rhwqh616TfAg!2m2!1d-6.5509258!2d-49.8476188!3f12.01!4f0.85!5f0.78"
+        },
+        {
+          "nome": {
+            "pt": "Lago da Prefeitura",
+            "en": "City Hall Lake",
+            "es": "Lago de la Alcaldía"
+          },
+          "latitude": -6.5494,
+          "longitude": -49.848,
+          "link": "https://www.google.com/maps/embed?pb=!4v1730000000000!6m8!1m7!1skJBdBrF35pl7t5LGv4rcbg!2m2!1d-6.549383!2d-49.8479887!3f167.04!4f1.12!5f0.78"
+        }
+      ],
+      "pendencias": [
+        "Conferir a posição do pin (latitude e longitude) no Google Maps.",
+        "Confirmar se o Centro Administrativo entra em \"Obras da gestão\" (entregue em 2022)."
+      ]
+    },
+    {
+      "id": "lago-buritis",
+      "numero": 2,
+      "status": "publicado",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Lago dos Buritis",
+        "en": "Buritis Lake",
+        "es": "Lago de los Buritíes"
+      },
+      "categoria": "lagos",
+      "latitude": -6.5218,
+      "longitude": -49.8514,
+      "textos": {
+        "pt": {
+          "frase": "Um parque linear com ciclovia em volta do lago.",
+          "descricao": "Ao lado do lago fica o Parque Linear Zulmira Arrais da Silva, inaugurado em 2024. São mais de 37 mil m² de gramados, pistas de caminhada e ciclovia.",
+          "curiosidades": [
+            "O buriti é uma palmeira típica das áreas úmidas da Amazônia e do Cerrado.",
+            "O parque protege o córrego Palmeirim e ajuda a evitar enchentes."
+          ],
+          "dados": [
+            {
+              "valor": "2024",
+              "legenda": "Inauguração do parque"
+            },
+            {
+              "valor": "37 mil m²",
+              "legenda": "Área do parque"
+            },
+            {
+              "valor": "1.239 m",
+              "legenda": "De ciclovia"
+            }
+          ],
+          "dica_guia": "O Lago dos Buritis tem ciclovia e pista de caminhada."
+        },
+        "en": {
+          "frase": "A linear park with a bike path around the lake.",
+          "descricao": "Next to the lake is the Zulmira Arrais da Silva Linear Park, opened in 2024. It has over 37,000 m² of lawns, walking tracks and bike paths.",
+          "curiosidades": [
+            "The buriti is a palm typical of wetlands in the Amazon and the Cerrado.",
+            "The park protects the Palmeirim stream and helps prevent floods."
+          ],
+          "dados": [
+            {
+              "valor": "2024",
+              "legenda": "Park opened"
+            },
+            {
+              "valor": "37,000 m²",
+              "legenda": "Park area"
+            },
+            {
+              "valor": "1,239 m",
+              "legenda": "Of bike path"
+            }
+          ],
+          "dica_guia": "Buritis Lake has a bike path and a walking track."
+        },
+        "es": {
+          "frase": "Un parque lineal con ciclovía alrededor del lago.",
+          "descricao": "Junto al lago está el Parque Lineal Zulmira Arrais da Silva, inaugurado en 2024. Tiene más de 37.000 m² de césped, pistas para caminar y ciclovía.",
+          "curiosidades": [
+            "El buriti es una palmera típica de las zonas húmedas de la Amazonia y el Cerrado.",
+            "El parque protege el arroyo Palmeirim y ayuda a evitar inundaciones."
+          ],
+          "dados": [
+            {
+              "valor": "2024",
+              "legenda": "Inauguración del parque"
+            },
+            {
+              "valor": "37.000 m²",
+              "legenda": "Área del parque"
+            },
+            {
+              "valor": "1.239 m",
+              "legenda": "De ciclovía"
+            }
+          ],
+          "dica_guia": "El Lago de los Buritíes tiene ciclovía y pista para caminar."
+        }
+      },
+      "foto": {
+        "arquivo": "assets/img/locais/lago-buritis-capa.webp",
+        "credito": "Prefeitura de Canaã dos Carajás (site oficial)",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "Ciclovia iluminada à noite, com pessoas caminhando ao lado.",
+          "en": "A lit bike path at night, with people walking alongside.",
+          "es": "Ciclovía iluminada de noche, con personas caminando al lado."
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "audio/pt/lago-buritis.mp3",
+        "en": "audio/en/lago-buritis.mp3",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": true,
+        "ano": 2024
+      },
+      "street_view": [
+        {
+          "nome": {
+            "pt": "Lago dos Buritis",
+            "en": "Buritis Lake",
+            "es": "Lago de los Buritíes"
+          },
+          "latitude": -6.5218,
+          "longitude": -49.8514,
+          "link": "https://www.google.com/maps/embed?pb=!4v1793600572350!6m8!1m7!1sCAoSHENJQUJJaEExQVVOQ3AtZzRBbzB5SUozbVgxa0o.!2m2!1d-6.521768408169661!2d-49.85137378687036!3f319.08!4f-2.25!5f0.7820865974627469"
+        }
+      ],
+      "pendencias": [
+        "Conferir a posição do pin (latitude e longitude) no Google Maps.",
+        "Confirmar se o Parque Linear entra em \"Obras da gestão\" (entregue em 2024)."
+      ]
+    },
+    {
+      "id": "rodoviaria",
+      "numero": 3,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Rodoviária",
+        "en": "Bus Terminal",
+        "es": "Terminal de Autobuses"
+      },
+      "categoria": "transporte",
+      "latitude": -6.534,
+      "longitude": -49.861,
+      "textos": {
+        "pt": {
+          "frase": "A porta de entrada de quem chega pela estrada.",
+          "descricao": "O Terminal Rodoviário liga Canaã dos Carajás à região e a outros estados. É a porta de entrada de quem chega pela estrada. Ao lado, a Avenida Minas Gerais está sendo renovada.",
+          "curiosidades": [
+            "Daqui saem linhas do transporte público da cidade.",
+            "As linhas 5A e 5B vão até a Vila dos Imigrantes e o Chacreamento Jerusalém."
+          ],
+          "dados": [
+            {
+              "valor": "1,5 km",
+              "legenda": "De ciclovia na avenida ao lado"
+            },
+            {
+              "valor": "3 km",
+              "legenda": "De calçadas renovadas"
+            }
+          ],
+          "dica_guia": "Quem chega de ônibus desce na Rodoviária, o pin {numero}."
+        },
+        "en": {
+          "frase": "The gateway for everyone arriving by road.",
+          "descricao": "The Bus Terminal connects Canaã dos Carajás to the region and to other states. It is the gateway for everyone arriving by road. Next to it, Minas Gerais Avenue is being renewed.",
+          "curiosidades": [
+            "City bus routes start from here.",
+            "Routes 5A and 5B go to Vila dos Imigrantes and Chacreamento Jerusalém."
+          ],
+          "dados": [
+            {
+              "valor": "1.5 km",
+              "legenda": "Of bike path on the avenue"
+            },
+            {
+              "valor": "3 km",
+              "legenda": "Of renewed sidewalks"
+            }
+          ],
+          "dica_guia": "If you come by bus, you arrive at the Bus Terminal, pin {numero}."
+        },
+        "es": {
+          "frase": "La puerta de entrada de quien llega por carretera.",
+          "descricao": "La Terminal de Autobuses conecta Canaã dos Carajás con la región y con otros estados. Es la puerta de entrada de quien llega por carretera. Al lado, la Avenida Minas Gerais está siendo renovada.",
+          "curiosidades": [
+            "De aquí salen líneas del transporte público de la ciudad.",
+            "Las líneas 5A y 5B van hasta la Vila dos Imigrantes y el Chacreamento Jerusalém."
+          ],
+          "dados": [
+            {
+              "valor": "1,5 km",
+              "legenda": "De ciclovía en la avenida"
+            },
+            {
+              "valor": "3 km",
+              "legenda": "De aceras renovadas"
+            }
+          ],
+          "dica_guia": "Quien llega en autobús baja en la Terminal, el pin {numero}."
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [
+        {
+          "nome": {
+            "pt": "Rodoviária",
+            "en": "Bus Terminal",
+            "es": "Terminal de Autobuses"
+          },
+          "latitude": -6.534,
+          "longitude": -49.861,
+          "link": ""
+        }
+      ],
+      "pendencias": [
+        "Conferir a posição do pin (latitude e longitude) no Google Maps.",
+        "Falta uma foto real do lugar (a foto antiga mostrava a avenida, não o terminal).",
+        "Conferir se a obra da Avenida Minas Gerais ainda está em andamento e os números de ciclovia e calçadas."
+      ]
+    },
+    {
+      "id": "parque-mirante",
+      "numero": 4,
+      "status": "publicado",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Parque do Mirante",
+        "en": "Lookout Park",
+        "es": "Parque del Mirador"
+      },
+      "categoria": "lazer",
+      "latitude": -6.5147,
+      "longitude": -49.8542,
+      "textos": {
+        "pt": {
+          "frase": "Turismo e lazer no alto do morro, com vista para a cidade.",
+          "descricao": "Projeto de turismo e lazer com mais de 40 mil m². Duas torres de elevador levam à crista do morro. Uma trilha acessível chega ao mirante do pôr do sol.",
+          "curiosidades": [
+            "O projeto foi premiado em 2024 no 6º Congresso BIM CREA-SC, em Florianópolis.",
+            "As torres têm acabamento de vidro temperado."
+          ],
+          "dados": [
+            {
+              "valor": "40 mil m²",
+              "legenda": "Área do projeto"
+            },
+            {
+              "valor": "2",
+              "legenda": "Torres de elevador"
+            },
+            {
+              "valor": "2024",
+              "legenda": "Projeto premiado"
+            }
+          ],
+          "dica_guia": "Sabia que o Parque do Mirante tem a melhor vista de Canaã?"
+        },
+        "en": {
+          "frase": "Tourism and leisure on the hilltop, overlooking the city.",
+          "descricao": "A tourism and leisure project covering over 40,000 m². Two elevator towers rise to the ridge. An accessible trail leads to the sunset viewpoint.",
+          "curiosidades": [
+            "The design won an award in 2024 at the 6th BIM CREA-SC Congress in Florianópolis.",
+            "The towers have a tempered glass finish."
+          ],
+          "dados": [
+            {
+              "valor": "40,000 m²",
+              "legenda": "Project area"
+            },
+            {
+              "valor": "2",
+              "legenda": "Elevator towers"
+            },
+            {
+              "valor": "2024",
+              "legenda": "Award-winning design"
+            }
+          ],
+          "dica_guia": "Did you know Lookout Park has the best view of Canaã?"
+        },
+        "es": {
+          "frase": "Turismo y ocio en lo alto del cerro, con vista a la ciudad.",
+          "descricao": "Proyecto de turismo y ocio con más de 40.000 m². Dos torres de ascensor llevan a la cresta del cerro. Un sendero accesible llega al mirador del atardecer.",
+          "curiosidades": [
+            "El proyecto fue premiado en 2024 en el 6.º Congreso BIM CREA-SC, en Florianópolis.",
+            "Las torres tienen acabado de vidrio templado."
+          ],
+          "dados": [
+            {
+              "valor": "40.000 m²",
+              "legenda": "Área del proyecto"
+            },
+            {
+              "valor": "2",
+              "legenda": "Torres de ascensor"
+            },
+            {
+              "valor": "2024",
+              "legenda": "Proyecto premiado"
+            }
+          ],
+          "dica_guia": "¿Sabía que el Parque del Mirador tiene la mejor vista de Canaã?"
+        }
+      },
+      "foto": {
+        "arquivo": "assets/img/locais/parque-mirante-capa.webp",
+        "credito": "Ilustração do projeto, Prefeitura de Canaã dos Carajás",
+        "ilustracao_do_projeto": true,
+        "alt": {
+          "pt": "Ilustração do projeto: prédio com fachada de vidro e pessoas na entrada.",
+          "en": "Project illustration: a building with a glass facade and people at the entrance.",
+          "es": "Ilustración del proyecto: edificio con fachada de vidrio y personas en la entrada."
+        }
+      },
+      "galeria": [],
+      "antes_agora": [
+        {
+          "foto_antes": "assets/img/locais/cidade-antes.webp",
+          "ano_antes": 2011,
+          "foto_agora": "assets/img/locais/cidade-depois.webp",
+          "ano_agora": 2026,
+          "alinhado": true,
+          "credito": "Imagens de satélite: INPE/OBT/DPI (CC BY-SA 4.0)",
+          "descricao_antes": {
+            "pt": "A área urbana de Canaã dos Carajás vista por satélite em 2011 e em 2026.",
+            "en": "The urban area of Canaã dos Carajás seen by satellite in 2011 and in 2026.",
+            "es": "El área urbana de Canaã dos Carajás vista por satélite en 2011 y en 2026."
+          },
+          "alt_antes": {
+            "pt": "Imagem de satélite da cidade em 2011, com poucas quadras ocupadas.",
+            "en": "Satellite image of the city in 2011, with few occupied blocks.",
+            "es": "Imagen satelital de la ciudad en 2011, con pocas manzanas ocupadas."
+          },
+          "alt_agora": {
+            "pt": "Imagem de satélite da cidade em 2026, com as quadras ocupadas até as bordas.",
+            "en": "Satellite image of the city in 2026, with blocks built up to the edges.",
+            "es": "Imagen satelital de la ciudad en 2026, con las manzanas ocupadas hasta los bordes."
+          }
+        }
+      ],
+      "audio": {
+        "pt": "audio/pt/parque-mirante.mp3",
+        "en": "audio/en/parque-mirante.mp3",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [
+        {
+          "nome": {
+            "pt": "Parque do Mirante",
+            "en": "Lookout Park",
+            "es": "Parque del Mirador"
+          },
+          "latitude": -6.5147,
+          "longitude": -49.8542,
+          "link": ""
+        }
+      ],
+      "pendencias": [
+        "Conferir a posição do pin (latitude e longitude) no Google Maps.",
+        "A imagem é a ilustração do projeto, não uma foto. Trocar por foto real quando o parque estiver pronto.",
+        "Confirmar se o par de satélite 2011/2026 da cidade fica bem na página do Parque do Mirante (a vista da cidade)."
+      ]
+    },
+    {
+      "id": "parque-veredas",
+      "numero": 5,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Parque Veredas",
+        "en": "Veredas Park",
+        "es": "Parque Veredas"
+      },
+      "categoria": "lazer",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "Natureza, trilhas e a subida até o mirante em um dos cartões-postais da cidade.",
+          "descricao": "A Prefeitura aponta o Parque Veredas como um dos principais cartões-postais de Canaã dos Carajás. O parque recebe trilhas até o mirante, corridas, ciclismo e visitas de escolas da rede municipal, que aprendem ali sobre a conservação da fauna e da flora.",
+          "curiosidades": [
+            "A Trilha do Mirante faz parte da programação do parque e aproxima a população dos ecossistemas locais.",
+            "Alunos da rede municipal visitam o parque para aprender sobre a conservação e o aumento da biodiversidade.",
+            "Em 2025, o parque recebeu a primeira Corrida Kids, no encerramento da Semana do Meio Ambiente."
+          ],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "Nature, trails and the climb to the lookout at one of the city's landmarks.",
+          "descricao": "City Hall lists Veredas Park among the main landmarks of Canaã dos Carajás. The park hosts trails to the lookout, races, cycling and visits from municipal schools, whose students learn about protecting wildlife and plants.",
+          "curiosidades": [
+            "The Lookout Trail is part of the park's program and brings people closer to local ecosystems.",
+            "Municipal school students visit the park to learn about conservation and growing biodiversity.",
+            "In 2025, the park hosted its first Kids' Run, closing Environment Week."
+          ],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "Naturaleza, senderos y la subida al mirador en una de las postales de la ciudad.",
+          "descricao": "La Alcaldía señala el Parque Veredas como una de las principales postales de Canaã dos Carajás. El parque recibe senderos hasta el mirador, carreras, ciclismo y visitas de escuelas municipales, cuyos alumnos aprenden sobre la conservación de la fauna y la flora.",
+          "curiosidades": [
+            "El Sendero del Mirador forma parte de la programación del parque y acerca a la población a los ecosistemas locales.",
+            "Alumnos de la red municipal visitan el parque para aprender sobre la conservación y el aumento de la biodiversidad.",
+            "En 2025, el parque recibió la primera Carrera Kids, en el cierre de la Semana del Medio Ambiente."
+          ],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "assets/img/locais/parque-veredas-capa.webp",
+        "credito": "Prefeitura de Canaã dos Carajás (site oficial)",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "Vista aérea de um lago entre morros cobertos de mata.",
+          "en": "Aerial view of a lake between forested hills.",
+          "es": "Vista aérea de un lago entre cerros cubiertos de bosque."
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Estava na versão antiga do totem, mas não no mapa aprovado. Confirmar se entra.",
+        "Falta a posição do pin (latitude e longitude).",
+        "Faltam 2 ou 3 dados rápidos (ex.: área, ano)."
+      ]
+    },
+    {
+      "id": "primeira-prefeitura",
+      "numero": 6,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Primeira Prefeitura [CONFIRMAR]",
+        "en": "First City Hall [CONFIRMAR]",
+        "es": "Primera Alcaldía [CONFIRMAR]"
+      },
+      "categoria": "cultura",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    },
+    {
+      "id": "feira-municipal",
+      "numero": 7,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Feira Municipal [CONFIRMAR]",
+        "en": "Municipal Market [CONFIRMAR]",
+        "es": "Feria Municipal [CONFIRMAR]"
+      },
+      "categoria": "comercio",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    },
+    {
+      "id": "praca-central",
+      "numero": 8,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Praça central [CONFIRMAR]",
+        "en": "Main Square [CONFIRMAR]",
+        "es": "Plaza central [CONFIRMAR]"
+      },
+      "categoria": "lazer",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    },
+    {
+      "id": "igreja-matriz",
+      "numero": 9,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Igreja matriz [CONFIRMAR]",
+        "en": "Main Church [CONFIRMAR]",
+        "es": "Iglesia matriz [CONFIRMAR]"
+      },
+      "categoria": "cultura",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    },
+    {
+      "id": "hospital-upa",
+      "numero": 10,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Hospital / UPA [CONFIRMAR]",
+        "en": "Hospital / Emergency Care [CONFIRMAR]",
+        "es": "Hospital / UPA [CONFIRMAR]"
+      },
+      "categoria": "saude",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    },
+    {
+      "id": "escolas-universidade",
+      "numero": 11,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Escolas e universidade [CONFIRMAR]",
+        "en": "Schools and university [CONFIRMAR]",
+        "es": "Escuelas y universidad [CONFIRMAR]"
+      },
+      "categoria": "educacao",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    },
+    {
+      "id": "obras-da-gestao",
+      "numero": 12,
+      "status": "rascunho",
+      "revisado_por_prefeitura": false,
+      "nome": {
+        "pt": "Obras da gestão [CONFIRMAR]",
+        "en": "City projects [CONFIRMAR]",
+        "es": "Obras de la gestión [CONFIRMAR]"
+      },
+      "categoria": "obras",
+      "latitude": null,
+      "longitude": null,
+      "textos": {
+        "pt": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "en": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        },
+        "es": {
+          "frase": "",
+          "descricao": "",
+          "curiosidades": [],
+          "dados": [],
+          "dica_guia": ""
+        }
+      },
+      "foto": {
+        "arquivo": "",
+        "credito": "",
+        "ilustracao_do_projeto": false,
+        "alt": {
+          "pt": "",
+          "en": "",
+          "es": ""
+        }
+      },
+      "galeria": [],
+      "antes_agora": [],
+      "audio": {
+        "pt": "",
+        "en": "",
+        "es": "",
+        "revisado": false
+      },
+      "video_libras": "",
+      "obra": {
+        "entregue": false,
+        "ano": null
+      },
+      "street_view": [],
+      "pendencias": [
+        "Sugestão: confirmar se o lugar existe e o nome certo.",
+        "Talvez funcione melhor como filtro do mapa (Etapa 2) do que como um lugar só.",
+        "Falta tudo: posição, textos em PT/EN/ES, foto com crédito."
+      ]
+    }
+  ]
+}

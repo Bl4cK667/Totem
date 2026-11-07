@@ -9,6 +9,7 @@
 import gsap from 'gsap';
 import { estado, em, transicaoCurta } from '../core/estado.js';
 import { t, tr, limpo, temConfirmar } from '../core/i18n.js';
+import { lugaresNoMapa, textoDe, numeroDe } from '../core/lugares.js';
 
 const raiz = document.querySelector('.mascote');
 const el = (s) => raiz.querySelector(s);
@@ -350,10 +351,22 @@ function pararDicas() {
   timerDicas = null;
 }
 
+/**
+ * Frases do guia no mapa: as gerais (locais.json, "mascote.dicasMapa") e a "dica_guia" de cada
+ * lugar do mapa (lugares.json). {numero} vira o número do pin. Lugar que sai do mapa leva a dica junto.
+ */
+function dicasDoMapa() {
+  const gerais = t('mascote.dicasMapa');
+  const dosLugares = lugaresNoMapa()
+    .map((l) => textoDe(l, 'dica_guia').replaceAll('{numero}', String(numeroDe(l)).padStart(2, '0')))
+    .filter(Boolean);
+  return [...(Array.isArray(gerais) ? gerais : []), ...dosLugares];
+}
+
 function proximaDica() {
   if (fase !== 'parado' || estado.tela !== 'locais' || detalheAberto()) return;
-  const lista = t('mascote.dicasMapa');
-  if (!Array.isArray(lista) || !lista.length) return;
+  const lista = dicasDoMapa();
+  if (!lista.length) return;
   indiceDica = (indiceDica + 1) % lista.length;
   // Fica aberto até a próxima: o balão só troca de texto, sem sumir e voltar
   falar(lista[indiceDica], TEMPO_DICA + 1500, { simples: true });

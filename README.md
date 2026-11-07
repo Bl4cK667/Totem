@@ -24,18 +24,45 @@ npm install
 | Editar e ver as mudanças na hora | `npm run dev` | http://localhost:5173 |
 | Versão final (a que vai no totem) | `npm run build` e depois `npm run preview` | http://localhost:4173 |
 
-> Sempre que trocar textos ou fotos, rode `npm run build` de novo antes de levar para o totem. O `config.js` não precisa: basta salvar e recarregar.
+> Os arquivos da pasta `data/` (lugares e textos) não precisam de build: basta salvar e recarregar o totem. Fotos novas e mudanças no código precisam de `npm run build`.
 >
 > O site precisa rodar por um desses endereços. Abrir o `index.html` com dois cliques não funciona.
 
 ## 3. Trocar textos, números e locais
 
-**Os lugares (pins e páginas) ficam no `config.js`** (veja a seção 5). **Os textos da interface ficam em `data/locais.json`.**
+**Os lugares (pins e páginas) ficam em `data/lugares.json`.** **Os textos da interface (botões, títulos, guia) ficam em `data/locais.json`.** **A chave do Google (opcional) fica em `data/config.json`.** Nada de texto de lugar fica no código: um lugar novo no arquivo aparece sozinho no mapa.
+
+Depois de mexer no `lugares.json`, rode **`npm run conteudo`**. Ele confere o arquivo (avisa se faltar algo ou se um arquivo de foto não existir) e atualiza o `CONFIRMAR.md` (o que a Prefeitura precisa revisar) e o `FALTA-CONTEUDO.md` (fotos, áudios e vídeos que faltam).
+
+### Campos de cada lugar (`data/lugares.json`)
+
+| Campo | O que é |
+|---|---|
+| `id` | nome curto sem espaço nem acento (ex.: `praca-central`). Também nomeia os áudios e o vídeo |
+| `numero` | ordem no mapa. O totem numera os pins 01, 02, 03... contando só os lugares que aparecem |
+| `status` | `"publicado"` aparece no totem; `"rascunho"` só no modo de edição |
+| `revisado_por_prefeitura` | `true` depois que a Prefeitura conferiu tudo |
+| `nome` | `{ "pt", "en", "es" }` |
+| `categoria` | um `id` da lista `categorias`, no começo do arquivo (Prefeitura, Lagos, Transporte...) |
+| `latitude`, `longitude` | posição do pin. No Google Maps: botão direito no lugar, clique nos números. Sem posição, o lugar não tem pin |
+| `textos.pt` / `.en` / `.es` | `frase` (abertura, até 2 linhas), `descricao` (até 4 frases), `curiosidades` (2 ou 3), `dados` (2 ou 3: `{ "valor": "2022", "legenda": "Inauguração" }`) e `dica_guia` (frase do guia no mapa; `{numero}` vira o número do pin). Sem inglês ou espanhol, aparece o português |
+| `foto` | `arquivo`, `credito`, `alt` (descrição da foto para leitores de tela, em pt/en/es) e `ilustracao_do_projeto` (`true` se não for foto de verdade) |
+| `galeria` | fotos extras: `[{ "arquivo", "credito", "alt" }]` |
+| `antes_agora` | pares de fotos: `[{ "foto_antes", "ano_antes", "descricao_antes", "foto_agora", "ano_agora" }]` |
+| `audio` | `{ "pt": "audio/pt/id.mp3", "en": ..., "es": ... }` |
+| `video_libras` | `"libras/id.mp4"`, gravado por intérprete |
+| `obra` | para o filtro "Obras da gestão" (próxima etapa) |
+| `street_view` | uma ou mais vistas: `[{ "nome", "latitude", "longitude", "link" }]` (veja a seção 5) |
+| `pendencias` | o que ainda falta confirmar; aparece no `CONFIRMAR.md` |
+
+**Rascunho e modo de edição:** lugar sem foto real ou sem texto confirmado fica com `"status": "rascunho"` e não aparece no totem. Para ver os rascunhos, abra o endereço com **`?edicao`** no fim (ex.: `http://localhost:4173/?edicao`): eles aparecem com borda tracejada e a palavra "Rascunho". Os que ainda não têm posição ficam numa lista no canto do mapa.
+
+**Muitos lugares:** pins quase no mesmo lugar viram um pin só ("Nome +2", com uma segunda gota dourada atrás); o toque abre uma lista para escolher. Se uma etiqueta encostaria em outra, ela some e fica só o número do pin.
 
 - Os textos estão em três idiomas: `"pt"`, `"en"` e `"es"`.
 - Trechos marcados com **`[CONFIRMAR]`** precisam ser revisados com a Prefeitura. Na tela, eles aparecem com uma etiqueta "CONFIRMAR". Depois da revisão, apague o `[CONFIRMAR]` do texto. Para esconder todas as etiquetas de uma vez, mude `"mostrarMarcasConfirmar"` para `false`.
 - **Tempo do modo descanso:** `config.tempoDescansoSegundos` (padrão: 60 segundos). Sem toque nesse tempo, o totem volta sozinho para o planeta e o idioma volta para PT.
-- **Frases do guia no mapa:** `"mascote.dicasMapa"`, em cada idioma. Elas trocam sozinhas a cada 8 segundos. Na página de um lugar, o guia fica ao lado das curiosidades, sem balão.
+- **Frases do guia no mapa:** as gerais ficam em `"mascote.dicasMapa"` (locais.json); as de cada lugar, em `dica_guia` (lugares.json). Elas trocam sozinhas a cada 8 segundos. Na página de um lugar, o guia fica ao lado das curiosidades, sem balão.
 - **Transição do planeta:** roda completa mesmo com as animações do Windows desligadas. Para usar um fade curto nesse caso, mude `config.transicaoCurtaSemAnimacoes` para `true`.
 
 ## 4. Trocar as fotos
@@ -44,7 +71,9 @@ As fotos atuais vêm do site da Prefeitura de Canaã dos Carajás. O brasão (do
 
 1. Coloque a foto na pasta `fotos-originais/` com o nome do lugar e `-capa`, por exemplo `rodoviaria-capa.jpg` (de preferência com 1600 px de largura ou mais).
 2. Rode `npm run imagens`. As fotos são convertidas para WebP leve em `assets/img/locais/`, junto com a miniatura `-sm`.
-3. No `config.js`, escreva o caminho em `foto` do lugar: `"assets/img/locais/rodoviaria-capa.webp"`.
+3. No `data/lugares.json`, escreva o caminho em `foto.arquivo` do lugar (`"assets/img/locais/rodoviaria-capa.webp"`), o crédito em `foto.credito` e uma descrição curta da foto em `foto.alt`.
+
+Se um arquivo de foto sumir, o totem mostra o espaço "Foto em breve" no lugar, sem imagem quebrada.
 
 **Brasão:** fica em `assets/img/marca/brasao.svg`. Para trocar, use o mesmo nome. Se for PNG, troque também o nome nos `<img>` do `index.html`.
 
@@ -52,20 +81,20 @@ As fotos atuais vêm do site da Prefeitura de Canaã dos Carajás. O brasão (do
 
 Depois do planeta, o totem mostra um **mapa de satélite da cidade** (MapLibre + imagens Esri, gratuitos). Só os pontos turísticos aparecem, como pins. Tocar num pin abre a **página do lugar**, que rola para baixo com o dedo, um bloco por vez:
 
-1. **Abertura:** a foto na tela toda, com o número, o nome e uma frase curta (`frase`, no máximo 2 linhas).
+1. **Abertura:** a foto na tela toda (com o crédito), o número, o nome e uma frase curta (`frase`, no máximo 2 linhas).
 2. **Sobre o lugar:** a descrição (`descricao`, no máximo 4 frases) e 2 ou 3 dados rápidos (`dados`).
 3. **Você sabia?:** as curiosidades (`curiosidades`, 2 ou 3), cada uma num card, com o guia ao lado.
 4. **Como chegar:** o QR Code e o botão "Ver no Street View".
 5. **Outros lugares:** "Anterior", "Próximo" (com o nome do lugar) e "Voltar ao mapa".
 
+Um bloco sem conteúdo (ex.: lugar sem curiosidades) não aparece.
+
 A barra do topo fica fixa enquanto a página rola, com "Voltar ao mapa", "Início" e os idiomas. Uma linha dourada fina à direita mostra quanto já rolou.
 
-**Fotos dos lugares:** use a versão grande (`-capa.webp`, sem `-sm`), porque ela ocupa a tela toda. Lugar sem foto certa: deixe `foto: ""` e a página mostra um espaço marcado "Foto em breve". Hoje falta a foto do **Terminal Rodoviário**. A imagem do Parque do Mirante é a ilustração do projeto (`fotoProjeto: true` mostra a legenda "Imagem ilustrativa do projeto").
+**Fotos dos lugares:** use a versão grande (`-capa.webp`, sem `-sm`), porque ela ocupa a tela toda. Hoje falta a foto do **Terminal Rodoviário**: por isso ele está como rascunho e não aparece no totem. A imagem do Parque do Mirante é a ilustração do projeto (`ilustracao_do_projeto: true` mostra a legenda "Imagem ilustrativa do projeto").
 
-**Os pontos ficam no arquivo `config.js`, na raiz do projeto**, no array `PONTOS_TURISTICOS`: nome, lat, lng, foto, descrição, curiosidades e link do Street View. As instruções estão dentro do próprio arquivo. Coordenadas marcadas com `CONFERIR NO GOOGLE MAPS` são aproximadas.
-
-- **Adicionar um ponto:** copie um bloco `{ ... }` inteiro, troque o `id` e os dados.
-- **Dois lugares num pin só:** a Prefeitura e o Lago da Prefeitura ficam no mesmo lugar, então são um pin só ("Prefeitura e Lago"), com um texto só. Em `assuntos` ficam os dois Street Views; a tela do Street View tem um botão para cada um.
+- **Adicionar um lugar:** no `data/lugares.json`, copie um bloco `{ ... }` inteiro da lista `lugares`, troque o `id`, o `numero` e os dados, e rode `npm run conteudo`. Coordenadas a conferir ficam listadas em `pendencias`.
+- **Dois lugares num pin só:** a Prefeitura e o Lago da Prefeitura ficam no mesmo lugar, então são um pin só ("Prefeitura e Lago"), com um texto só. Em `street_view` ficam as duas vistas; a tela do Street View tem um botão para cada uma.
 - **Mapa parado:** depois que os pins aparecem, o mapa não se move nem aceita arrastar. Ele só se move quando alguém toca num pin (e volta com "Voltar ao mapa").
 - **Vista final do mapa** (centro, zoom, inclinação e direção): constante `VISTA` em `src/telas/mapa.js`. Hoje ela fica no Parque do Mirante, olhando para o sul, com a cidade à frente.
 
@@ -73,11 +102,11 @@ Para o Street View de um ponto:
 
 1. No Google Maps, abra o Street View no ponto e na direção que você quer.
 2. Clique em **Compartilhar > Incorporar um mapa > Copiar HTML**.
-3. Do código copiado, pegue só o que está entre as aspas de `src="..."` e cole em `streetView`, no `config.js`.
+3. Do código copiado, pegue só o que está entre as aspas de `src="..."` e cole em `link`, dentro de `street_view` do lugar, no `data/lugares.json`.
 
 O link curto (`maps.app.goo.gl`) não funciona ali: o Google não deixa esse tipo de link abrir dentro do site.
 
-**Chave da Google Maps Embed API (opcional):** cole em `GOOGLE_MAPS_EMBED_KEY`, no topo do `config.js`. Ela só é usada nos pontos sem link: o totem abre o Street View mais próximo do lat/lng do ponto.
+**Chave da Google Maps Embed API (opcional):** cole em `googleMapsEmbedKey`, no `data/config.json`. Ela só é usada nas vistas sem link: o totem abre o Street View mais próximo da latitude/longitude.
 
 Sem link, sem internet ou se demorar mais de 15 segundos, o totem mostra uma imagem com a mensagem "Street View indisponível no momento", em PT/EN/ES. Quando a conexão volta, o Street View carrega sozinho.
 
@@ -85,7 +114,7 @@ Sem link, sem internet ou se demorar mais de 15 segundos, o totem mostra uma ima
 
 ## 6. QR Code
 
-Cada lugar tem um QR Code "Aponte a câmera do celular e veja como chegar". Ele abre o Google Maps no celular com a rota até o lugar: `https://www.google.com/maps/dir/?api=1&destination=LATITUDE,LONGITUDE`, com as mesmas coordenadas do pin (`lat` e `lng` no `config.js`). Corrigindo a coordenada, o QR se corrige sozinho. O QR é gerado no próprio totem (biblioteca `qrcode`, sem internet).
+Cada lugar tem um QR Code "Aponte a câmera do celular e veja como chegar". Ele abre o Google Maps no celular com a rota até o lugar: `https://www.google.com/maps/dir/?api=1&destination=LATITUDE,LONGITUDE`, com as mesmas coordenadas do pin (`latitude` e `longitude` no `data/lugares.json`). Corrigindo a coordenada, o QR se corrige sozinho. O QR é gerado no próprio totem (biblioteca `qrcode`, sem internet).
 
 ## 7. Abrir em modo quiosque (no totem)
 
@@ -110,14 +139,18 @@ Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos e
 
 | Comando | O que faz |
 |---|---|
+| `npm run conteudo` | Confere o `data/lugares.json` e atualiza `CONFIRMAR.md` e `FALTA-CONTEUDO.md` |
 | `npm run contraste` | Confere se todos os pares de cor (texto/fundo) passam no WCAG AA |
 | `npm run testar` | Com `npm run dev` rodando, percorre o totem no Chrome em vertical e horizontal, salva prints em `testes/` e lista erros do console |
 
 ## 10. Estrutura
 
 ```
-config.js                 pontos turísticos do mapa, links do Street View e chave do Google
-data/locais.json          textos da interface (PT/EN/ES) e falas do mascote
+data/lugares.json         TODOS os lugares (pins e páginas), em PT/EN/ES
+data/locais.json          textos da interface (PT/EN/ES) e falas gerais do guia
+data/config.json          chave do Google (opcional)
+CONFIRMAR.md              o que a Prefeitura precisa revisar (gerado por npm run conteudo)
+FALTA-CONTEUDO.md         fotos, áudios e vídeos que faltam (gerado por npm run conteudo)
 assets/fonts/             Lora e Manrope (locais)
 assets/img/locais/        fotos dos locais
 assets/img/globo/         texturas da Terra

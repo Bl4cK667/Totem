@@ -4,7 +4,7 @@
 const ouvintes = new Map();
 
 export const estado = {
-  dados: null,      // conteúdo de data/locais.json
+  dados: null,      // textos da interface (data/locais.json); os lugares ficam em core/lugares.js
   idioma: 'pt',
   tela: null,       // 'inicio' | 'transicao' | 'locais' | 'local'
   localId: null,
@@ -26,20 +26,8 @@ export function emitir(evento, valor) {
  * as animações desligadas no Windows são da máquina, não uma escolha do visitante.
  */
 export function transicaoCurta() {
+  // "Menos animações" escolhido pelo visitante no painel de acessibilidade vale sempre
+  if (document.documentElement.classList.contains('a11y-calmo')) return true;
   return estado.dados.config.transicaoCurtaSemAnimacoes && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Locais ativos, na ordem do JSON */
-export function locaisAtivos() {
-  return estado.dados.locais.filter((l) => l.ativo !== false);
-}
-
-export function localPorId(id) {
-  return locaisAtivos().find((l) => l.id === id);
-}
-
-export function proximoLocal(id) {
-  const lista = locaisAtivos();
-  const i = lista.findIndex((l) => l.id === id);
-  return lista[(i + 1) % lista.length];
-}

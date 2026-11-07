@@ -1,0 +1,200 @@
+/* ==========================================================================
+   ACESSIBILIDADE — botão, painel, barra de baixo da página do lugar (Ouvir,
+   Libras, Mapa), texto da narração, vídeo em Libras, tamanhos de texto,
+   alto contraste e menos animações.
+   ========================================================================== */
+
+/* Botão sempre visível, no canto de baixo à esquerda: ícone e texto (nunca só o ícone) */
+.a11y-botao {
+  position: fixed;
+  z-index: 85;
+  left: var(--margem);
+  bottom: calc(var(--margem) * 0.6 + 2.6rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: var(--toque);
+  padding: 0 1.1em 0 0.9em;
+  border-radius: 999px;
+  border: 1px solid var(--borda-fina);
+  background: rgba(246, 241, 231, 0.94);
+  color: var(--txt-sobre-claro);
+  font-size: max(0.75rem, 22px);
+  font-weight: 600;
+  box-shadow: var(--sombra);
+}
+.a11y__icone { width: 1.3em; height: 1.3em; flex: none; }
+.a11y-botao[aria-expanded='true'] { background: var(--terra-900); color: var(--creme); }
+
+/* Painel: embaixo e no meio, opções grandes; cada chave diz "Ligado" ou "Desligado" por escrito */
+.a11y {
+  position: fixed;
+  z-index: 86;
+  left: 50%;
+  bottom: calc(var(--margem) * 0.6 + 2.6rem + var(--toque) + 1rem);
+  width: min(40rem, calc(100% - var(--margem) * 2));
+  max-height: calc(100dvh - 2 * var(--margem) - var(--toque) - 4rem);
+  overflow-y: auto;
+  transform: translateX(-50%);
+  padding: calc(var(--margem) * 0.8);
+  border: 1px solid var(--borda-fina);
+  border-radius: var(--raio-balao);
+  background: var(--creme);
+  color: var(--txt-sobre-claro);
+  box-shadow: var(--sombra);
+  visibility: hidden;
+  opacity: 0;
+}
+.a11y__titulo { display: flex; align-items: center; gap: 1em; margin-bottom: 0.6rem; color: var(--terra-700); }
+.a11y__titulo .filete { width: 2.4rem; background: currentColor; opacity: 1; }
+.a11y__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--linha-sobre-claro);
+}
+.a11y__linha--texto { flex-direction: column; align-items: stretch; }
+.a11y__rotulo { font-size: max(0.85rem, 22px); font-weight: 600; }
+.a11y__tamanhos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+.a11y__tamanho {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: max(var(--toque), 88px);
+  border: 1px solid var(--borda-fina);
+  border-radius: var(--raio-balao);
+  font-size: max(0.75rem, 22px);
+  font-weight: 600;
+}
+.a11y__a { line-height: 1; }
+.a11y__tamanho[aria-pressed='true'],
+.a11y__chave[aria-checked='true'] { background: var(--terra-900); color: var(--creme); border-color: var(--terra-900); }
+.a11y__chave {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  min-height: var(--toque);
+  min-width: 11em;
+  padding: 0 1.1em;
+  border: 1px solid var(--borda-fina);
+  border-radius: 999px;
+  font-size: max(0.75rem, 22px);
+  font-weight: 600;
+}
+.a11y__trilho { position: relative; width: 2.6em; height: 1.4em; border-radius: 999px; border: 2px solid currentColor; flex: none; }
+.a11y__trilho i { position: absolute; top: 0.15em; left: 0.15em; width: 0.9em; height: 0.9em; border-radius: 50%; background: currentColor; transition: transform 0.25s; }
+.a11y__chave[aria-checked='true'] .a11y__trilho i { transform: translateX(1.2em); background: var(--ouro-claro); }
+.a11y__fechar { width: 100%; margin-top: 1.2rem; min-height: max(var(--toque), 72px); font-size: max(0.75rem, 22px); }
+
+/* --- Página do lugar: barra de baixo (Ouvir, Libras, Mapa), à direita do botão de acessibilidade */
+.dock {
+  position: absolute;
+  z-index: 3;
+  right: var(--margem);
+  bottom: calc(var(--margem) * 0.6 + 2.6rem);
+  display: flex;
+  gap: 0.6rem;
+}
+.dock__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: var(--toque);
+  padding: 0 1.2em;
+  border-radius: 999px;
+  background: var(--terra-900);
+  color: var(--creme);
+  border: 1px solid var(--linha-sobre-escuro);
+  font-size: max(0.75rem, 22px);
+  font-weight: 600;
+  box-shadow: var(--sombra);
+}
+.dock__botao[hidden] { display: none; }
+.dock__botao[aria-pressed='true'] { background: var(--ouro-claro); color: var(--terra-900); }
+.dock__icone, .dock__botao .seta { width: 1.1em; height: 1.1em; flex: none; }
+/* No fim da página há espaço para a barra não cobrir o último botão */
+.detalhe .fim { padding-bottom: calc(var(--espaco) * 1.2 + var(--toque) + 3rem); }
+
+/* Texto da narração: a frase falada agora fica em negrito e sublinhada (não só com outra cor) */
+.narracao {
+  position: absolute;
+  z-index: 3;
+  left: var(--margem);
+  right: var(--margem);
+  bottom: calc(var(--margem) * 0.6 + 2.6rem + var(--toque) + 1rem);
+  max-width: 52rem;
+  margin: 0 auto;
+  max-height: 30vh;
+  overflow-y: auto;
+  padding: 1.1rem 1.4rem;
+  border-radius: var(--raio-balao);
+  background: rgba(18, 13, 9, 0.92);
+  color: var(--txt-sobre-escuro-2);
+  font-size: max(0.95rem, 24px);
+  line-height: 1.55;
+  box-shadow: var(--sombra);
+}
+.narracao[hidden] { display: none; }
+.narracao .agora { color: var(--creme); font-weight: 600; text-decoration: underline; text-decoration-color: var(--ouro-claro); text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
+
+/* Vídeo em Libras: canto de baixo, à direita, tamanho confortável, borda discreta */
+.libras {
+  position: absolute;
+  z-index: 4;
+  right: var(--margem);
+  bottom: calc(var(--margem) * 0.6 + 2.6rem + var(--toque) + 1rem);
+  width: clamp(240px, 32vmin, 420px);
+  border: 1px solid var(--linha-sobre-escuro);
+  border-radius: var(--raio-balao);
+  overflow: hidden;
+  background: var(--terra-900);
+  box-shadow: var(--sombra);
+}
+.libras[hidden] { display: none; }
+.libras video { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.libras__rotulo { padding: 0.4rem 0.8rem; color: var(--ouro-claro); font-size: max(0.7rem, 18px); }
+/* Com Libras aberto, o texto da narração fica à esquerda do vídeo */
+.detalhe:has(.libras:not([hidden])) .narracao { right: calc(var(--margem) * 2 + clamp(240px, 32vmin, 420px)); }
+
+/* Street View e galeria em tela cheia: a barra de baixo deixa espaço para o botão de acessibilidade */
+.sv-tela__barra, .galeria__barra { padding-left: calc(var(--toque) * 4.2); }
+@media (orientation: portrait) {
+  .sv-tela__barra, .galeria__barra { padding-left: 0; padding-bottom: calc(var(--toque) + 1.4rem); }
+}
+
+/* --- Tamanho do texto: grande (+25%) e extra grande (+50%) nos textos de leitura --------------- */
+.a11y-texto-grande :is(.detalhe .bloco__dentro, .abertura__texto, .narracao, .galeria__texto, .escolha, .filtros, .pin__nome, .mascote__balao) { zoom: 1.25; }
+.a11y-texto-extra :is(.detalhe .bloco__dentro, .abertura__texto, .narracao, .galeria__texto, .escolha, .filtros, .pin__nome, .mascote__balao) { zoom: 1.5; }
+/* Com letra maior, os cards ficam um embaixo do outro */
+.a11y-texto-grande .sobre__dados, .a11y-texto-extra .sobre__dados,
+.a11y-texto-grande .sabia__cards, .a11y-texto-extra .sabia__cards { grid-template-columns: 1fr; }
+
+/* --- Alto contraste: creme e marrom bem escuro, com bordas fortes (mesma identidade) ----------- */
+.a11y-contraste {
+  --txt-sobre-claro: #120c08;
+  --txt-sobre-claro-2: #120c08;
+  --txt-sobre-escuro-2: #fffaf0;
+  --linha-sobre-claro: #120c08;
+  --linha-sobre-escuro: #f6f1e7;
+  --borda-fina: #120c08;
+  --ouro-texto: #4a3508;
+}
+.a11y-contraste .bloco--claro { background: #fffaf0; }
+.a11y-contraste .bloco--verde, .a11y-contraste .bloco--escuro { background: #0c0805; }
+.a11y-contraste .abertura__fundo::after { background: linear-gradient(to top, rgba(12, 8, 5, 0.97) 0%, rgba(12, 8, 5, 0.82) 40%, rgba(12, 8, 5, 0.25) 70%); }
+.a11y-contraste .pin__nome { background: #fffaf0; color: #120c08; box-shadow: 0 0 0 2px #120c08; }
+.a11y-contraste .filtros__botao, .a11y-contraste .a11y-botao { background: #fffaf0; color: #120c08; border: 2px solid #120c08; }
+.a11y-contraste .filtros__botao[aria-pressed='true'] { background: #120c08; color: #fffaf0; }
+.a11y-contraste .barra-topo::before { background: rgba(12, 8, 5, 0.92); }
+.a11y-contraste .detalhe-aberto .barra-topo, .a11y-contraste body.detalhe-aberto .barra-topo { background: #0c0805; }
+.a11y-contraste .sabia__cards li, .a11y-contraste .fim__lugar, .a11y-contraste .dock__botao { border-width: 2px; }
+.a11y-contraste .mascote__balao { color: #120c08; border-width: 2px; }
+.a11y-contraste .narracao { background: #0c0805; color: #fffaf0; }
+.a11y-contraste .mapa__titulo, .a11y-contraste .mapa__sobretitulo { text-shadow: 0 0 0.4em #0c0805, 0 0 0.15em #0c0805; }
+
+/* --- Menos animações: nada se move sozinho (o GSAP também obedece, ver core/acessibilidade.js) --- */
+.a11y-calmo *, .a11y-calmo *::before, .a11y-calmo *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition: none !important; scroll-behavior: auto !important; }

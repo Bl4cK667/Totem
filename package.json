@@ -10,7 +10,10 @@
     "placeholders": "node scripts/gerar-placeholders.js",
     "imagens": "node scripts/otimizar-imagens.js",
     "contraste": "node scripts/verificar-contraste.js",
-    "testar": "node scripts/testar.js"
+    "testar": "node scripts/testar.js",
+    "conteudo": "node scripts/conteudo.js",
+    "mapa-offline": "node scripts/mapa-offline.js",
+    "audios": "node scripts/gerar-audios.js"
   },
   "type": "module",
   "dependencies": {

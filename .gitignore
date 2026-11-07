@@ -7,3 +7,5 @@ testes/
 
 .vercel
 .env*
+logs/
+.perfil-totem-teste/

@@ -143,12 +143,136 @@
   border: 1.5px solid var(--ouro-claro);
   opacity: 0;
 }
+/* Muitos lugares (mapa.js, arrumarPins): o pin que caiu dentro de outro some (o outro vira
+   grupo, com "+N" no nome), e a etiqueta que encostaria em outra fica escondida. O pin sem
+   etiqueta continua com o número e a mesma área de toque */
+.pin--dentro .pin__alvo,
+.pin--dentro .pin__chao { visibility: hidden !important; pointer-events: none; }
+/* Etiqueta escondida sai do fluxo: o toque nesse espaço vai para o pin de baixo, não para este
+   (a medida continua a mesma, para o mapa.js saber se ela voltou a caber) */
+/* Grupo: uma segunda gota dourada atrás, como uma pilha (dá para ver mesmo sem a etiqueta "+N") */
+.pin--grupo .pin__corpo { filter: drop-shadow(7px -5px 0 var(--ouro-claro)) drop-shadow(0 0.5rem 0.6rem rgba(18, 13, 9, 0.55)); }
+.pin--sem-nome .pin__nome { visibility: hidden; position: absolute; top: 100%; }
+/* Modo de edição: rascunho com borda tracejada e "Rascunho" escrito no nome (nunca só a cor) */
+.pin--rascunho .pin__forma { stroke-dasharray: 5 4; }
+.pin--rascunho .pin__nome { background: var(--creme); outline: 2px dashed var(--terra-900); outline-offset: -4px; }
+
 /* Último lugar visto: ao voltar ao mapa, o pin fica levemente destacado */
 .pin.visto { z-index: 2; }
 .pin.visto .pin__forma { stroke-width: 4; }
 .pin.visto .pin__nome { box-shadow: 0 0 0 2px var(--ouro-claro), var(--sombra); }
 
+/* --- Vários lugares num pin: lista para escolher ------------------------------------ */
+/* Embaixo e no meio da tela: ao alcance de uma criança ou de quem está numa cadeira de rodas */
+.escolha {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: calc(var(--margem) * 2.4);
+  width: min(34rem, calc(100% - var(--margem) * 2));
+  transform: translateX(-50%);
+  padding: calc(var(--margem) * 0.8);
+  border: 1px solid var(--borda-fina);
+  border-radius: var(--raio-balao);
+  background: var(--creme);
+  color: var(--txt-sobre-claro);
+  box-shadow: var(--sombra);
+  visibility: hidden;
+  opacity: 0;
+}
+.escolha__titulo { display: flex; align-items: center; gap: 1em; color: var(--terra-700, var(--terra-900)); }
+.escolha__titulo .filete { width: 2.4rem; background: currentColor; opacity: 1; }
+.escolha__lista { display: grid; gap: 0.7rem; margin: 1.1rem 0; }
+.escolha__lugar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: max(var(--toque), 72px);
+  padding: 0 1.2rem;
+  border: 1px solid var(--borda-fina);
+  border-radius: 999px;
+  text-align: left;
+  font-size: max(0.9rem, 22px);
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+.escolha__lugar:active { background: rgba(94, 69, 50, 0.08); }
+.escolha__num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: var(--terra-900);
+  color: var(--creme);
+  font-size: max(0.8rem, 18px);
+}
+.escolha__fechar { width: 100%; }
+
+/* --- Filtros do mapa ("Todos", "Obras da gestão", categorias) ------------------------ */
+/* Embaixo, à esquerda (longe do guia): ao alcance da mão. O filtro ativo tem fundo escuro
+   e um sinal de ok, não só a cor */
+.filtros {
+  position: absolute;
+  z-index: 5;
+  left: var(--margem);
+  right: calc(var(--margem) + 10rem);
+  bottom: calc(var(--margem) * 0.6 + 2.6rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  pointer-events: none;
+}
+.filtros[hidden] { display: none; }
+.filtros__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: var(--toque);
+  padding: 0 1.3em;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.94);
+  color: var(--txt-sobre-claro);
+  font-size: max(0.8rem, 22px);
+  font-weight: 600;
+  box-shadow: var(--sombra);
+  pointer-events: auto;
+  transition: background-color 0.3s, color 0.3s;
+}
+.filtros__botao[aria-pressed='true'] { background: var(--terra-900); color: var(--creme); outline: 2px solid var(--ouro-claro); outline-offset: -4px; }
+.filtros__ok { width: 1em; height: 1em; color: var(--ouro-claro); }
+
+/* --- Modo de edição (?edicao) ------------------------------------------------------- */
+.edicao {
+  position: absolute;
+  z-index: 5;
+  left: var(--margem);
+  bottom: calc(var(--margem) * 0.6 + 2.6rem + var(--toque) + 1.2rem);
+  max-width: min(30rem, calc(100% - var(--margem) * 2 - 10rem));
+  padding: 0.9rem 1.1rem;
+  border: 2px dashed var(--terra-900);
+  border-radius: var(--raio-balao);
+  background: var(--creme);
+  color: var(--txt-sobre-claro);
+  box-shadow: var(--sombra);
+}
+.edicao__abrir { margin-top: 0.6rem; }
+.edicao__lista { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; max-height: 40vh; overflow-y: auto; }
+.edicao__lugar {
+  min-height: var(--toque);
+  padding: 0 1rem;
+  border: 1px solid var(--borda-fina);
+  border-radius: 999px;
+  font-size: max(0.75rem, 16px);
+  font-weight: 600;
+}
+/* Página de um rascunho: a etiqueta do topo começa com "Rascunho" */
+.detalhe--rascunho .abertura__etiqueta { outline: 2px dashed currentColor; outline-offset: 0.35em; }
+
 /* --- Página do lugar ------------------------------------------------------------ */
+/* Bloco sem conteúdo (ex.: lugar sem curiosidades) some inteiro, sem deixar espaço vazio */
+.detalhe [hidden] { display: none !important; }
 /* Abre por cima do mapa e rola para baixo, um bloco por vez, com parada leve em cada um.
    Mesmo espaço entre todos os blocos (--espaco). A barra do topo fica fixa por cima */
 .detalhe {
@@ -247,6 +371,8 @@
   letter-spacing: 0.18em;
 }
 .abertura__legenda-foto[hidden] { display: none; }
+/* Crédito da foto: mais discreto que o aviso de ilustração, sem caixa alta */
+.abertura__legenda-foto.credito { text-transform: none; letter-spacing: 0.02em; font-weight: 500; background: rgba(18, 13, 9, 0.45); }
 /* Lugar ainda sem foto certa: espaço marcado, em vez de uma foto errada */
 .abertura__sem-foto {
   position: absolute;
@@ -291,6 +417,101 @@
 }
 .sobre__valor { font-size: max(1.7rem, 34px); line-height: 1.05; color: var(--ouro-texto); white-space: nowrap; }
 .sobre__legenda { font-size: max(0.75rem, 18px); line-height: 1.35; color: var(--txt-sobre-claro-2); }
+
+/* 2b) Antes e agora: duas fotos sobrepostas e uma linha dourada para arrastar com o dedo */
+.antes .bloco__dentro { max-width: 72rem; }
+.comparador {
+  --pos: 50%;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  /* Cabe na tela junto com o título e a dica (as duas fotos cortam igual: continuam alinhadas) */
+  max-height: calc(100dvh - var(--barra-h, 0px) - 15rem);
+  min-height: 240px;
+  overflow: hidden;
+  border-radius: var(--raio-card);
+  background: var(--terra-800);
+  touch-action: pan-y; /* a página continua rolando para cima e para baixo; o arraste é para o lado */
+  user-select: none;
+  cursor: ew-resize;
+}
+.comparador img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.comparador__antes { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+.comparador__linha {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos);
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--ouro-claro);
+  pointer-events: none;
+}
+/* Alça grande (64 px): o lugar óbvio para pôr o dedo */
+.comparador__alca {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: max(64px, 3.4rem);
+  height: max(64px, 3.4rem);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--ouro-claro);
+  color: var(--terra-900);
+  box-shadow: var(--sombra);
+}
+.comparador__alca svg { width: 60%; height: auto; }
+.comparador__ano {
+  position: absolute;
+  top: 1rem;
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  background: rgba(18, 13, 9, 0.72);
+  color: var(--creme);
+  font-size: max(0.8rem, 18px);
+  pointer-events: none;
+}
+.comparador__ano--antes { left: 1rem; }
+.comparador__ano--agora { right: 1rem; }
+/* Para leitor de tela e teclado: a mesma posição numa faixa invisível */
+.comparador__faixa { position: absolute; inset: auto 0 0 0; width: 100%; opacity: 0; pointer-events: none; }
+.antes__dica { margin-top: 1rem; font-size: max(0.9rem, 22px); color: var(--txt-sobre-escuro-2); text-align: center; }
+/* Enquadramentos diferentes: lado a lado */
+.antes__lado { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.antes__lado--uma { grid-template-columns: 1fr; }
+.antes__lado figure { position: relative; margin: 0; }
+.antes__lado img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--raio-card); background: var(--terra-800); }
+.antes__lado figcaption {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  background: rgba(18, 13, 9, 0.72);
+  color: var(--creme);
+  font-size: max(0.8rem, 18px);
+}
+.antes__legenda { margin-top: 1.4rem; max-width: 46rem; font-size: max(1.05rem, 24px); line-height: 1.5; color: var(--creme); }
+.antes__credito { display: block; margin-top: 0.5rem; font-size: max(0.75rem, 16px); color: var(--txt-sobre-escuro-2); }
+.antes__miniaturas { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.6rem; }
+.antes__mini {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: max(var(--toque), 72px);
+  padding: 0.4rem 1.2rem 0.4rem 0.4rem;
+  border: 1px solid var(--linha-sobre-escuro);
+  border-radius: 999px;
+  color: var(--creme);
+  font-size: max(0.85rem, 20px);
+  font-weight: 600;
+}
+.antes__mini img { width: 4rem; height: 4rem; border-radius: 50%; object-fit: cover; }
+.antes__mini[aria-pressed='true'] { border: 2px solid var(--ouro-claro); background: rgba(246, 241, 231, 0.08); }
+@media (orientation: portrait) {
+  .antes__lado { grid-template-columns: 1fr; }
+}
 
 /* 3) Você sabia?: um card por curiosidade; o guia ao lado do título, como quem conta */
 .sabia__topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: calc(var(--espaco) * 0.5); }
@@ -410,6 +631,46 @@
   .sv-tela__barra { flex-direction: column; align-items: stretch; }
   .sv-tela__lugares .botao { flex: 1 1 0; }
 }
+
+/* Galeria de fotos (no lugar do Street View, sem internet): foto grande, setas nas laterais,
+   nome, contagem e "Fechar" embaixo, ao alcance da mão */
+.galeria {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: calc(var(--margem) * 0.6);
+  background: var(--noite);
+  visibility: hidden;
+  opacity: 0;
+}
+.galeria__foto { position: relative; flex: 1; min-height: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem; touch-action: pan-y; }
+.galeria__foto img { flex: 1; min-height: 0; width: 100%; object-fit: contain; border-radius: calc(var(--raio-card) * 0.7); }
+.galeria__texto { font-size: max(0.95rem, 22px); line-height: 1.45; color: var(--creme); text-align: center; }
+.galeria__texto span { display: block; margin-top: 0.3rem; font-size: max(0.75rem, 16px); color: var(--txt-sobre-escuro-2); }
+.galeria__seta {
+  position: absolute;
+  top: 45%;
+  display: grid;
+  place-items: center;
+  width: max(var(--toque), 72px);
+  height: max(var(--toque), 72px);
+  border-radius: 50%;
+  background: rgba(246, 241, 231, 0.92);
+  color: var(--terra-900);
+  box-shadow: var(--sombra);
+}
+.galeria__seta svg { width: 45%; }
+.galeria__seta--antes { left: var(--margem); }
+.galeria__seta--antes svg { transform: scaleX(-1); }
+.galeria__seta:not(.galeria__seta--antes) { right: var(--margem); }
+.galeria__seta[hidden] { display: none; }
+.galeria__barra { display: flex; align-items: center; gap: 1.2rem; padding: 0 calc(var(--margem) * 0.4); }
+.galeria__nome { flex: 1 1 auto; font-size: var(--fs-h3); color: var(--creme); }
+.galeria__conta { color: var(--ouro-claro); font-size: max(0.8rem, 20px); }
+.galeria__fechar { min-height: max(var(--toque), 72px); min-width: 12rem; padding: 0 2em; font-size: max(0.72rem, 18px); }
 
 .streetview {
   position: relative;

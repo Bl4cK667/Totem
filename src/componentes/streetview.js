@@ -1,9 +1,11 @@
 // Street View (Google Maps Embed API) da tela do lugar.
-// O link de incorporação de cada ponto vem de config.js (raiz do projeto).
+// O link de incorporação de cada lugar vem de data/lugares.json (campo street_view);
+// a chave do Google (opcional) vem de data/config.json.
 // Sem link, sem internet ou demorando demais → mostra uma imagem elegante
 // com aviso, nunca uma tela quebrada. Se a conexão voltar, carrega sozinho.
 import { estado } from '../core/estado.js';
 import { t, html } from '../core/i18n.js';
+import { chaveGoogle } from '../core/lugares.js';
 
 const TEMPO_LIMITE = 15000;
 const REPETIR_TESTE = 30000;
@@ -17,35 +19,25 @@ function temInternet() {
   );
 }
 
-/* global GOOGLE_MAPS_EMBED_KEY, PONTOS_TURISTICOS */
-const chave = () => (typeof GOOGLE_MAPS_EMBED_KEY === 'string' ? GOOGLE_MAPS_EMBED_KEY.trim() : '');
-
-/** Pontos turísticos de config.js */
-export function pontosTuristicos() {
-  return typeof PONTOS_TURISTICOS === 'undefined' ? [] : PONTOS_TURISTICOS;
-}
-
-/** Lugares com Street View de um ponto: o próprio ponto, ou a lista "assuntos" (dois lugares num pin) */
-export function assuntosDe(ponto) {
-  return ponto.assuntos?.length ? ponto.assuntos : [ponto];
-}
-
-/** Fotos das telas dos lugares (para carregar antes e guardar no cache) */
-export function fotosDosPontos() {
-  return pontosTuristicos().map((p) => p.foto).filter(Boolean);
+/**
+ * Vistas de Street View de um lugar (campo street_view). Dois lugares num pin só
+ * (ex.: Prefeitura e Lago) têm uma vista para cada um. Sem nenhuma: a posição do próprio lugar.
+ */
+export function assuntosDe(lugar) {
+  if (lugar.street_view?.length) return lugar.street_view;
+  return [{ nome: lugar.nome, latitude: lugar.latitude, longitude: lugar.longitude, link: '' }];
 }
 
 /**
- * Link do Street View de um ponto (ou do id de um ponto): o link de incorporação
- * do config.js; sem ele, a Embed API no lat/lng do ponto, se houver chave.
+ * Link do Street View de uma vista: o link de incorporação do lugares.json; sem ele,
+ * a Embed API na posição da vista, se houver chave em data/config.json.
  */
-export function linkStreetView(ponto) {
-  const p = typeof ponto === 'string' ? pontosTuristicos().find((x) => x.id === ponto) : ponto;
-  if (!p) return '';
-  const link = p.streetView?.trim();
+export function linkStreetView(vista) {
+  const link = vista?.link?.trim();
   if (link) return link;
-  if (!chave() || !Number.isFinite(p.lat) || !Number.isFinite(p.lng)) return '';
-  return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(chave())}&location=${p.lat},${p.lng}&fov=90`;
+  const chave = chaveGoogle();
+  if (!chave || !Number.isFinite(vista?.latitude) || !Number.isFinite(vista?.longitude)) return '';
+  return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(chave)}&location=${vista.latitude},${vista.longitude}&fov=90`;
 }
 
 // O idioma do link vale para os textos que o Google mostra na imagem
@@ -74,8 +66,12 @@ function fallback(caixa, motivo) {
     </div>`;
 }
 
-/** moldura: elemento com um .streetview dentro; ponto: ponto de config.js (ou o id dele) */
-export function montarStreetView(moldura, ponto) {
+/** moldura: elemento com um .streetview dentro; ponto: uma vista de assuntosDe() */
+/**
+ * aoFalhar(motivo): sem internet, sem link ou demorando demais. Com ele, o visitante não vê
+ * mensagem de erro: quem chama troca o Street View pela galeria de fotos do lugar.
+ */
+export function montarStreetView(moldura, ponto, { aoFalhar } = {}) {
   const caixa = moldura.querySelector('.streetview');
   const link = linkStreetView(ponto);
   let iframe = null;
@@ -92,6 +88,7 @@ export function montarStreetView(moldura, ponto) {
 
   const erro = (motivo) => {
     limpar();
+    if (aoFalhar) return aoFalhar(motivo);
     moldura.classList.add('sem-street-view');
     fallback(caixa, motivo);
   };

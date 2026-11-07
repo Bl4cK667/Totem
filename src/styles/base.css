@@ -7,6 +7,7 @@
 html, body {
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none; /* sem "puxar para atualizar" nem voltar página com o dedo */
   background: var(--noite);
 }
 body {

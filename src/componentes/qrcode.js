@@ -3,8 +3,8 @@
 import QRCode from 'qrcode';
 
 /** Link de rota do Google Maps até as coordenadas do pin */
-export function urlComoChegar({ lat, lng }) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+export function urlComoChegar({ latitude, longitude }) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 }
 
 /** Imagem (data URL) do QR: marrom bem escuro sobre branco, com margem branca para o celular ler fácil */

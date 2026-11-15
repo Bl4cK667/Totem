@@ -21,8 +21,8 @@
   gap: 0.6rem;
   color: var(--creme);
 }
-.mapa__rotulo--cidade .serif { font-size: var(--fs-h2); font-weight: 300; line-height: 1.1; }
-.mapa__coord { color: var(--ouro-claro); }
+.mapa__rotulo--cidade .serif { font-size: var(--fs-h2); font-weight: var(--peso-titulo); line-height: var(--altura-titulo); letter-spacing: var(--tracking-titulo); }
+.mapa__coord { color: var(--ouro-claro); letter-spacing: var(--tracking-sigla); text-transform: uppercase; }
 
 /* Fundo escuro atrás do texto da cidade (legibilidade sobre o mapa) */
 .mapa__rotulo--cidade::before {

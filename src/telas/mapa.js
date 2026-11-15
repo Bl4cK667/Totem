@@ -13,6 +13,7 @@ import { estado, em, emitir } from '../core/estado.js';
 import { t, tr, html } from '../core/i18n.js';
 import { montarStreetView, pontosTuristicos, assuntosDe } from '../componentes/streetview.js';
 import { gerarQrComoChegar, urlComoChegar } from '../componentes/qrcode.js';
+import { icone, iconeDoPonto } from '../componentes/icones.js';
 
 const DEG = Math.PI / 180;
 
@@ -61,7 +62,7 @@ const ATRIBUICAO = 'Imagens © Esri, Maxar, Earthstar Geographics e comunidade d
 
 const camada = document.querySelector('.mapa-cidade');
 const tela = document.querySelector('[data-tela="locais"]');
-const SETA = '<svg class="seta" viewBox="0 0 28 16" aria-hidden="true"><path d="M0 8h26M19 1l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+const SETA = icone('seta');
 const dois = (n) => String(n).padStart(2, '0');
 
 let mapa = null;
@@ -212,22 +213,23 @@ function irParaVista({ duracao = 2.2 } = {}) {
 }
 
 // --- Pins ------------------------------------------------------------------------
+// Disco creme com aro verde e uma ponta curta até o chão; o ícone do lugar vai por cima.
+// Grade 64 × 72: o centro do disco fica em (32, 29), a ponta em (32, 71)
 const SVG_PIN = `
-  <svg class="pin__gota" viewBox="0 0 64 80" aria-hidden="true">
-    <path class="pin__forma" d="M32 78C32 78 4 47 4 30a28 28 0 0 1 56 0c0 17-28 48-28 48Z"/>
-    <circle class="pin__miolo" cx="32" cy="30" r="17"/>
+  <svg class="pin__gota" viewBox="0 0 64 72" aria-hidden="true">
+    <path class="pin__forma" d="M32 71 23.66 54.68A27 27 0 1 1 40.34 54.68Z"/>
   </svg>`;
 
 function criarPins() {
-  pins = pontosTuristicos().map((ponto, i) => {
+  pins = pontosTuristicos().map((ponto) => {
     const el = document.createElement('div');
     el.className = 'pin';
     // "queda" leva o pin e o nome juntos: os dois entram ao mesmo tempo, sem nada solto
     el.innerHTML = `
-      <span class="pin__chao" aria-hidden="true"><i class="pin__onda"></i></span>
+      <span class="pin__chao" aria-hidden="true"></span>
       <button class="pin__alvo" data-id="${ponto.id}">
         <span class="pin__queda">
-          <span class="pin__corpo">${SVG_PIN}<span class="pin__num serif">${dois(i + 1)}</span></span>
+          <span class="pin__corpo">${SVG_PIN}<span class="pin__icone">${icone(iconeDoPonto(ponto))}</span></span>
           <span class="pin__nome"></span>
         </span>
       </button>`;
@@ -237,7 +239,7 @@ function criarPins() {
       .setLngLat([ponto.lng, ponto.lat])
       .addTo(mapa);
     gsap.set(el, { autoAlpha: 0 });
-    return { ponto, el, alvo, marcador, queda: el.querySelector('.pin__queda'), chao: el.querySelector('.pin__chao'), nome: el.querySelector('.pin__nome'), onda: el.querySelector('.pin__onda') };
+    return { ponto, el, alvo, marcador, queda: el.querySelector('.pin__queda'), chao: el.querySelector('.pin__chao'), nome: el.querySelector('.pin__nome') };
   });
   escreverNomes();
 }
@@ -312,32 +314,15 @@ function espalharPins() {
   });
 }
 
-// Entrada: 150 ms entre um pin e outro. Cada um cai do alto, toca o chão e dá um quique curto
-const INTERVALO_PINS = 0.15;
-const QUEDA = 0.46;
-export const DURACAO_PINS = () => (pins.length - 1) * INTERVALO_PINS + QUEDA + 0.34;
+// Entrada: os pins aparecem juntos no fim da descida, como parte da transição (sem queda nem pulso)
+const ENTRADA_PINS = 0.6;
+export const DURACAO_PINS = () => ENTRADA_PINS;
 
-/** Pins entram um por um, já com o nome: caem, assentam com um quique leve e a onda pulsa */
 export function entrarPins() {
   medirPins();
   const tl = gsap.timeline();
-  const alto = -Math.max(90, innerHeight * 0.08);
-  pins.forEach((p, i) => {
-    const at = i * INTERVALO_PINS;
-    tl.set(p.el, { autoAlpha: 1 }, at)
-      .fromTo(p.queda, { y: alto, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: QUEDA, ease: 'power2.in', immediateRender: true }, at)
-      .to(p.queda, { y: -9, duration: 0.15, ease: 'power2.out' }, at + QUEDA)
-      .to(p.queda, { y: 0, duration: 0.19, ease: 'power2.in' }, at + QUEDA + 0.15)
-      .fromTo(p.chao, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }, at + QUEDA - 0.05)
-      .add(() => pulsar(p, i * 0.3), at + QUEDA + 0.34);
-  });
+  pins.forEach((p) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: ENTRADA_PINS, ease: 'sine.out' }, 0));
   return tl;
-}
-
-/** Onda no chão: pulsa devagar, sem sair do lugar (GSAP: o modo "menos movimento" do Windows desliga CSS) */
-function pulsar(p, atraso) {
-  gsap.killTweensOf(p.onda);
-  gsap.fromTo(p.onda, { scale: 0.8, opacity: 0.55 }, { scale: 2, opacity: 0, duration: 2.6, ease: 'sine.out', repeat: -1, repeatDelay: 0.6, delay: atraso });
 }
 
 // --- Entrada / saída da tela ---------------------------------------------------------
@@ -377,7 +362,7 @@ export function esperarImagens(limite = 4000) {
 /** Timeline de entrada (vai embutida na transição: nada aparece antes da hora) */
 export function entrarMapa() {
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-  tl.set(tela, { autoAlpha: 1 }, 0).fromTo(tela.querySelector('.mapa__cabecalho'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 1.2 }, 0.4).add(entrarPins(), 0);
+  tl.set(tela, { autoAlpha: 1 }, 0).fromTo(tela.querySelector('.mapa__cabecalho'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, 0.2).add(entrarPins(), 0);
   return tl;
 }
 
@@ -387,7 +372,7 @@ export function resetarMapa() {
   fecharDetalhe({ voltar: false });
   pins.forEach((p) => {
     p.el.classList.remove('visto');
-    gsap.killTweensOf([p.onda, p.el, p.queda, p.chao]);
+    gsap.killTweensOf(p.el);
     gsap.set(p.el, { autoAlpha: 0 });
   });
   gsap.set(tela, { autoAlpha: 0 });
@@ -404,9 +389,9 @@ export function resetarMapa() {
 // 1) abertura com a foto (100% da altura), 2) sobre o lugar e dados rápidos, 3) você sabia?
 // (com o guia), 4) como chegar (QR Code e Street View), 5) outros lugares.
 // A barra do topo (voltar ao mapa, início, idiomas) fica fixa enquanto a página rola.
-const ICONE_SV = '<svg class="icone-sv" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.6" fill="currentColor"/><path d="M9.5 9.5h5l1 6h-2l-.6 6h-2.8l-.6-6h-2z" fill="currentColor"/><ellipse cx="12" cy="21" rx="8" ry="2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
-const VOLTA = SETA.replace('class="seta"', 'class="seta seta--volta"');
-const ABAIXO = '<svg class="seta-baixo" viewBox="0 0 16 28" aria-hidden="true"><path d="M8 0v26M1 19l7 7 7-7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+const ICONE_SV = icone('streetview');
+const VOLTA = icone('voltar');
+const ABAIXO = icone('baixo', 'seta-baixo');
 
 let detalhe = null;
 let rolagem = null;
@@ -655,8 +640,6 @@ function abrirPonto(ponto) {
   irParaOTopo();
   guiaNaPagina(true);
   emitir('ponto', ponto);
-  setaDeslize?.kill();
-  setaDeslize = gsap.fromTo(detalhe.querySelector('.seta-baixo'), { y: -3 }, { y: 7, duration: 1.3, ease: 'sine.inOut', yoyo: true, repeat: -1 });
 
   mapa.easeTo({
     center: [ponto.lng, ponto.lat],

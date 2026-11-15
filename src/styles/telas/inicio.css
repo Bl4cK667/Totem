@@ -8,6 +8,11 @@
   width: 100%;
   height: 100%;
   z-index: 1;
+  /* Fundo atrás do planeta: brilho verde da mata que some no escuro (só CSS, funciona sem internet).
+     O canvas do Three.js é transparente na vitrine; na descida ele volta a pintar o fundo. */
+  background:
+    radial-gradient(70% 42% at 50% 74%, var(--atmosfera) 0%, var(--atmosfera-fundo) 48%, rgba(21, 41, 31, 0) 100%),
+    var(--noite);
 }
 
 .tela-inicio {
@@ -27,59 +32,35 @@
   z-index: -1;
   pointer-events: none;
 }
-.tela-inicio::before { top: 0; height: 52%; background: linear-gradient(to bottom, rgba(18, 13, 9, 0.85), rgba(18, 13, 9, 0)); }
-.tela-inicio::after { bottom: 0; height: 34%; background: linear-gradient(to top, rgba(18, 13, 9, 0.92) 20%, rgba(18, 13, 9, 0)); }
+.tela-inicio::before { top: 0; height: 48%; background: linear-gradient(to bottom, rgba(18, 13, 9, 0.85), rgba(18, 13, 9, 0)); }
+.tela-inicio::after { bottom: 0; height: 30%; background: linear-gradient(to top, rgba(18, 13, 9, 0.88) 20%, rgba(18, 13, 9, 0)); }
 
-.inicio__topo { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
-.inicio__brasao { width: max(4.4rem, 64px); height: auto; }
-.inicio__prefeitura { color: var(--txt-sobre-escuro); }
+.inicio__topo { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
+.inicio__brasao { width: max(4rem, 64px); height: auto; }
+.inicio__prefeitura { color: var(--txt-sobre-escuro); font-size: var(--fs-apoio); }
 
 .inicio__texto {
   align-self: start;
-  padding-top: 7vh;
+  padding-top: 6vh;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.inicio__sobretitulo {
-  color: var(--ouro-claro);
-  display: flex;
-  align-items: center;
-  gap: 1.2em;
-}
-.inicio__sobretitulo::before,
-.inicio__sobretitulo::after {
-  content: '';
-  width: 2.4rem;
-  height: 1px;
-  background: var(--ouro);
-}
+.inicio__sobretitulo { color: var(--txt-sobre-escuro-2); font-size: var(--fs-apoio); }
 
+/* Título: Lora 500, as duas linhas no mesmo tamanho e na mesma cor */
 .inicio__titulo {
-  margin-top: 1.6rem;
-  font-family: var(--serif);
-  font-weight: 300;
-  line-height: 0.98;
-  letter-spacing: -0.01em;
-}
-.inicio__titulo .linha { display: block; overflow: hidden; padding-bottom: 0.08em; }
-.inicio__titulo .linha > * { display: inline-block; }
-.inicio__titulo .linha:first-child {
-  font-size: var(--fs-h2);
-  font-style: italic;
-  color: var(--ouro-claro);
-}
-.inicio__titulo em {
-  font-style: normal;
+  margin-top: 0.6rem;
   font-size: var(--fs-h1);
-  font-weight: 400;
   color: var(--creme);
 }
+.inicio__titulo .linha { display: block; }
 
 .inicio__subtitulo {
-  max-width: 22em;
-  margin-top: 1.6rem;
-  font-size: var(--fs-corpo);
+  max-width: 20em;
+  margin-top: 1.2rem;
+  font-size: var(--fs-lead);
+  line-height: 1.4;
   color: var(--txt-sobre-escuro-2);
 }
 
@@ -90,62 +71,25 @@
   gap: 1.4rem;
 }
 
-/* Botão principal com brilho que respira */
+/* Botão principal: a única ação da tela. Amarelo sólido, texto em caixa normal, sem brilho */
 .inicio__botao {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 1em;
-  min-height: calc(var(--toque) * 1.25);
-  padding: 0 2.2em;
+  gap: 0.8em;
+  min-height: max(calc(var(--toque) * 1.4), 88px);
+  padding: 0 1.8em 0 2em;
   border-radius: 999px;
-  background: var(--ouro-claro);
-  color: var(--terra-900);
-  font-size: max(0.78rem, 15px);
+  background: var(--acao);
+  color: var(--txt-acao);
+  font-size: var(--fs-lead);
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  transition: transform 0.5s var(--ease-luxo);
+  letter-spacing: 0;
+  box-shadow: 0 0.6rem 1.6rem -0.8rem rgba(18, 13, 9, 0.8);
+  transition: transform 0.15s var(--ease-luxo), background-color 0.15s;
 }
-.inicio__botao:active { transform: scale(0.97); }
-.inicio__botao .seta { width: 1.6em; animation: seta 3.2s ease-in-out infinite; }
-.inicio__botao-texto { position: relative; }
-@keyframes seta { 50% { transform: translateX(0.3em); } }
-
-/* Só a opacidade varia, em ciclo contínuo: sem anel crescendo nem salto ao reiniciar */
-.inicio__pulso {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: 0 0 2.2rem 0.3rem rgba(228, 199, 126, 0.5);
-  opacity: 0.2;
-  animation: pulso 4.4s ease-in-out infinite;
-  pointer-events: none;
-  will-change: opacity;
-}
-@keyframes pulso { 50% { opacity: 0.75; } }
-
-/* Reflexo de luz que atravessa o botão de vez em quando */
-.inicio__reflexo {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  overflow: hidden;
-  pointer-events: none;
-}
-.inicio__reflexo::before {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; left: 0;
-  width: 35%;
-  background: linear-gradient(105deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
-  transform: translateX(-120%);
-  animation: reflexo 7s ease-in-out infinite;
-}
-@keyframes reflexo {
-  0%, 68% { transform: translateX(-120%); }
-  100% { transform: translateX(320%); }
-}
+.inicio__botao:active { transform: scale(0.97); background: var(--acao-pressionada); }
+.inicio__botao:focus-visible { outline-color: var(--creme); outline-offset: 6px; }
+.inicio__botao .icone { width: 1.2em; height: 1.2em; stroke-width: 2; }
 
 /* --- Modo descanso -------------------------------------------------------- */
 .inicio__descanso {
@@ -168,18 +112,17 @@
   border: 1px solid var(--ouro-claro);
   position: relative;
 }
-.inicio__descanso-anel::before,
-.inicio__descanso-anel::after {
+/* Um anel só, devagar: convite discreto para tocar (o único movimento em espera) */
+.inicio__descanso-anel::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
   border: 1px solid var(--ouro-claro);
-  animation: anel 2.8s ease-out infinite;
+  animation: anel 3.6s ease-out infinite;
 }
-.inicio__descanso-anel::after { animation-delay: 1.4s; }
 .inicio__descanso-anel { background: radial-gradient(circle, var(--ouro-claro) 0 14%, transparent 15%); }
-@keyframes anel { from { transform: scale(1); opacity: 0.8; } to { transform: scale(2.6); opacity: 0; } }
+@keyframes anel { from { transform: scale(1); opacity: 0.7; } to { transform: scale(2.2); opacity: 0; } }
 
 /* --- Horizontal: texto à esquerda, planeta à direita ---------------------- */
 @media (orientation: landscape) {
@@ -193,8 +136,8 @@
   .tela-inicio::after { height: 22%; }
   .inicio__topo { flex-direction: row; justify-content: flex-start; }
   .inicio__brasao { width: max(3rem, 48px); }
+  #globo { background: radial-gradient(48% 70% at 70% 55%, var(--atmosfera) 0%, var(--atmosfera-fundo) 48%, rgba(21, 41, 31, 0) 100%), var(--noite); }
   .inicio__texto { align-self: center; align-items: flex-start; padding-top: 0; }
-  .inicio__sobretitulo::before { display: none; }
   .inicio__acoes { flex-direction: row; justify-content: flex-start; flex-wrap: wrap; gap: 1.2rem 2rem; }
   .inicio__descanso { left: calc(var(--margem) * 2); right: auto; align-items: flex-start; bottom: 12vh; }
 }

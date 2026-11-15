@@ -21,6 +21,7 @@ import { montarMascote, despedir } from './componentes/mascote.js';
 import { montarInicio, entrarInicio } from './telas/inicio.js';
 import { montarMapa } from './telas/mapa.js';
 import { fotosDosPontos } from './componentes/streetview.js';
+import { aplicarIcones } from './componentes/icones.js';
 
 async function iniciar() {
   estado.dados = await fetch('data/locais.json', { cache: 'no-cache' }).then((r) => r.json());
@@ -32,6 +33,7 @@ async function iniciar() {
   document.documentElement.classList.toggle('modo-totem', totem);
   document.body.classList.toggle('sem-confirmar', !config.mostrarMarcasConfirmar);
 
+  aplicarIcones();
   ativarModoQuiosque();
   ativarOndaDeToque(document.querySelector('.toques'));
   montarSeletores();

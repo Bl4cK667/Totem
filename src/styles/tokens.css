@@ -40,38 +40,59 @@
   --txt-sobre-escuro-2: rgba(246, 241, 231, 0.74);
 
   --linha-sobre-escuro: rgba(201, 162, 74, 0.45);
+
+  /* Papéis de cor da tela inicial e do mapa */
+  --acao: var(--ouro-claro);             /* a única ação da tela (botão principal) */
+  --acao-pressionada: var(--ouro);
+  --txt-acao: var(--terra-900);
+  --foco: var(--ouro-claro);             /* anel de foco do teclado, sobre escuro e sobre o mapa */
+  --foco-sobre-claro: var(--mata-800);
+  --atmosfera: var(--mata-800);          /* brilho verde atrás do planeta */
+  --atmosfera-fundo: var(--mata-900);
+  --pin-fundo: var(--creme);
+  --pin-aro: var(--mata-800);
+  --pin-icone: var(--mata-800);
+  --pin-chao: var(--ouro-claro);
   --linha-sobre-claro: rgba(122, 90, 23, 0.35);
 
   /* --- Tipografia --------------------------------------------------------- */
   --serif: 'Lora', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
 
-  --fs-legenda: max(0.75rem, 14px);      /* caixa alta espaçada */
-  --fs-corpo: max(0.95rem, 15px);
-  --fs-lead: max(1.35rem, 20px);
-  --fs-h3: max(1.6rem, 22px);
-  --fs-h2: max(2.4rem, 32px);
-  --fs-h1: max(3.6rem, 44px);
-  --fs-numero: max(3.6rem, 44px);
+  /* Escala única, razão 1,333 (quarta justa). No totem vertical 1rem ≈ 30 px.
+     O piso em px garante leitura a 1,5 m em telas menores. */
+  --fs-apoio: max(0.8rem, 18px);         /* rótulos, legendas, etiquetas */
+  --fs-corpo: max(1rem, 17px);
+  --fs-lead: max(1.333rem, 20px);
+  --fs-h3: max(1.777rem, 24px);
+  --fs-h2: max(2.369rem, 32px);
+  --fs-h1: max(3.157rem, 42px);
+  --fs-legenda: var(--fs-apoio);
+  --fs-numero: var(--fs-h1);
   --fs-locais: max(0.95rem, 20px);      /* textos da tela de locais: legíveis a 1,5 m */
   --fs-locais-numero: max(1.5rem, 30px);
 
-  --tracking-legenda: 0.28em;
+  --peso-titulo: 500;                    /* Lora: um peso só para todos os títulos */
+  --altura-titulo: 1.08;
+  --tracking-titulo: -0.012em;
+  --tracking-legenda: 0.01em;            /* rótulos em caixa normal, sem espaçar */
+  --tracking-sigla: 0.12em;              /* só siglas reais (PT, EN, ES) e coordenadas */
 
   /* --- Medidas ------------------------------------------------------------ */
   --toque: max(64px, 2.75rem);          /* altura mínima de área de toque */
   --margem: max(16px, 2.2rem);          /* margem lateral das telas */
   --raio: 2px;
   --raio-card: max(1.4rem, 20px);       /* moldura do Street View e espaço sem foto */
-  --raio-balao: max(0.8rem, 14px);      /* balão do guia */
+  --raio-balao: max(0.3rem, 8px);       /* balão do guia: canto pequeno, nota e não chat */
   --borda-fina: rgba(94, 69, 50, 0.55); /* marrom: borda de 1px sobre creme */
   /* Uma sombra só, para tudo que flutua sobre o mapa (balão e etiquetas) */
   --sombra: 0 0.9rem 2rem -0.9rem rgba(18, 13, 9, 0.55);
-  --mascote-h: clamp(160px, 11rem, 200px);
+  --mascote-h: clamp(130px, 8.5rem, 165px); /* guia discreto: menor que os pins e o título */
   --mascote-w: calc(var(--mascote-h) * 0.8);
 
   /* --- Movimento ---------------------------------------------------------- */
   --ease-luxo: cubic-bezier(0.22, 1, 0.36, 1);
+  --icone: 1.5px;                        /* traço único dos ícones (grade 24) */
 }
 
 /* Escala base: a interface inteira é medida em rem.

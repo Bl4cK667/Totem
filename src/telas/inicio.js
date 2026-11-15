@@ -1,9 +1,13 @@
 // Tela inicial (vitrine): textos sobre o planeta, botão principal,
 // seletor de idioma e o estado de "descanso".
+// Movimento: a tela só aparece e some com um fade. A animação marcante do totem é a
+// descida do planeta até o mapa (telas/transicao.js); aqui nada disputa atenção com ela.
 import gsap from 'gsap';
+import { menosMovimento } from '../core/estado.js';
 
 const tela = document.querySelector('[data-tela="inicio"]');
 const q = (s) => tela.querySelectorAll(s);
+const dur = (s) => (menosMovimento() ? 0 : s);
 
 let descansando = false;
 
@@ -22,53 +26,33 @@ export function montarInicio({ aoComecar }) {
   );
 }
 
-/** Entrada animada da vitrine */
+/** Entrada da vitrine: um fade só, da tela inteira */
 export function entrarInicio({ descanso = false } = {}) {
   descansando = false;
   tela.classList.remove('descansando');
-  gsap.set(tela, { autoAlpha: 1 });
   tela.classList.add('ativa');
   gsap.set(q('.inicio__descanso'), { autoAlpha: 0 });
+  gsap.set(q('.inicio__acoes, .inicio__subtitulo'), { autoAlpha: 1 });
 
-  const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-  tl.fromTo(q('.inicio__topo > *'), { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 1.4, stagger: 0.12 })
-    .fromTo(q('.inicio__sobretitulo'), { autoAlpha: 0, x: -20 }, { autoAlpha: 1, x: 0, duration: 1.2 }, 0.3)
-    .fromTo(q('.inicio__titulo .linha > *'), { yPercent: 110, rotation: 2.5, transformOrigin: '0% 100%' }, { yPercent: 0, rotation: 0, duration: 1.6, stagger: 0.14 }, 0.35)
-    .fromTo(q('.inicio__subtitulo'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 1.4 }, 0.8);
-
-  if (descanso) {
-    tl.add(() => definirDescanso(true), 0.9);
-  } else {
-    // O botão abre do centro para as pontas; clearProps devolve o :active ao CSS
-    tl.fromTo(q('.inicio__acoes'), { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 1 }, 0.9)
-      .fromTo(
-        q('.inicio__botao'),
-        { clipPath: 'inset(0% 46% round 999px)', scale: 0.96 },
-        { clipPath: 'inset(0% 0% round 999px)', scale: 1, duration: 1.3, ease: 'expo.inOut', clearProps: 'clipPath,transform' },
-        0.9
-      )
-      .fromTo(q('.inicio__acoes .idiomas'), { autoAlpha: 0, x: -16 }, { autoAlpha: 1, x: 0, duration: 1.2 }, 1.5);
-  }
+  const tl = gsap.timeline();
+  tl.fromTo(tela, { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(0.9), ease: 'sine.out' }, 0.2);
+  if (descanso) tl.add(() => definirDescanso(true), dur(0.6));
   return tl;
 }
 
-/** Liga/desliga o modo descanso ("Toque para começar") */
+/** Liga/desliga o modo descanso ("Toque para começar"): troca com fade, sem deslocamento */
 export function definirDescanso(ligar) {
   descansando = ligar;
   tela.classList.toggle('descansando', ligar);
   const sai = ligar ? q('.inicio__acoes, .inicio__subtitulo') : q('.inicio__descanso');
   const entra = ligar ? q('.inicio__descanso') : q('.inicio__acoes, .inicio__subtitulo');
-  gsap.to(sai, { autoAlpha: 0, y: ligar ? 16 : 0, duration: 0.6, ease: 'power2.out' });
-  gsap.fromTo(entra, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 1.2, delay: 0.3, ease: 'expo.out' });
+  gsap.to(sai, { autoAlpha: 0, duration: dur(0.4), ease: 'sine.out' });
+  gsap.fromTo(entra, { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(0.6), delay: dur(0.2), ease: 'sine.out' });
 }
 
-/** Saída dos textos (início da transição cinematográfica) */
+/** Saída dos textos (início da transição): fade rápido, o planeta assume a cena */
 export function sairInicio() {
-  const tl = gsap.timeline({ defaults: { ease: 'power3.in' } });
-  tl.to(q('.inicio__acoes'), { autoAlpha: 0, y: 30, duration: 0.5 })
-    .to(q('.inicio__titulo .linha > *'), { yPercent: -110, duration: 0.6, stagger: 0.06 }, 0)
-    .to(q('.inicio__topo > *, .inicio__sobretitulo, .inicio__subtitulo'), { autoAlpha: 0, duration: 0.5 }, 0)
-    .set(tela, { autoAlpha: 0 })
-    .add(() => tela.classList.remove('ativa'));
+  const tl = gsap.timeline();
+  tl.to(tela, { autoAlpha: 0, duration: dur(0.45), ease: 'sine.in' }).add(() => tela.classList.remove('ativa'));
   return tl;
 }

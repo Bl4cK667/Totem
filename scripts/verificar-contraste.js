@@ -56,6 +56,16 @@ const pares = [
   ['Dourado claro sobre foto (véu 80%, pior caso)', c('ouro-claro'), veu(0.8), 4.5],
   ['Etiqueta antes/depois (véu 78%, pior caso)', c('creme'), veu(0.78), 4.5],
   ['Título sobre foto (véu 72%, texto grande)', c('creme'), veu(0.72), 3],
+  // Tela inicial e mapa (melhorar-visual)
+  ['Pin: ícone e aro verde 800 / disco creme', c('mata-800'), c('creme'), 4.5],
+  ['Pin tocado: ícone creme / disco verde 800', c('creme'), c('mata-800'), 4.5],
+  ['Etiqueta do pin: marrom 900 / creme', c('terra-900'), c('creme'), 4.5],
+  ['Balão do guia: rótulo verde 800 / creme', c('mata-800'), c('creme'), 4.5],
+  ['Botão pressionado: marrom 900 / dourado', c('terra-900'), c('ouro'), 4.5],
+  ['Sobretítulo (creme 74%) / brilho verde 800', creme74(c('mata-800')), c('mata-800'), 4.5],
+  ['Anel de foco dourado / fundo noite (não texto)', c('ouro-claro'), c('noite'), 3],
+  ['Anel de foco creme (afastado do botão) / fundo noite (não texto)', c('creme'), c('noite'), 3],
+  ['Anel de foco verde 800 / página creme (não texto)', c('mata-800'), c('creme'), 3],
 ];
 
 let falhas = 0;

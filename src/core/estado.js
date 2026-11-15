@@ -21,6 +21,9 @@ export function emitir(evento, valor) {
   ouvintes.get(evento)?.forEach((fn) => fn(valor));
 }
 
+/** Preferência "reduzir movimento" do sistema: entradas e efeitos viram troca direta */
+export const menosMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * Versão curta da transição do planeta. Só vale se ligada em locais.json: num totem,
  * as animações desligadas no Windows são da máquina, não uma escolha do visitante.

@@ -52,15 +52,32 @@ a { color: inherit; }
 .tela.ativa { visibility: visible; opacity: 1; }
 
 /* --- Tipografia utilitária ---------------------------------------------- */
+/* Rótulo: caixa normal, peso médio, sem espaçamento extra (maiúsculas só em siglas reais) */
 .legenda {
   font-family: var(--sans);
   font-size: var(--fs-legenda);
   font-weight: 600;
   letter-spacing: var(--tracking-legenda);
-  text-transform: uppercase;
   line-height: 1.4;
 }
 .serif { font-family: var(--serif); font-weight: 400; }
+/* Títulos: Lora num peso só; o tamanho vem da escala em tokens.css */
+.titulo {
+  font-family: var(--serif);
+  font-weight: var(--peso-titulo);
+  line-height: var(--altura-titulo);
+  letter-spacing: var(--tracking-titulo);
+  text-wrap: balance;
+}
+
+/* Foco do teclado: anel dourado afastado do elemento, visível sobre o escuro e sobre o mapa */
+:focus { outline: none; }
+:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 4px;
+}
+.bloco--claro :focus-visible, .detalhe :focus-visible { outline-color: var(--foco-sobre-claro); }
+.bloco--verde :focus-visible, .bloco--escuro :focus-visible { outline-color: var(--foco); }
 
 /* Linha dourada fina */
 .filete { display: block; height: 1px; background: currentColor; opacity: 0.6; }
@@ -93,21 +110,22 @@ a { color: inherit; }
   min-height: var(--toque);
   padding: 0 1.6em;
   font-family: var(--sans);
-  font-size: max(0.72rem, 14px);
+  font-size: max(0.8rem, 16px);
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0.005em;
   border-radius: 999px;
   transition: transform 0.4s var(--ease-luxo), background-color 0.4s, color 0.4s;
 }
 .botao:active { transform: scale(0.97); }
 
-.botao--ouro { background: var(--ouro-claro); color: var(--terra-900); }
+.botao--ouro { background: var(--acao); color: var(--txt-acao); }
+.botao--ouro:active { background: var(--acao-pressionada); }
 .botao--contorno-claro { border: 1px solid var(--linha-sobre-escuro); color: var(--txt-sobre-escuro); }
 .botao--contorno-escuro { border: 1px solid var(--terra-900); color: var(--terra-900); }
 .botao--escuro { background: var(--terra-900); color: var(--creme); }
 
-.seta { width: 1.4em; height: 1em; flex: none; }
+/* Ícones do conjunto (src/componentes/icones.js): grade 24, traço único, cor do texto */
+.icone { width: 1.25em; height: 1.25em; flex: none; stroke-width: var(--icone); }
 
 /* --- Barra superior (telas internas) ------------------------------------- */
 .barra-topo {
@@ -176,9 +194,10 @@ a { color: inherit; }
   border-radius: 999px;
   font-size: max(0.72rem, 16px);
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--tracking-sigla);
   transition: background-color 0.35s, color 0.35s;
 }
+.idiomas__icone { width: 1.3em; height: 1.3em; margin: 0 0.45em 0 0.75em; opacity: 0.85; }
 .idiomas button[aria-pressed='true'] { background: currentColor; }
 .idiomas button[aria-pressed='true'] span { color: var(--creme); }
 .sobre-escuro .idiomas button[aria-pressed='true'] span,

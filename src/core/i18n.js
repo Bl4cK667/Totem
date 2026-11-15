@@ -1,5 +1,6 @@
 // Idiomas (PT / EN / ES). Todos os textos vêm de data/locais.json.
 import { estado, emitir } from './estado.js';
+import { icone } from '../componentes/icones.js';
 
 export const IDIOMAS = ['pt', 'en', 'es'];
 const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es' };
@@ -48,9 +49,9 @@ export function aplicarTextos(raiz = document) {
 /** Monta os botões PT/EN/ES em todos os seletores da página */
 export function montarSeletores() {
   document.querySelectorAll('.idiomas').forEach((grupo) => {
-    grupo.innerHTML = IDIOMAS.map(
-      (id) => `<button data-idioma="${id}" aria-pressed="${id === estado.idioma}"><span>${id.toUpperCase()}</span></button>`
-    ).join('');
+    grupo.innerHTML =
+      icone('idioma', 'idiomas__icone') +
+      IDIOMAS.map((id) => `<button data-idioma="${id}" aria-pressed="${id === estado.idioma}"><span>${id.toUpperCase()}</span></button>`).join('');
     grupo.addEventListener('click', (e) => {
       const b = e.target.closest('[data-idioma]');
       if (b) mudarIdioma(b.dataset.idioma);

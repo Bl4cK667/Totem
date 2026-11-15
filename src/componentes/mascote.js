@@ -4,10 +4,10 @@
 // ao toque nele e nos pins do mapa. Por fora do grupo de cada gesto há um
 // grupo "mola": a cada quadro ele segue o corpo com atraso e balança antes de parar.
 // Nada depende de animação CSS, que o modo "menos movimento" do Windows desliga.
-// O balão (creme, borda fina marrom) brota da boca e "digita" o texto letra por letra.
+// O balão (creme, borda fina marrom) aparece com um fade, já com a fala inteira (sem digitar).
 // No mapa, as dicas trocam sozinhas a cada 8 segundos.
 import gsap from 'gsap';
-import { estado, em, transicaoCurta } from '../core/estado.js';
+import { estado, em, transicaoCurta, menosMovimento } from '../core/estado.js';
 import { t, tr, limpo, temConfirmar } from '../core/i18n.js';
 
 const raiz = document.querySelector('.mascote');
@@ -16,7 +16,7 @@ const el = (s) => raiz.querySelector(s);
 const ESTRELAS_DO_TOQUE = 7;
 const TEMPO_CONVITE = 6000; // ms
 const TEMPO_CURIOSIDADE = 7000;
-const TEMPO_DICA = 8000; // no mapa, uma frase nova a cada 8 s
+const TEMPO_DICA = 14000; // no mapa, uma frase nova a cada 14 s (discreto: não compete com os pins)
 const CURIOSIDADE_CURTA = 80; // caracteres: acima disso não cabe no balão pequeno da lista
 // Pontos de articulação, em coordenadas do viewBox (240 × 300)
 const ORIGEM = {
@@ -215,8 +215,8 @@ const vistas = new Map(); // quantas curiosidades de cada lugar ele já contou n
 // 'fora' | 'entrando' | 'parado' | 'saindo'
 let fase = 'fora';
 
-/** Mesma regra da transição do planeta: só simplifica se ligado em locais.json */
-const calmo = () => transicaoCurta();
+/** Fica quieto (sem gestos nem molas) com a transição curta ligada ou com "reduzir movimento" no sistema */
+const calmo = () => transicaoCurta() || menosMovimento();
 
 export function montarMascote() {
   raiz.innerHTML = `
@@ -679,10 +679,7 @@ function iniciarVida() {
     loops = [
       // Respira a partir da cintura: o tronco sobe e estica um pouco
       gsap.to(p.superior, { y: -2.2, scaleY: 1.014, duration: 2.1, ease: 'sine.inOut', yoyo: true, repeat: -1 }),
-      // Balança o tronco de um lado para o outro (os pés ficam no chão)
-      gsap.fromTo(p.superior, { rotation: -1.8 }, { rotation: 1.8, duration: 2.9, ease: 'sine.inOut', yoyo: true, repeat: -1 }),
-      // A cabeça balança em outro ritmo, para não parecer uma peça só
-      gsap.fromTo(p.balanco, { rotation: -1.4 }, { rotation: 1.4, duration: 3.7, ease: 'sine.inOut', yoyo: true, repeat: -1 }),
+      // (Sem balanço de tronco e cabeça: parado, ele só respira e pisca)
       gsap.fromTo(vida, { bracos: -1 }, { bracos: 1, duration: 3.3, ease: 'sine.inOut', yoyo: true, repeat: -1 }),
     ];
   }
@@ -741,7 +738,7 @@ function agendarGesto() {
       gesto(opcoes[ultimoGesto]());
     }
     agendarGesto();
-  }, 10000 + Math.random() * 10000);
+  }, 20000 + Math.random() * 15000); // gesto espontâneo raro: 20 a 35 s
 }
 
 /** Um gesto por vez: o anterior termina na hora (todos acabam na pose de repouso) */
@@ -1054,95 +1051,43 @@ function proximaFala() {
   falar(falas[indiceFala]);
 }
 
-/** Ponto da boca do mascote, em px a partir do canto do balão (para ele brotar dali) */
-function origemNaBoca() {
-  const m = p.sorriso.getBoundingClientRect();
-  const r = raiz.getBoundingClientRect();
-  const x = m.left + m.width / 2 - r.left - p.balao.offsetLeft;
-  const y = m.top + m.height / 2 - r.top - p.balao.offsetTop;
-  return `${x.toFixed(1)}px ${y.toFixed(1)}px`;
-}
-
-/** Mostra o balão e "digita" o texto letra por letra, com a boca mexendo */
+/** Mostra o balão com a fala inteira (fade curto); a boca mexe um pouco enquanto ele "fala" */
 export function falar(conteudo, duracao = 12000, { simples = false } = {}) {
   const texto = tr(conteudo);
   const balao = p.balao;
   const alvo = el('.mascote__texto');
   const sereno = calmo();
-  // Já aberto: guarda onde o vidro e o rabinho estão para o balão mudar de tamanho sem pular
-  const antes = balaoAberto && !sereno ? { vidro: p.vidro.getBoundingClientRect(), rabo: p.rabo.getBoundingClientRect() } : null;
+  const jaAberto = balaoAberto;
 
   balao.classList.toggle('mascote__balao--simples', simples);
   el('.mascote__rotulo').textContent = t('mascote.rotulo');
   el('.mascote__dica').textContent = t('mascote.dica');
 
-  clearInterval(timerDigitar);
+  clearTimeout(timerDigitar);
   clearTimeout(timerOcultar);
   timerOcultar = setTimeout(esconderBalao, duracao);
   balaoAberto = true;
 
   const puro = limpo(texto);
   const sufixo = temConfirmar(texto) ? ' <span class="confirmar">CONFIRMAR</span>' : '';
-  const concluir = () => {
-    alvo.textContent = puro;
-    alvo.insertAdjacentHTML('beforeend', sufixo);
-    definirFala(false);
-  };
+  alvo.textContent = puro;
+  alvo.insertAdjacentHTML('beforeend', sufixo);
 
-  if (sereno) {
-    gsap.fromTo(balao, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out', overwrite: true });
-    return concluir();
+  gsap.killTweensOf([balao, p.vidro, p.rabo, p.conteudo]);
+  gsap.set([p.vidro, p.rabo], { x: 0, y: 0, scaleX: 1, scaleY: 1 });
+  gsap.set(balao, { scale: 1 });
+  if (jaAberto) {
+    gsap.set(balao, { autoAlpha: 1 });
+    gsap.fromTo(p.conteudo, { autoAlpha: 0 }, { autoAlpha: 1, duration: sereno ? 0 : 0.3, ease: 'sine.out' });
+  } else {
+    gsap.set(p.conteudo, { autoAlpha: 1 });
+    gsap.fromTo(balao, { autoAlpha: 0 }, { autoAlpha: 1, duration: sereno ? 0 : 0.35, ease: 'sine.out' });
   }
+  if (sereno) return definirFala(false);
 
-  // O texto inteiro já ocupa seu espaço (invisível) — o balão não "cresce" enquanto digita
-  alvo.innerHTML = '<span></span><span class="mascote__resto"></span>';
-  const [visivelEl, restoEl] = alvo.children;
-  restoEl.textContent = puro;
-
-  if (antes) mudarTamanho(antes);
-  else brotar();
-
+  // Boca mexendo por um tempo proporcional à fala (no máximo 2,4 s)
   definirFala(true);
-  let i = 0;
-  timerDigitar = setInterval(() => {
-    i += 1;
-    visivelEl.textContent = puro.slice(0, i);
-    restoEl.textContent = puro.slice(i);
-    if (i >= puro.length) {
-      clearInterval(timerDigitar);
-      concluir();
-    }
-  }, 32);
-}
-
-/** O balão brota da boca: cresce com mola (0,6 → um pouco mais que 1 → 1) */
-function brotar() {
-  gsap.killTweensOf([p.balao, p.vidro, p.rabo, p.conteudo]);
-  gsap.set([p.vidro, p.rabo], { x: 0, y: 0, scaleX: 1, scaleY: 1 });
-  gsap.set(p.conteudo, { autoAlpha: 1 });
-  gsap.set(p.balao, { transformOrigin: origemNaBoca() });
-  gsap.fromTo(p.balao, { scale: 0.6 }, { scale: 1, duration: 0.6, ease: 'back.out(1.9)' });
-  gsap.fromTo(p.balao, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.22, ease: 'power1.out' });
-}
-
-/**
- * Troca de fala com o balão aberto: o vidro e o rabinho saem do tamanho e lugar antigos
- * e vão até os novos (só transform), e o texto novo aparece por cima.
- */
-function mudarTamanho(antes) {
-  gsap.killTweensOf([p.balao, p.vidro, p.rabo, p.conteudo]);
-  gsap.set(p.balao, { autoAlpha: 1, scale: 1 });
-  gsap.set([p.vidro, p.rabo], { x: 0, y: 0, scaleX: 1, scaleY: 1 });
-  const vidro = p.vidro.getBoundingClientRect();
-  const rabo = p.rabo.getBoundingClientRect();
-  if (!vidro.width || !vidro.height) return;
-  gsap.fromTo(
-    p.vidro,
-    { x: antes.vidro.left - vidro.left, y: antes.vidro.top - vidro.top, scaleX: antes.vidro.width / vidro.width, scaleY: antes.vidro.height / vidro.height },
-    { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 0.5, ease: 'back.out(1.3)', transformOrigin: '0 0' }
-  );
-  gsap.fromTo(p.rabo, { x: antes.rabo.left - rabo.left, y: antes.rabo.top - rabo.top }, { x: 0, y: 0, duration: 0.5, ease: 'back.out(1.3)' });
-  gsap.fromTo(p.conteudo, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, delay: 0.15, ease: 'power1.out' });
+  timerDigitar = setTimeout(() => definirFala(false), Math.min(2400, puro.length * 30));
 }
 
 /** Boca abrindo e fechando em ritmo irregular enquanto o balão escreve; a cabeça acompanha */
@@ -1173,15 +1118,8 @@ function definirFala(ligar) {
 function esconderBalao() {
   if (!p.balao || !balaoAberto) return;
   balaoAberto = false;
-  clearInterval(timerDigitar);
+  clearTimeout(timerDigitar);
   clearTimeout(timerOcultar);
   definirFala(false);
-  if (calmo()) {
-    gsap.to(p.balao, { autoAlpha: 0, duration: 0.4, ease: 'power1.in', overwrite: true });
-    return;
-  }
-  gsap.killTweensOf(p.balao);
-  gsap.set(p.balao, { transformOrigin: origemNaBoca() });
-  gsap.to(p.balao, { scale: 0.6, duration: 0.35, ease: 'back.in(1.6)' });
-  gsap.to(p.balao, { autoAlpha: 0, duration: 0.3, delay: 0.06, ease: 'power1.in' });
+  gsap.to(p.balao, { autoAlpha: 0, duration: calmo() ? 0 : 0.3, ease: 'sine.in', overwrite: true });
 }

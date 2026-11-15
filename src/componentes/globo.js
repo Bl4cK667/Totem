@@ -164,8 +164,8 @@ export class Globo {
     this.girando = true;
     this.dpr = Math.min(window.devicePixelRatio || 1, 1.75);
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setClearColor(0x120d09, 1);
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    this.renderer.setClearColor(0x120d09, 0); // transparente: o gradiente de #globo (inicio.css) aparece atrás
     this.renderer.setPixelRatio(this.dpr);
 
     this.scene = new THREE.Scene();
@@ -446,7 +446,8 @@ export class Globo {
     this.matTerra.uniforms.uOpac.value = p.planeta;
     this.esfera.visible = this.marcador.visible = p.planeta > 0;
     this.corFundo.lerpColors(this.corNoite, this.corMata, p.fundo);
-    this.renderer.setClearColor(this.corFundo, 1);
+    // Na vitrine o fundo é transparente (gradiente em CSS); na descida ele fica sólido, como antes
+    this.renderer.setClearColor(this.corFundo, p.fundo);
     this.mapa.atualizar();
     this.atualizarPonto();
 

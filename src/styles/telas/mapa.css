@@ -62,59 +62,86 @@
   z-index: -1;
   background: radial-gradient(farthest-side at 30% 50%, rgba(18, 13, 9, 0.42), rgba(18, 13, 9, 0.18) 60%, rgba(18, 13, 9, 0));
 }
-.mapa__sobretitulo { display: flex; align-items: center; gap: 1em; color: var(--ouro-claro); font-size: var(--fs-locais); letter-spacing: 0.2em; }
-.mapa__sobretitulo .filete { width: 2.4rem; background: var(--ouro-claro); opacity: 1; }
+.mapa__sobretitulo { color: var(--txt-sobre-escuro); font-size: var(--fs-apoio); }
+.mapa__sobretitulo .filete { display: none; }
 .mapa__titulo {
-  margin-top: 0.7rem;
+  margin-top: 0.5rem;
   max-width: 13em;
-  font-size: max(2.7rem, 36px);
-  line-height: 1.08;
+  font-family: var(--serif);
+  font-weight: var(--peso-titulo);
+  font-size: var(--fs-h2);
+  line-height: var(--altura-titulo);
+  letter-spacing: var(--tracking-titulo);
+  text-wrap: balance;
   color: var(--creme);
 }
 @media (orientation: landscape) { .mapa__titulo { max-width: 11em; } }
 
 /* --- Pins ------------------------------------------------------------------ */
 /* O marcador tem tamanho zero e fica exatamente no local; tudo se posiciona a partir dele.
-   --dx/--dy só afastam pins que encostariam numa tela estreita (mapa.js); o ponto do chão vai junto */
-.pin { width: 0; height: 0; --pin-w: max(2.6rem, 64px); }
+   --dx/--dy só afastam pins que encostariam numa tela estreita (mapa.js); o ponto do chão vai junto.
+   Desenho: disco creme com aro verde (grade 64 × 72, ponta embaixo) e o ícone do lugar. */
+.pin { width: 0; height: 0; --pin-w: max(2.8rem, 64px); --pin-h: calc(var(--pin-w) * 1.125); }
 .pin__alvo {
   position: absolute;
   left: 0;
   top: 0;
-  transform: translate(calc(-50% + var(--dx, 0px)), calc(var(--pin-w) * -1.25 + var(--dy, 0px)));
+  transform: translate(calc(-50% + var(--dx, 0px)), calc(var(--pin-h) * -0.986 + var(--dy, 0px)));
   min-width: var(--toque);
   padding: 0;
+  color: var(--pin-icone);
   touch-action: none;
 }
 /* Área de toque: pelo menos 64 px em volta do pin, mesmo errando um pouco o dedo */
 .pin__alvo::before { content: ''; position: absolute; inset: -16px -12px; }
-.pin__queda { display: flex; flex-direction: column; align-items: center; }
+.pin__queda { display: flex; flex-direction: column; align-items: center; transition: transform 0.18s var(--ease-luxo); }
 .pin__corpo {
   position: relative;
   display: block;
   width: var(--pin-w);
-  height: calc(var(--pin-w) * 1.25);
-  filter: drop-shadow(0 0.5rem 0.6rem rgba(18, 13, 9, 0.55));
+  height: var(--pin-h);
+  filter: drop-shadow(0 0.35rem 0.5rem rgba(18, 13, 9, 0.5));
 }
 .pin__gota { width: 100%; height: 100%; overflow: visible; }
-.pin__forma { fill: var(--terra-900); stroke: var(--ouro-claro); stroke-width: 2.5; transition: fill 0.4s; }
-.pin__miolo { fill: var(--mata-500); stroke: var(--creme); stroke-width: 1.5; transition: fill 0.4s; }
-.pin__num {
+.pin__forma { fill: var(--pin-fundo); stroke: var(--pin-aro); stroke-width: 3; stroke-linejoin: round; transition: fill 0.18s, stroke 0.18s; }
+/* Ícone no centro do disco (centro em 29/72 da altura) */
+.pin__icone {
   position: absolute;
-  left: 0; right: 0;
-  top: 22%;
-  text-align: center;
-  font-size: max(0.82rem, 19px);
-  font-weight: 600;
-  line-height: 1;
-  color: var(--creme);
+  left: 50%;
+  top: calc(var(--pin-w) * 29 / 64);
+  display: grid;
+  place-items: center;
+  width: calc(var(--pin-w) * 0.5);
+  height: calc(var(--pin-w) * 0.5);
+  transform: translate(-50%, -50%);
+  transition: color 0.18s;
 }
+.pin__icone .icone { width: 100%; height: 100%; stroke-width: 1.75; }
+/* Anel de foco do teclado em volta do disco (não em volta do botão inteiro) */
+.pin__corpo::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--pin-w) * 5 / 64 - 7px);
+  top: calc(var(--pin-w) * 2 / 64 - 7px);
+  width: calc(var(--pin-w) * 54 / 64 + 14px);
+  height: calc(var(--pin-w) * 54 / 64 + 14px);
+  border-radius: 50%;
+  border: 4px solid var(--foco);
+  opacity: 0;
+}
+.pin__alvo:focus-visible { outline: none; }
+.pin__alvo:focus-visible .pin__corpo::after { opacity: 1; }
+.pin__alvo:focus-visible .pin__nome { box-shadow: 0 0 0 3px var(--foco), var(--sombra); }
+/* Toque: o disco fica verde, o ícone creme, e o pin afunda um pouco */
+.pin__alvo:active .pin__queda { transform: scale(0.94); }
+.pin__alvo:active .pin__forma { fill: var(--pin-aro); stroke: var(--pin-fundo); }
+.pin__alvo:active .pin__icone { color: var(--pin-fundo); }
 /* Etiqueta: no mínimo 22 px, legível a 1,5 m do totem */
 .pin__nome {
-  margin-top: 0.6rem;
+  margin-top: 0.5rem;
   padding: 0.38em 1em;
   border-radius: 999px;
-  background: rgba(246, 241, 231, 0.96);
+  background: var(--pin-fundo);
   color: var(--txt-sobre-claro);
   font-family: var(--sans);
   font-size: max(0.8rem, 22px);
@@ -122,31 +149,23 @@
   line-height: 1.25;
   white-space: nowrap;
   box-shadow: var(--sombra);
-  transition: background-color 0.4s, color 0.4s;
 }
 
-/* Ponto exato no chão (embaixo da ponta do pin), com a onda dourada pulsando devagar */
+/* Ponto exato no chão (embaixo da ponta do pin) */
 .pin__chao {
   position: absolute;
-  left: calc(-0.4rem + var(--dx, 0px));
-  top: calc(-0.4rem + var(--dy, 0px));
-  width: 0.8rem;
-  height: 0.8rem;
+  left: calc(-0.35rem + var(--dx, 0px));
+  top: calc(-0.35rem + var(--dy, 0px));
+  width: 0.7rem;
+  height: 0.7rem;
   border-radius: 50%;
-  background: var(--ouro-claro);
+  background: var(--pin-chao);
   box-shadow: 0 0 0 2px var(--terra-900);
 }
-.pin__onda {
-  position: absolute;
-  inset: -0.5rem;
-  border-radius: 50%;
-  border: 1.5px solid var(--ouro-claro);
-  opacity: 0;
-}
-/* Último lugar visto: ao voltar ao mapa, o pin fica levemente destacado */
+/* Último lugar visto: ao voltar ao mapa, o aro e a etiqueta ganham o amarelo */
 .pin.visto { z-index: 2; }
-.pin.visto .pin__forma { stroke-width: 4; }
-.pin.visto .pin__nome { box-shadow: 0 0 0 2px var(--ouro-claro), var(--sombra); }
+.pin.visto .pin__forma { stroke: var(--ouro); stroke-width: 4; }
+.pin.visto .pin__nome { box-shadow: 0 0 0 3px var(--ouro-claro), var(--sombra); }
 
 /* --- Página do lugar ------------------------------------------------------------ */
 /* Abre por cima do mapa e rola para baixo, um bloco por vez, com parada leve em cada um.
@@ -176,10 +195,10 @@
 .bloco--claro { background: var(--creme); color: var(--txt-sobre-claro); }
 .bloco--verde { background: var(--mata-800); color: var(--creme); }
 .bloco--escuro { background: var(--terra-900); color: var(--creme); }
-.bloco__rotulo { display: flex; align-items: center; gap: 1em; margin-bottom: 1.8rem; color: var(--ouro-texto); }
-.bloco__rotulo .filete { width: 2.4rem; background: currentColor; opacity: 1; }
+.bloco__rotulo { display: flex; align-items: center; gap: 1em; margin-bottom: 1rem; color: var(--ouro-texto); }
+.bloco__rotulo .filete { display: none; }
 .bloco--verde .bloco__rotulo, .bloco--escuro .bloco__rotulo { color: var(--ouro-claro); }
-.bloco__titulo { font-size: var(--fs-h2); line-height: 1.1; }
+.bloco__titulo { font-weight: var(--peso-titulo); font-size: var(--fs-h2); line-height: var(--altura-titulo); letter-spacing: var(--tracking-titulo); }
 
 /* Linha fina dourada à direita: quanto da página já rolou */
 .detalhe__progresso {
@@ -215,8 +234,8 @@
   background: linear-gradient(to top, rgba(18, 13, 9, 0.88) 0%, rgba(18, 13, 9, 0.5) 24%, rgba(18, 13, 9, 0) 50%);
 }
 .abertura__texto { position: relative; padding: 0 var(--margem) calc(var(--margem) + 7rem); }
-.abertura__etiqueta { color: var(--ouro-claro); font-size: max(0.8rem, 18px); letter-spacing: 0.26em; }
-.abertura__nome { margin-top: 0.6rem; max-width: 12em; font-size: max(4rem, 56px); line-height: 1.02; color: var(--branco); }
+.abertura__etiqueta { color: var(--ouro-claro); font-size: var(--fs-apoio); }
+.abertura__nome { margin-top: 0.5rem; max-width: 12em; font-weight: var(--peso-titulo); font-size: var(--fs-h1); line-height: var(--altura-titulo); letter-spacing: var(--tracking-titulo); color: var(--branco); }
 .abertura__frase { margin-top: 1rem; max-width: 24em; font-size: max(1.2rem, 26px); line-height: 1.4; color: var(--creme); }
 .abertura__deslize {
   position: absolute;
@@ -232,7 +251,7 @@
   padding: 0.6rem 1.6rem;
   color: var(--creme);
 }
-.seta-baixo { width: 1rem; height: 1.8rem; color: var(--ouro-claro); }
+.seta-baixo { width: 1.6rem; height: 1.6rem; color: var(--ouro-claro); }
 /* Imagem do projeto (não é foto) */
 .abertura__legenda-foto {
   position: absolute;
@@ -243,8 +262,7 @@
   border-radius: 999px;
   background: rgba(18, 13, 9, 0.6);
   color: var(--creme);
-  font-size: max(0.6rem, 13px);
-  letter-spacing: 0.18em;
+  font-size: max(0.6rem, 14px);
 }
 .abertura__legenda-foto[hidden] { display: none; }
 /* Lugar ainda sem foto certa: espaço marcado, em vez de uma foto errada */
@@ -331,7 +349,6 @@
 .chegar__sv { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
 .chegar__sv-texto { font-size: max(1.05rem, 22px); line-height: 1.5; color: var(--txt-sobre-claro-2); }
 .chegar__botao { margin-top: 0.6rem; min-height: max(var(--toque), 80px); padding: 0 2.4em; font-size: max(0.78rem, 17px); }
-.icone-sv { width: 1.5em; height: 1.5em; }
 
 /* 5) Fim: anterior e próximo (com o nome do lugar) e "Voltar ao mapa" */
 .fim { padding-bottom: calc(var(--espaco) * 1.2); }
@@ -355,8 +372,7 @@
 .fim__direcao { display: flex; align-items: center; gap: 0.8em; color: var(--ouro-claro); }
 .fim__nome { font-size: var(--fs-h3); line-height: 1.15; }
 .fim__voltar { display: flex; width: fit-content; margin: calc(var(--espaco) * 0.6) auto 0; min-height: max(var(--toque), 80px); padding: 0 2.6em; font-size: max(0.78rem, 17px); }
-.seta--volta { transform: scaleX(-1); }
-.casa { width: 1.35em; height: 1.35em; flex: none; }
+
 
 /* Vertical: as curiosidades se empilham e o "como chegar" fica centralizado */
 @media (orientation: portrait) {

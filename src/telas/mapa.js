@@ -58,7 +58,14 @@ const COR_CHAO = '#5f5d3a';
 // não inclina até o horizonte (onde não há imagem) e não se afasta nem se aproxima demais
 const LIMITES = { area: [[-50.25, -6.9], [-49.45, -6.15]], inclinacao: 60, zoomMin: 12, zoomMax: 16.5 };
 
-const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+// A mesma imagem da Esri, servida por dois endereços: o navegador abre no máximo 6 conexões por
+// endereço, então com dois chegam o dobro de imagens ao mesmo tempo. O MapLibre escolhe o endereço
+// de cada imagem por (x + y) % 2; o pré-carregamento usa a mesma regra (mesma URL, mesmo cache)
+const SATELITES = [
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+];
+const urlDaImagem = (z, x, y) => SATELITES[(x + y) % SATELITES.length].replace('{z}', z).replace('{y}', y).replace('{x}', x);
 const ATRIBUICAO = 'Imagens © Esri, Maxar, Earthstar Geographics e comunidade de usuários GIS';
 
 const camada = document.querySelector('.mapa-cidade');
@@ -82,12 +89,12 @@ export function montarMapa() {
       projection: { type: 'globe' },
       sky: { 'atmosphere-blend': 0 }, // o halo vem do planeta Three.js, que fica atrás
       sources: {
-        satelite: { type: 'raster', tiles: [SATELITE], tileSize: 256, maxzoom: 19, attribution: ATRIBUICAO },
+        satelite: { type: 'raster', tiles: SATELITES, tileSize: 256, maxzoom: 19, attribution: ATRIBUICAO },
       },
       layers: [
         // Onde a imagem ainda não chegou: oceano no planeta, cor do chão perto da cidade
         { id: 'fundo', type: 'background', paint: { 'background-color': ['interpolate', ['linear'], ['zoom'], 6, COR_OCEANO, 9, COR_CHAO] } },
-        { id: 'satelite', type: 'raster', source: 'satelite', paint: { 'raster-fade-duration': 250, 'raster-saturation': 0.14, 'raster-contrast': 0.08, 'raster-brightness-min': 0.03 } },
+        { id: 'satelite', type: 'raster', source: 'satelite', paint: { 'raster-fade-duration': 300, 'raster-saturation': 0.22, 'raster-contrast': 0.16, 'raster-brightness-min': 0.02 } },
       ],
     },
     center: [VISTA.lng, VISTA.lat],
@@ -207,27 +214,30 @@ function baixarCaminho() {
   const urls = new Set();
   const area = (lng, lat, z, [x0, x1], [y0, y1]) => {
     const [cx, cy] = tile(lng, lat, z);
-    for (let x = cx + x0; x <= cx + x1; x++) for (let y = cy + y0; y <= cy + y1; y++) urls.add(SATELITE.replace('{z}', z).replace('{y}', y).replace('{x}', x));
+    for (let x = cx + x0; x <= cx + x1; x++) for (let y = cy + y0; y <= cy + y1; y++) urls.add(urlDaImagem(z, x, y));
   };
+  // Com imagens de 256 px, o MapLibre usa o zoom do mapa + 1 (medido: na vista da cidade, zoom 14,
+  // ele pede z15 perto, z14 no meio e z13 no horizonte)
   const v = vista();
-  // Perto da cidade (olhando para o sul: o fundo da tela é mais ao sul, y maior)
+  // 1) A cidade, que é a tela que fica parada (olhando para o sul: o fundo da tela tem y maior)
+  area(v.lng, v.lat, 15, [-6, 6], [-4, 8]);
   area(v.lng, v.lat, 14, [-5, 5], [-3, 10]);
   area(v.lng, v.lat, 13, [-4, 4], [-2, 7]);
-  area(v.lng, v.lat, 12, [-3, 3], [-2, 5]);
-  // O caminho até o Pará
-  for (let z = 11; z >= 4; z--) {
-    const { pan } = fracaoDoCaminho(z);
-    area(PARA.lng + pan * (v.lng - PARA.lng), PARA.lat + pan * (v.lat - PARA.lat), z, [-3, 3], [-4, 4]);
-  }
-  // Em volta de cada pin, para o mergulho ao tocar nele
+  // 2) Em volta de cada pin, para o mergulho ao tocar nele (zoom ~15,8 → imagens z16 e z17)
   for (const p of pontosTuristicos()) {
-    area(p.lng, p.lat, 15, [-2, 2], [-2, 3]);
     area(p.lng, p.lat, 16, [-2, 2], [-2, 3]);
+    area(p.lng, p.lat, 17, [-2, 2], [-2, 3]);
+  }
+  // 3) O caminho até o Pará
+  for (let z = 12; z >= 4; z--) {
+    const { pan } = fracaoDoCaminho(z - 1);
+    area(PARA.lng + pan * (v.lng - PARA.lng), PARA.lat + pan * (v.lat - PARA.lat), z, [-3, 3], [-4, 4]);
   }
   const fila = [...urls];
   const trabalhador = async () => {
     while (fila.length) {
-      while (filaPausada) await new Promise((ok) => setTimeout(ok, 500));
+      // O que está na tela sempre vem primeiro: espera o mapa terminar as imagens visíveis
+      while (filaPausada || !mapa.areTilesLoaded()) await new Promise((ok) => setTimeout(ok, 400));
       const url = fila.shift();
       try {
         await fetch(url, { mode: 'cors', credentials: 'omit' });
@@ -236,7 +246,7 @@ function baixarCaminho() {
       }
     }
   };
-  for (let i = 0; i < 4; i++) trabalhador();
+  for (let i = 0; i < 12; i++) trabalhador(); // 6 conexões por endereço × 2 endereços
 }
 
 // --- Câmera (usada pela transição) ------------------------------------------------

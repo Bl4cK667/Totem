@@ -7,7 +7,7 @@
 // Ao trocar fotos mantendo o nome do arquivo, aumente a versão: o cache antigo é apagado
 const CACHE = 'totem-mirante-v5';
 const CACHE_MAPA = 'totem-mapa-v1';
-const SATELITE = 'server.arcgisonline.com';
+const SATELITES = ['server.arcgisonline.com', 'services.arcgisonline.com']; // a mesma imagem, dois endereços
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) =>
@@ -30,7 +30,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  if (url.hostname === SATELITE) {
+  if (SATELITES.includes(url.hostname)) {
     e.respondWith(
       caches.open(CACHE_MAPA).then((c) =>
         c.match(req).then(

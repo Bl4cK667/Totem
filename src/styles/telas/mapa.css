@@ -111,8 +111,8 @@
   top: calc(var(--pin-w) * 29 / 64);
   display: grid;
   place-items: center;
-  width: calc(var(--pin-w) * 0.5);
-  height: calc(var(--pin-w) * 0.5);
+  width: calc(var(--pin-w) * 0.56);
+  height: calc(var(--pin-w) * 0.56);
   transform: translate(-50%, -50%);
   transition: color 0.18s;
 }

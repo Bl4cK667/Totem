@@ -66,6 +66,13 @@ const pares = [
   ['Anel de foco dourado / fundo noite (não texto)', c('ouro-claro'), c('noite'), 3],
   ['Anel de foco creme (afastado do botão) / fundo noite (não texto)', c('creme'), c('noite'), 3],
   ['Anel de foco verde 800 / página creme (não texto)', c('mata-800'), c('creme'), 3],
+  // Página do lugar (melhorar-lugares)
+  ['Etiqueta da abertura (creme) sobre foto (véu 65%, pior caso)', c('creme'), veu(0.65), 4.5],
+  ['Frase da abertura (creme) sobre foto (véu 65%, pior caso)', c('creme'), veu(0.65), 4.5],
+  ['Dados: número dourado escuro / creme (texto grande)', c('ouro-texto'), c('creme'), 3],
+  ['Anterior/Próximo (creme 74%) / marrom 900', creme74(c('terra-900')), c('terra-900'), 4.5],
+  ['Seta dourada / marrom 900 (não texto)', c('ouro-claro'), c('terra-900'), 3],
+  ['Botões da barra: creme / barra noite 90% sobre creme', c('creme'), mistura(c('noite'), 0.9, c('creme')), 4.5],
 ];
 
 let falhas = 0;

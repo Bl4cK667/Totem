@@ -71,25 +71,7 @@
   gap: 1.4rem;
 }
 
-/* Botão principal: a única ação da tela. Amarelo sólido, texto em caixa normal, sem brilho */
-.inicio__botao {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.8em;
-  min-height: max(calc(var(--toque) * 1.4), 88px);
-  padding: 0 1.8em 0 2em;
-  border-radius: 999px;
-  background: var(--acao);
-  color: var(--txt-acao);
-  font-size: var(--fs-lead);
-  font-weight: 600;
-  letter-spacing: 0;
-  box-shadow: 0 0.6rem 1.6rem -0.8rem rgba(18, 13, 9, 0.8);
-  transition: transform 0.15s var(--ease-luxo), background-color 0.15s;
-}
-.inicio__botao:active { transform: scale(0.97); background: var(--acao-pressionada); }
-.inicio__botao:focus-visible { outline-color: var(--creme); outline-offset: 6px; }
-.inicio__botao .icone { width: 1.2em; height: 1.2em; stroke-width: 2; }
+/* Botão principal: estilo em base.css (.botao--principal), igual ao da página do lugar */
 
 /* --- Modo descanso -------------------------------------------------------- */
 .inicio__descanso {

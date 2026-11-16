@@ -118,6 +118,25 @@ a { color: inherit; }
 }
 .botao:active { transform: scale(0.97); }
 
+/* Botão principal: o mesmo na tela inicial e na página do lugar (amarelo sólido, caixa normal) */
+.botao--principal {
+  gap: 0.8em;
+  min-height: max(calc(var(--toque) * 1.4), 88px);
+  padding: 0 1.8em 0 2em;
+  background: var(--acao);
+  color: var(--txt-acao);
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: 0 0.6rem 1.6rem -0.8rem rgba(18, 13, 9, 0.8);
+  transition: transform 0.15s var(--ease-luxo), background-color 0.15s;
+}
+.botao--principal:active { transform: scale(0.97); background: var(--acao-pressionada); }
+.botao--principal .icone { width: 1.2em; height: 1.2em; stroke-width: 2; }
+/* Sobre fundo escuro o anel de foco fica creme e afastado; sobre claro, verde */
+.botao--principal:focus-visible { outline-color: var(--creme); outline-offset: 6px; }
+.bloco--claro .botao--principal:focus-visible { outline-color: var(--foco-sobre-claro); }
+
 .botao--ouro { background: var(--acao); color: var(--txt-acao); }
 .botao--ouro:active { background: var(--acao-pressionada); }
 .botao--contorno-claro { border: 1px solid var(--linha-sobre-escuro); color: var(--txt-sobre-escuro); }

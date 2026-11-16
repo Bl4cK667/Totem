@@ -9,7 +9,7 @@ import * as maplibregl from 'maplibre-gl';
 // O MapLibre procura o worker ao lado do próprio arquivo, e o Vite muda esse caminho: aponta direto
 import urlDoWorker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import gsap from 'gsap';
-import { estado, em, emitir } from '../core/estado.js';
+import { estado, em, emitir, menosMovimento } from '../core/estado.js';
 import { t, tr, html } from '../core/i18n.js';
 import { montarStreetView, pontosTuristicos, assuntosDe } from '../componentes/streetview.js';
 import { gerarQrComoChegar, urlComoChegar } from '../componentes/qrcode.js';
@@ -391,7 +391,7 @@ export function resetarMapa() {
 // A barra do topo (voltar ao mapa, início, idiomas) fica fixa enquanto a página rola.
 const ICONE_SV = icone('streetview');
 const VOLTA = icone('voltar');
-const ABAIXO = icone('baixo', 'seta-baixo');
+
 
 let detalhe = null;
 let rolagem = null;
@@ -400,11 +400,11 @@ let svAssunto = null; // lugar aberto no Street View
 let cameraSalva = null; // o mapa volta exatamente para cá
 let trocando = false;
 let observador = null;
-let setaDeslize = null;
 const guia = { pai: null, depois: null }; // de onde o guia saiu (ele volta para lá ao fechar)
 const qrs = new Map(); // QR Codes já gerados, por ponto
 
-const rotulo = (chave) => `<p class="legenda bloco__rotulo"><span class="filete"></span><span data-i18n="${chave}">${html(t(chave))}</span></p>`;
+// Título de bloco: o mesmo texto do antigo rótulo, agora como título legível (Lora, escala h2)
+const tituloBloco = (chave) => `<h2 class="titulo bloco__titulo" data-i18n="${chave}">${html(t(chave))}</h2>`;
 
 function montarTela() {
   tela.innerHTML = `
@@ -423,61 +423,61 @@ function montarTela() {
         <p class="legenda abertura__legenda-foto" hidden></p>
         <div class="abertura__texto">
           <p class="legenda abertura__etiqueta"></p>
-          <h2 class="abertura__nome serif"></h2>
+          <h1 class="titulo abertura__nome"></h1>
           <p class="abertura__frase"></p>
         </div>
-        <button class="abertura__deslize" data-acao="deslize"><span class="legenda" data-i18n="detalhe.deslize">${html(t('detalhe.deslize'))}</span>${ABAIXO}</button>
+        <button class="abertura__deslize" data-acao="deslize"><span class="legenda" data-i18n="detalhe.deslize">${html(t('detalhe.deslize'))}</span><span class="abertura__linha" aria-hidden="true"></span></button>
       </header>
 
       <section class="bloco bloco--claro sobre">
-        <div class="bloco__dentro" data-revelar>
-          ${rotulo('detalhe.sobre')}
+        <div class="bloco__dentro">
+          ${tituloBloco('detalhe.sobre')}
           <p class="sobre__texto"></p>
           <ul class="sobre__dados"></ul>
         </div>
       </section>
 
       <section class="bloco bloco--verde sabia">
-        <div class="bloco__dentro" data-revelar data-contar>
+        <div class="bloco__dentro" data-contar>
           <div class="sabia__topo">
-            <h3 class="bloco__titulo serif" data-i18n="detalhe.voceSabia">${html(t('detalhe.voceSabia'))}</h3>
+            ${tituloBloco('detalhe.voceSabia')}
             <div class="sabia__guia"></div>
           </div>
-          <ol class="sabia__cards"></ol>
+          <ul class="sabia__cards"></ul>
         </div>
       </section>
 
       <section class="bloco bloco--claro chegar">
-        <div class="bloco__dentro" data-revelar>
-          ${rotulo('detalhe.comoChegar')}
+        <div class="bloco__dentro">
+          ${tituloBloco('detalhe.comoChegar')}
           <div class="chegar__grade">
             <figure class="chegar__qr">
               <img alt="QR Code" width="640" height="640" />
               <figcaption data-i18n="detalhe.qr">${html(t('detalhe.qr'))}</figcaption>
             </figure>
             <div class="chegar__sv">
-              <h3 class="bloco__titulo serif">Street View</h3>
+              <h3 class="titulo chegar__sv-titulo">Street View</h3>
               <p class="chegar__sv-texto" data-i18n="detalhe.streetviewTexto">${html(t('detalhe.streetviewTexto'))}</p>
-              <button class="botao botao--ouro chegar__botao" data-acao="street-view">${ICONE_SV}<span data-i18n="mapa.streetview">${html(t('mapa.streetview'))}</span></button>
+              <button class="botao botao--principal chegar__botao" data-acao="street-view">${ICONE_SV}<span data-i18n="mapa.streetview">${html(t('mapa.streetview'))}</span></button>
             </div>
           </div>
         </div>
       </section>
 
       <footer class="bloco bloco--escuro fim">
-        <div class="bloco__dentro" data-revelar>
-          ${rotulo('detalhe.outros')}
+        <div class="bloco__dentro">
+          ${tituloBloco('detalhe.outros')}
           <div class="fim__lugares">
             <button class="fim__lugar" data-acao="anterior">
               <span class="legenda fim__direcao">${VOLTA}<span data-i18n="detalhe.anterior">${html(t('detalhe.anterior'))}</span></span>
-              <span class="fim__nome serif"></span>
+              <span class="titulo fim__nome"></span>
             </button>
             <button class="fim__lugar fim__lugar--proximo" data-acao="proximo">
               <span class="legenda fim__direcao"><span data-i18n="detalhe.proximo">${html(t('detalhe.proximo'))}</span>${SETA}</span>
-              <span class="fim__nome serif"></span>
+              <span class="titulo fim__nome"></span>
             </button>
           </div>
-          <button class="botao botao--ouro fim__voltar" data-acao="voltar-mapa">${VOLTA}<span data-i18n="mapa.voltar">${html(t('mapa.voltar'))}</span></button>
+          <button class="botao botao--principal fim__voltar" data-acao="voltar-mapa">${VOLTA}<span data-i18n="mapa.voltar">${html(t('mapa.voltar'))}</span></button>
         </div>
       </footer>
     </div>
@@ -560,12 +560,12 @@ function preencherDetalhe(ponto) {
   const listaDados = detalhe.querySelector('.sobre__dados');
   listaDados.style.setProperty('--n', dados.length);
   listaDados.hidden = !dados.length;
-  listaDados.innerHTML = dados.map((d) => `<li><span class="sobre__valor serif">${html(tr(d.valor))}</span><span class="sobre__legenda">${html(tr(d.legenda))}</span></li>`).join('');
+  listaDados.innerHTML = dados.map((d) => `<li><span class="titulo sobre__valor">${html(tr(d.valor))}</span><span class="sobre__legenda">${html(tr(d.legenda))}</span></li>`).join('');
 
   const cur = (ponto.curiosidades || []).slice(0, 3);
   const cards = detalhe.querySelector('.sabia__cards');
   cards.style.setProperty('--n', cur.length);
-  cards.innerHTML = cur.map((c, i) => `<li><span class="sabia__num serif">${dois(i + 1)}</span><p>${html(tr(c))}</p></li>`).join('');
+  cards.innerHTML = cur.map((c) => `<li><p>${html(tr(c))}</p></li>`).join('');
 
   const [ant, prox] = [vizinho(ponto, -1), vizinho(ponto, 1)];
   detalhe.querySelector('[data-acao="anterior"] .fim__nome').innerHTML = html(tr(ant.nome));
@@ -582,24 +582,19 @@ async function mostrarQr(ponto) {
   if (aberto === ponto) img.src = src;
 }
 
-/** Cada bloco aparece com fade e leve subida quando entra na tela (uma vez por abertura) */
+/** Os blocos não animam ao rolar; só avisa o guia quando "Você sabia?" aparece (uma vez por abertura) */
 function prepararRevelacao() {
   observador?.disconnect();
-  const blocos = [...detalhe.querySelectorAll('[data-revelar]')];
-  gsap.killTweensOf(blocos);
-  gsap.set(blocos, { autoAlpha: 0, y: 28 });
+  const sabia = detalhe.querySelector('[data-contar]');
   observador = new IntersectionObserver(
     (entradas) => {
-      for (const e of entradas) {
-        if (!e.isIntersecting) continue;
-        observador.unobserve(e.target);
-        gsap.to(e.target, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power2.out' });
-        if (e.target.hasAttribute('data-contar')) emitir('contar', detalhe.querySelector('.sabia__cards'));
-      }
+      if (!entradas.some((e) => e.isIntersecting)) return;
+      observador.disconnect();
+      emitir('contar', detalhe.querySelector('.sabia__cards'));
     },
     { root: rolagem, threshold: 0.18 }
   );
-  blocos.forEach((b) => observador.observe(b));
+  observador.observe(sabia);
 }
 
 /** O guia sai do canto do mapa e fica ao lado das curiosidades, como se estivesse contando */
@@ -619,7 +614,7 @@ function marcarVisto(ponto) {
   pins.forEach((p) => p.el.classList.toggle('visto', p.ponto === ponto));
 }
 
-/** Abertura: sempre no topo, com a seta "deslize para baixo" balançando devagar */
+/** Abertura: sempre no topo */
 function irParaOTopo() {
   rolagem.scrollTop = 0;
   mostrarProgresso();
@@ -650,8 +645,9 @@ function abrirPonto(ponto) {
   });
   gsap.killTweensOf([detalhe, rolagem]);
   gsap.set(rolagem, { autoAlpha: 1 });
+  // A única entrada marcante da página: fade e o nome do lugar subindo (sem subida com "reduzir movimento")
   gsap.fromTo(detalhe, { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_DETALHE, ease: 'sine.inOut' });
-  gsap.fromTo(detalhe.querySelector('.abertura__texto'), { y: 18 }, { y: 0, duration: FADE_DETALHE + 0.3, ease: 'power3.out' });
+  if (!menosMovimento()) gsap.fromTo(detalhe.querySelector('.abertura__texto'), { y: 24 }, { y: 0, duration: FADE_DETALHE + 0.4, ease: 'power3.out' });
 }
 
 /** Anterior / próximo: troca de lugar sem voltar ao mapa, e a página volta ao topo */
@@ -661,7 +657,7 @@ function passar(direcao) {
   trocando = true;
   gsap
     .timeline({ onComplete: () => (trocando = false) })
-    .to(rolagem, { autoAlpha: 0, duration: 0.35, ease: 'sine.in' })
+    .to(rolagem, { autoAlpha: 0, duration: menosMovimento() ? 0 : 0.35, ease: 'sine.in' })
     .add(() => {
       aberto = ponto;
       marcarVisto(ponto);
@@ -669,7 +665,7 @@ function passar(direcao) {
       irParaOTopo();
       emitir('ponto', ponto);
     })
-    .to(rolagem, { autoAlpha: 1, duration: 0.5, ease: 'sine.out' });
+    .to(rolagem, { autoAlpha: 1, duration: menosMovimento() ? 0 : 0.5, ease: 'sine.out' });
 }
 
 /** "Voltar ao mapa": a página some com fade e o mapa volta exatamente como estava */
@@ -678,7 +674,6 @@ function fecharDetalhe({ voltar = true } = {}) {
   aberto = null;
   trocando = false;
   observador?.disconnect();
-  setaDeslize?.kill();
   detalhe.setAttribute('aria-hidden', 'true');
   emitir('ponto', null);
   gsap.killTweensOf([detalhe, rolagem]);

@@ -181,6 +181,17 @@
 .pin.visto .pin__forma { stroke: var(--ouro); stroke-width: 4; }
 .pin.visto .pin__nome { box-shadow: 0 0 0 3px var(--ouro-claro), var(--sombra); }
 
+/* Atrás do cartão do lugar: o mapa escurece mais nas bordas, como se a vista se fechasse nele */
+.mapa-veu-detalhe {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  background: radial-gradient(90% 70% at 50% 45%, rgba(18, 13, 9, 0.45), rgba(18, 13, 9, 0.85));
+}
+
 /* --- Página do lugar ------------------------------------------------------------ */
 /* Abre por cima do mapa e rola para baixo, um bloco por vez, com parada leve em cada um.
    Mesmo espaço entre todos os blocos (--espaco). A barra do topo fica fixa por cima */

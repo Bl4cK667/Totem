@@ -14,7 +14,7 @@ import { t, tr, html } from '../core/i18n.js';
 import { montarStreetView, pontosTuristicos, assuntosDe } from '../componentes/streetview.js';
 import { gerarQrComoChegar, urlComoChegar } from '../componentes/qrcode.js';
 import { icone, iconeDoPonto } from '../componentes/icones.js';
-import { revelarLinhas, surgir, iris, centroDe, EASE_ENTRA, EASE_TROCA } from '../core/movimento.js';
+import { revelarLinhas, surgir, iris, morfarDoPin, centroDe, EASE_ENTRA, EASE_TROCA } from '../core/movimento.js';
 
 const DEG = Math.PI / 180;
 
@@ -45,8 +45,8 @@ export function vista() {
 }
 export const PARA = { lng: -52, lat: -4, zoom: 5.5 };
 
-const ZOOM_APROXIMAR = 1.3; // zoom curto em direção ao pin, enquanto a tela do lugar aparece
-const FADE_DETALHE = 0.7; // s: a página do lugar aparece e some com fade
+const ZOOM_APROXIMAR = 1.8; // mergulho em direção ao pin, enquanto a página do lugar nasce dele
+const GIRO_APROXIMAR = 24; // graus: a câmera contorna o lugar enquanto desce
 const BRILHO_FINAL = 1; // satélite com o brilho natural: o escuro fica só na vinheta das bordas
 const PASSOS_SEM_MOVER = 8; // px: mais do que isso é arraste, não toque
 
@@ -104,6 +104,7 @@ export function montarMapa() {
     keyboard: false,
     boxZoom: false,
     fadeDuration: 0,
+    maxParallelImageRequests: 32, // a descida pede muitas imagens de uma vez: o padrão (16) enfileira
     cancelPendingTileRequestsWhileZooming: false, // na descida, as imagens chegam mesmo com a câmera em movimento
     // Imagens já carregadas ficam na memória: a câmera volta sem piscar (a cidade inteira cabe aqui)
     maxTileCacheSize: 2000,
@@ -129,7 +130,10 @@ export function montarMapa() {
   window.addEventListener('resize', () => estado.tela === 'locais' && !aberto && mapa && irParaVista({ duracao: 0 }));
   em('idioma', aoMudarIdioma);
 
-  return new Promise((ok) => mapa.once('load', ok)).then(aquecerImagens);
+  return new Promise((ok) => mapa.once('load', ok)).then(() => {
+    baixarCaminho();
+    return aquecerImagens();
+  });
 }
 
 export const getMapa = () => mapa;
@@ -148,8 +152,11 @@ async function aquecerImagens() {
     const fim = setTimeout(ok, 9000);
     mapa.once('idle', () => (clearTimeout(fim), ok()));
   });
+  // A cidade primeiro; depois o caminho da descida, de perto para longe, com a mesma
+  // inclinação e o mesmo giro que a câmera terá em cada altura (as mesmas imagens que ela vai pedir)
   const etapas = [
     () => irParaVista({ duracao: 0 }),
+    ...[12.5, 11, 9.5, 8, 6.8].map((z) => () => mapa.jumpTo(cameraDoCaminho(z))),
     () => mapa.jumpTo({ center: [PARA.lng, PARA.lat], zoom: PARA.zoom, pitch: 0, bearing: 0 }),
     () => mapa.jumpTo({ center: [PARA.lng, PARA.lat], zoom: 2.4, pitch: 0, bearing: 0 }),
   ];
@@ -158,6 +165,78 @@ async function aquecerImagens() {
     etapa();
     await ocioso();
   }
+}
+
+// --- Imagens do caminho -------------------------------------------------------------
+const suaveC = (a, b, x) => {
+  const u = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return u * u * (3 - 2 * u);
+};
+/** Fração do deslocamento Pará → Canaã num zoom da descida (mesma conta de telas/transicao.js) */
+const fracaoDoCaminho = (z) => {
+  const salto = vista().zoom - PARA.zoom;
+  const p = Math.min(1, Math.max(0, (z - PARA.zoom) / salto));
+  return { p, pan: (1 - 2 ** (-p * salto)) / (1 - 2 ** -salto) };
+};
+/** Câmera da descida num zoom: centro, inclinação, giro e recuo como na transição */
+function cameraDoCaminho(z) {
+  const v = vista();
+  const { p, pan } = fracaoDoCaminho(z);
+  const r = recuoDaVista();
+  return {
+    center: [PARA.lng + pan * (v.lng - PARA.lng), PARA.lat + pan * (v.lat - PARA.lat)],
+    zoom: z,
+    pitch: VISTA.pitch * suaveC(0.4, 1, p),
+    bearing: VISTA.bearing * suaveC(0.3, 1, p),
+    padding: { top: r.top * suaveC(0.4, 1, p), bottom: 0, left: 0, right: 0 },
+  };
+}
+
+/**
+ * Baixa em segundo plano as imagens de satélite de todo o caminho da descida e de perto de cada
+ * pin. O service worker guarda cada uma para sempre (cache próprio do mapa): depois da primeira
+ * vez, a descida inteira sai do disco, sem esperar a internet. Pausa enquanto a câmera se move.
+ */
+let filaPausada = false;
+function baixarCaminho() {
+  const tile = (lng, lat, z) => {
+    const n = 2 ** z;
+    const r = lat * DEG;
+    return [Math.floor(((lng + 180) / 360) * n), Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n)];
+  };
+  const urls = new Set();
+  const area = (lng, lat, z, [x0, x1], [y0, y1]) => {
+    const [cx, cy] = tile(lng, lat, z);
+    for (let x = cx + x0; x <= cx + x1; x++) for (let y = cy + y0; y <= cy + y1; y++) urls.add(SATELITE.replace('{z}', z).replace('{y}', y).replace('{x}', x));
+  };
+  const v = vista();
+  // Perto da cidade (olhando para o sul: o fundo da tela é mais ao sul, y maior)
+  area(v.lng, v.lat, 14, [-5, 5], [-3, 10]);
+  area(v.lng, v.lat, 13, [-4, 4], [-2, 7]);
+  area(v.lng, v.lat, 12, [-3, 3], [-2, 5]);
+  // O caminho até o Pará
+  for (let z = 11; z >= 4; z--) {
+    const { pan } = fracaoDoCaminho(z);
+    area(PARA.lng + pan * (v.lng - PARA.lng), PARA.lat + pan * (v.lat - PARA.lat), z, [-3, 3], [-4, 4]);
+  }
+  // Em volta de cada pin, para o mergulho ao tocar nele
+  for (const p of pontosTuristicos()) {
+    area(p.lng, p.lat, 15, [-2, 2], [-2, 3]);
+    area(p.lng, p.lat, 16, [-2, 2], [-2, 3]);
+  }
+  const fila = [...urls];
+  const trabalhador = async () => {
+    while (fila.length) {
+      while (filaPausada) await new Promise((ok) => setTimeout(ok, 500));
+      const url = fila.shift();
+      try {
+        await fetch(url, { mode: 'cors', credentials: 'omit' });
+      } catch {
+        // sem internet: o mapa usa o que já está guardado
+      }
+    }
+  };
+  for (let i = 0; i < 4; i++) trabalhador();
 }
 
 // --- Câmera (usada pela transição) ------------------------------------------------
@@ -185,6 +264,7 @@ export const recuoDaVista = () => ({ top: telaH() * (vista().alturaDoFoco - 0.5)
 
 export function prepararTransicao() {
   aquecendo = false;
+  filaPausada = true; // a descida tem prioridade na internet
   mapa.stop();
   soltarLimites();
   fecharDetalhe({ voltar: false });
@@ -345,6 +425,7 @@ export function entrarPins() {
 // --- Entrada / saída da tela ---------------------------------------------------------
 /** Fim da transição. O mapa continua parado: os gestos ficam desligados no totem */
 export function liberarMapa() {
+  filaPausada = false;
   travar();
   prenderLimites();
 }
@@ -421,7 +502,8 @@ let rolagem = null;
 let sv = null;
 let svAssunto = null; // lugar aberto no Street View
 let cameraSalva = null; // o mapa volta exatamente para cá
-let lente = null; // ponto da tela de onde a página abriu (o pin tocado): ela se fecha de volta nele
+let lente = null; // disco do pin tocado na tela ({ x, y, r }): a página nasce dele e volta para ele
+let veuMapa = null; // escurece o mapa atrás do cartão enquanto ele cresce
 let trocando = false;
 let observador = null;
 const guia = { pai: null, depois: null }; // de onde o guia saiu (ele volta para lá ao fechar)
@@ -658,37 +740,81 @@ function abrirPonto(ponto) {
   cameraSalva = { center: mapa.getCenter(), zoom: mapa.getZoom(), pitch: mapa.getPitch(), bearing: mapa.getBearing(), padding: mapa.getPadding() };
 
   preencherDetalhe(ponto);
-  document.body.classList.add('detalhe-aberto');
-  medirBarra();
+  // A barra troca para o modo da página quando já sumiu (barraNaTroca)
+  gsap.delayedCall(0.2, () => {
+    if (aberto !== ponto) return;
+    document.body.classList.add('detalhe-aberto');
+    medirBarra();
+  });
   detalhe.setAttribute('aria-hidden', 'false');
   irParaOTopo();
   guiaNaPagina(true);
   emitir('ponto', ponto);
 
+  // O mapa mergulha no lugar: aproxima, inclina e contorna um pouco
   mapa.easeTo({
     center: [ponto.lng, ponto.lat],
-    zoom: mapa.getZoom() + ZOOM_APROXIMAR,
-    duration: FADE_DETALHE * 1000 + 300,
-    easing: (x) => 1 - (1 - x) ** 3,
+    zoom: Math.min(mapa.getZoom() + ZOOM_APROXIMAR, LIMITES.zoomMax),
+    pitch: LIMITES.inclinacao,
+    bearing: mapa.getBearing() + GIRO_APROXIMAR,
+    padding: { top: 0, bottom: 0, left: 0, right: 0 },
+    duration: 1600,
+    easing: (x) => 1 - (1 - x) ** 4,
     essential: true, // sem isto o MapLibre pula a animação com "menos movimento" ligado no Windows
   });
   gsap.killTweensOf(rolagem);
   gsap.set(rolagem, { autoAlpha: 1 });
-  // A lente do mirante: a página abre num círculo a partir do pin tocado, enquanto o mapa
-  // ainda aproxima; a foto assenta e o nome do lugar sobe de dentro da máscara
+
+  // A página nasce do disco do pin: vira um cartão com a foto e então ocupa a tela.
+  // A foto começa ampliada no ponto do pin e assenta enquanto o cartão cresce
   const pin = pins.find((p) => p.ponto === ponto);
-  lente = centroDe(pin?.el.querySelector('.pin__corpo'));
-  iris(detalhe, { abrir: true, ...lente, duracao: 1.2 });
-  entradaDaAbertura(0.35);
+  lente = discoDoPin(pin);
+  const foto = detalhe.querySelector('.abertura__fundo');
+  if (!menosMovimento() && lente.x != null) {
+    gsap.fromTo(foto, { scale: 1.45, transformOrigin: `${lente.x}px ${lente.y}px` }, { scale: 1, duration: 1.6, ease: 'expo.out', clearProps: 'transform,transformOrigin' });
+  }
+  morfarDoPin(detalhe, lente, { abrir: true });
+  mapaAoFundo(true);
+  barraNaTroca(1.2);
+  entradaDaAbertura(0.95, { foto: false });
+}
+
+/** Centro e raio do disco do pin na tela (o SVG tem 64 × 72; o disco tem centro em 32,29 e raio 27) */
+function discoDoPin(pin) {
+  const c = pin?.el.querySelector('.pin__corpo');
+  if (!c) return {};
+  const r = c.getBoundingClientRect();
+  const k = r.width / 64;
+  return { x: r.left + 32 * k, y: r.top + 29 * k, r: 27 * k };
+}
+
+/** Atrás do cartão: o mapa escurece e os pins, o título e o guia saem de cena (e voltam no fim) */
+function mapaAoFundo(sim) {
+  if (!veuMapa) {
+    veuMapa = document.createElement('div');
+    veuMapa.className = 'mapa-veu-detalhe';
+    document.getElementById('app').appendChild(veuMapa);
+  }
+  const dur = menosMovimento() ? 0.3 : 0.6;
+  gsap.to(veuMapa, { autoAlpha: sim ? 1 : 0, duration: dur, ease: 'sine.inOut' });
+  gsap.to([...pins.map((p) => p.el), tela.querySelector('.mapa__cabecalho')], { autoAlpha: sim ? 0 : 1, duration: dur * 0.7, ease: 'sine.inOut', delay: sim ? 0.1 : 0 });
+}
+
+/** A barra do topo troca de função (mapa ↔ página): some, troca e volta, sem pular na frente */
+function barraNaTroca(volta) {
+  const barra = document.querySelector('.barra-topo');
+  gsap.killTweensOf(barra);
+  gsap.to(barra, { autoAlpha: 0, duration: 0.2, ease: 'sine.in' });
+  gsap.to(barra, { autoAlpha: 1, duration: 0.5, ease: 'sine.out', delay: volta });
 }
 
 /** Foto que assenta (zoom lento para trás) e textos da abertura em sequência */
-function entradaDaAbertura(atraso = 0) {
+function entradaDaAbertura(atraso = 0, { foto: comFoto = true } = {}) {
   const a = detalhe.querySelector('.abertura');
   const foto = a.querySelector('.abertura__foto, .abertura__sem-foto');
   gsap.set(a.querySelectorAll('.abertura__etiqueta, .abertura__nome, .abertura__frase, .abertura__deslize'), { autoAlpha: 0 });
   const tl = gsap.timeline({ delay: atraso });
-  if (foto && !menosMovimento()) tl.fromTo(foto, { scale: 1.16 }, { scale: 1, duration: 2.4, ease: EASE_ENTRA, clearProps: 'transform' }, -atraso);
+  if (comFoto && foto && !menosMovimento()) tl.fromTo(foto, { scale: 1.16 }, { scale: 1, duration: 2.4, ease: EASE_ENTRA, clearProps: 'transform' }, -atraso);
   tl.add(surgir(a.querySelector('.abertura__etiqueta')), 0.1)
     .add(revelarLinhas(a.querySelector('.abertura__nome'), { duracao: 1.25 }), 0.2)
     .add(surgir(a.querySelector('.abertura__frase')), 0.6)
@@ -736,18 +862,26 @@ function fecharDetalhe({ voltar = true } = {}) {
   if (!voltar) {
     gsap.killTweensOf(detalhe);
     gsap.set(detalhe, { autoAlpha: 0, clearProps: 'clipPath' });
+    if (veuMapa) gsap.set(veuMapa, { autoAlpha: 0 });
+    gsap.set(tela.querySelector('.mapa__cabecalho'), { autoAlpha: 1 });
     sair();
     cameraSalva = null;
     return;
   }
-  // O guia e a barra voltam ao normal só depois do fade (nada pula na frente da pessoa)
-  // A lente se fecha de volta no pin de onde abriu
-  iris(detalhe, { abrir: false, ...lente, duracao: 1.1 }).eventCallback('onComplete', () => {
+  // A página volta a ser cartão e se recolhe no disco do pin; o mapa sobe de volta ao mesmo tempo
+  barraNaTroca(1.15);
+  const foto = detalhe.querySelector('.abertura__fundo');
+  if (!menosMovimento() && lente?.x != null) {
+    gsap.set(foto, { transformOrigin: `${lente.x}px ${lente.y + rolagem.scrollTop}px` });
+    gsap.to(foto, { scale: 1.35, duration: 1.1, ease: 'power3.in', clearProps: 'transform,transformOrigin' });
+  }
+  morfarDoPin(detalhe, lente, { abrir: false }).eventCallback('onComplete', () => {
     gsap.set(detalhe, { autoAlpha: 0, clearProps: 'clipPath' });
     if (!aberto) sair();
   });
-  if (!menosMovimento()) gsap.to(detalhe.querySelector('.abertura__fundo'), { scale: 1.08, duration: 0.9, ease: 'expo.in', clearProps: 'transform' });
-  if (cameraSalva) mapa.easeTo({ ...cameraSalva, duration: FADE_DETALHE * 1000 + 300, easing: (x) => 1 - (1 - x) ** 3, essential: true });
+  gsap.delayedCall(0.2, () => !aberto && document.body.classList.remove('detalhe-aberto'));
+  gsap.delayedCall(menosMovimento() ? 0 : 0.75, () => !aberto && mapaAoFundo(false));
+  if (cameraSalva) mapa.easeTo({ ...cameraSalva, duration: 1300, easing: (x) => 1 - (1 - x) ** 3, essential: true });
   cameraSalva = null;
 }
 

@@ -89,6 +89,49 @@ function aroDaLente(el, x, y, duracao) {
   gsap.to(aro, { autoAlpha: 0, duration: duracao * 0.35, ease: 'sine.in', delay: duracao * 0.5 });
 }
 
+/**
+ * Morfose do pin: o elemento (tela cheia) nasce do tamanho do disco do pin, cresce para um cartão
+ * com cantos arredondados acima do ponto e então se abre até ocupar a tela. Na volta, o caminho
+ * inverso: tela → cartão → disco. "disco" = { x, y, r } (centro e raio na tela).
+ */
+const px = (n) => `${Math.round(n * 10) / 10}px`;
+const recorte = ({ t, r, b, l, raio }) => `inset(${px(t)} ${px(r)} ${px(b)} ${px(l)} round ${px(raio)})`;
+function formas({ x, y, r }) {
+  const W = innerWidth;
+  const H = innerHeight;
+  const m = Math.min(W, H) * 0.06;
+  const cw = Math.min(W * 0.62, H * 0.5);
+  const ch = Math.min(H * 0.46, cw * 1.25);
+  const l = Math.min(Math.max(x - cw / 2, m), W - cw - m);
+  const t = Math.min(Math.max(y - ch * 0.62, m * 2), H - ch - m);
+  return {
+    disco: recorte({ t: y - r, r: W - x - r, b: H - y - r, l: x - r, raio: r }),
+    cartao: recorte({ t, r: W - l - cw, b: H - t - ch, l, raio: Math.min(W, H) * 0.035 }),
+    cheia: recorte({ t: 0, r: 0, b: 0, l: 0, raio: 0 }),
+  };
+}
+
+export function morfarDoPin(el, disco, { abrir = true } = {}) {
+  gsap.killTweensOf(el, 'clipPath,opacity,visibility');
+  if (menosMovimento() || disco?.x == null) {
+    return gsap.to(el, { autoAlpha: abrir ? 1 : 0, duration: 0.6, ease: 'sine.inOut', clearProps: 'clipPath' });
+  }
+  const f = formas(disco);
+  const tl = gsap.timeline();
+  if (abrir) {
+    tl.set(el, { autoAlpha: 1, clipPath: f.disco })
+      .to(el, { clipPath: f.cartao, duration: 0.55, ease: 'power3.out' })
+      .to(el, { clipPath: f.cheia, duration: 0.85, ease: 'power3.inOut' }, '-=0.08')
+      .set(el, { clearProps: 'clipPath' });
+  } else {
+    tl.set(el, { clipPath: f.cheia })
+      .to(el, { clipPath: f.cartao, duration: 0.7, ease: 'power3.inOut' })
+      .to(el, { clipPath: f.disco, duration: 0.45, ease: 'power3.in' }, '-=0.05')
+      .set(el, { autoAlpha: 0, clearProps: 'clipPath' });
+  }
+  return tl;
+}
+
 /** Centro de um elemento na tela */
 export function centroDe(el) {
   if (!el) return {};

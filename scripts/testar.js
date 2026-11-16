@@ -59,7 +59,7 @@ for (const t of telas) {
   };
   const existe = async (sel) => (await page.locator(sel).count()) > 0;
 
-  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.goto(URL, { waitUntil: 'load' }); // networkidle nunca chega: as imagens do caminho baixam em segundo plano
   await esperar(3500);
   await shot('01-inicio');
   console.log(t.nome, 'fps inicio:', await fps(page));

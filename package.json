@@ -10,7 +10,8 @@
     "placeholders": "node scripts/gerar-placeholders.js",
     "imagens": "node scripts/otimizar-imagens.js",
     "contraste": "node scripts/verificar-contraste.js",
-    "testar": "node scripts/testar.js"
+    "testar": "node scripts/testar.js",
+    "foto-satelite": "node scripts/foto-satelite.js"
   },
   "type": "module",
   "dependencies": {

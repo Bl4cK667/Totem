@@ -58,6 +58,15 @@ const COR_CHAO = '#5f5d3a';
 // não inclina até o horizonte (onde não há imagem) e não se afasta nem se aproxima demais
 const LIMITES = { area: [[-50.25, -6.9], [-49.45, -6.15]], inclinacao: 60, zoomMin: 12, zoomMax: 16.5 };
 
+// Cor do satélite (ao vivo e fotos guardadas, iguais para não haver emenda)
+const COR_SATELITE = { 'raster-fade-duration': 300, 'raster-saturation': 0.22, 'raster-contrast': 0.16, 'raster-brightness-min': 0.02 };
+// Fotos de satélite guardadas no totem (npm run foto-satelite): aparecem na descida, de longe
+// para perto, e daqui para cima a cidade é só delas. Acima de ZOOM_PERTO (mergulho nos pins),
+// as imagens ao vivo voltam por cima, mais nítidas, onde já chegaram
+const ZOOM_SO_FOTOS = 12.6;
+const ZOOM_PERTO = 15.2;
+const ENTRADA_FOTO = { 11: [7.5, 8.5], 13: [9.5, 10.5], 15: [11.5, 12.5] };
+
 // A mesma imagem da Esri, servida por dois endereços: o navegador abre no máximo 6 conexões por
 // endereço, então com dois chegam o dobro de imagens ao mesmo tempo. O MapLibre escolhe o endereço
 // de cada imagem por (x + y) % 2; o pré-carregamento usa a mesma regra (mesma URL, mesmo cache)
@@ -94,7 +103,9 @@ export function montarMapa() {
       layers: [
         // Onde a imagem ainda não chegou: oceano no planeta, cor do chão perto da cidade
         { id: 'fundo', type: 'background', paint: { 'background-color': ['interpolate', ['linear'], ['zoom'], 6, COR_OCEANO, 9, COR_CHAO] } },
-        { id: 'satelite', type: 'raster', source: 'satelite', paint: { 'raster-fade-duration': 300, 'raster-saturation': 0.22, 'raster-contrast': 0.16, 'raster-brightness-min': 0.02 } },
+        // Imagens ao vivo: só na descida (antes de chegar às fotos da cidade) e no mergulho nos pins.
+        // Na vista da cidade, as fotos guardadas no totem cobrem a tela e nada vem da internet
+        { id: 'satelite', type: 'raster', source: 'satelite', maxzoom: ZOOM_SO_FOTOS, paint: COR_SATELITE },
       ],
     },
     center: [VISTA.lng, VISTA.lat],
@@ -119,7 +130,8 @@ export function montarMapa() {
   });
   mapa.setVerticalFieldOfView?.(FOV_MAPA);
   if (import.meta.env.DEV) window.__mapa = mapa; // só para os testes
-  mapa.addControl(new maplibregl.AttributionControl({ compact: false }), 'bottom-left');
+  // Crédito fixo: na vista da cidade só as fotos guardadas aparecem, e elas também são da Esri
+  mapa.addControl(new maplibregl.AttributionControl({ compact: false, customAttribution: ATRIBUICAO }), 'bottom-left');
   travar();
 
   // Vinheta leve nas bordas: fica entre a imagem e os pins
@@ -137,13 +149,39 @@ export function montarMapa() {
   window.addEventListener('resize', () => estado.tela === 'locais' && !aberto && mapa && irParaVista({ duracao: 0 }));
   em('idioma', aoMudarIdioma);
 
-  return new Promise((ok) => mapa.once('load', ok)).then(() => {
+  return new Promise((ok) => mapa.once('load', ok)).then(async () => {
+    await colocarFotos();
     baixarCaminho();
     return aquecerImagens();
   });
 }
 
 export const getMapa = () => mapa;
+
+/** Fotos de satélite guardadas (assets/img/satelite): três camadas, da região inteira à cidade */
+async function colocarFotos() {
+  let dados;
+  try {
+    dados = await fetch('assets/img/satelite/fotos.json').then((r) => r.json());
+  } catch {
+    // Sem as fotos, o mapa usa só as imagens ao vivo em todas as alturas
+    mapa.setLayerZoomRange('satelite', 0, 24);
+    return;
+  }
+  for (const f of dados.fotos) {
+    const [de, ate] = ENTRADA_FOTO[f.z] || [f.z - 3.5, f.z - 2.5];
+    mapa.addSource(f.id, { type: 'image', url: f.arquivo, coordinates: f.cantos });
+    mapa.addLayer({
+      id: f.id,
+      type: 'raster',
+      source: f.id,
+      minzoom: de,
+      paint: { ...COR_SATELITE, 'raster-fade-duration': 0, 'raster-opacity': ['interpolate', ['linear'], ['zoom'], de, 0, ate, 1] },
+    });
+  }
+  // Mergulho nos pins: imagens ao vivo por cima das fotos, onde já chegaram (onde não, a foto aparece)
+  mapa.addLayer({ id: 'satelite-perto', type: 'raster', source: 'satelite', minzoom: ZOOM_PERTO, paint: COR_SATELITE });
+}
 
 /** Gestos do visitante no mapa: sempre desligados. O mapa só se move pelos toques nos pins */
 function travar() {
@@ -219,17 +257,14 @@ function baixarCaminho() {
   // Com imagens de 256 px, o MapLibre usa o zoom do mapa + 1 (medido: na vista da cidade, zoom 14,
   // ele pede z15 perto, z14 no meio e z13 no horizonte)
   const v = vista();
-  // 1) A cidade, que é a tela que fica parada (olhando para o sul: o fundo da tela tem y maior)
-  area(v.lng, v.lat, 15, [-6, 6], [-4, 8]);
-  area(v.lng, v.lat, 14, [-5, 5], [-3, 10]);
-  area(v.lng, v.lat, 13, [-4, 4], [-2, 7]);
-  // 2) Em volta de cada pin, para o mergulho ao tocar nele (zoom ~15,8 → imagens z16 e z17)
+  // A cidade não entra aqui: ela vem das fotos guardadas no totem (colocarFotos)
+  // 1) Em volta de cada pin, para o mergulho ao tocar nele (zoom ~15,8 → imagens z16 e z17)
   for (const p of pontosTuristicos()) {
     area(p.lng, p.lat, 16, [-2, 2], [-2, 3]);
     area(p.lng, p.lat, 17, [-2, 2], [-2, 3]);
   }
-  // 3) O caminho até o Pará
-  for (let z = 12; z >= 4; z--) {
+  // 2) O caminho até o Pará (as imagens ao vivo só aparecem até ZOOM_SO_FOTOS)
+  for (let z = 13; z >= 4; z--) {
     const { pan } = fracaoDoCaminho(z - 1);
     area(PARA.lng + pan * (v.lng - PARA.lng), PARA.lat + pan * (v.lat - PARA.lat), z, [-3, 3], [-4, 4]);
   }

@@ -110,6 +110,7 @@ Tudo roda a partir do próprio computador do totem (fontes, bibliotecas, fotos e
 
 | Comando | O que faz |
 |---|---|
+| `npm run foto-satelite` | Baixa de novo a foto de satélite de Canaã e arredores guardada no totem (`assets/img/satelite/`). Rode quando quiser imagens mais recentes; depois, `npm run build` |
 | `npm run contraste` | Confere se todos os pares de cor (texto/fundo) passam no WCAG AA |
 | `npm run testar` | Com `npm run dev` rodando, percorre o totem no Chrome em vertical e horizontal, salva prints em `testes/` e lista erros do console |
 

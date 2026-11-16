@@ -8,9 +8,16 @@
 .mapa__rotulo {
   position: absolute;
   left: 0; right: 0;
-  top: 16vh;
+  top: 15vh;
   text-align: center;
-  color: var(--ouro-claro);
+  color: var(--creme);
+  text-shadow: 0 2px 24px rgba(18, 13, 9, 0.6);
+}
+/* Mundo e Pará: marcos da viagem, em Lora, sobre o espaço escuro */
+.mapa__rotulo:not(.mapa__rotulo--cidade) .serif {
+  font-size: var(--fs-h2);
+  font-weight: var(--peso-titulo);
+  letter-spacing: var(--tracking-titulo);
 }
 .mapa__rotulo--cidade {
   top: auto;
@@ -21,7 +28,8 @@
   gap: 0.6rem;
   color: var(--creme);
 }
-.mapa__rotulo--cidade .serif { font-size: var(--fs-h2); font-weight: var(--peso-titulo); line-height: var(--altura-titulo); letter-spacing: var(--tracking-titulo); }
+.mapa__rotulo--cidade .serif { font-size: calc(var(--fs-h1) * 1.08); white-space: nowrap; font-weight: var(--peso-titulo); line-height: var(--altura-titulo); letter-spacing: var(--tracking-titulo); }
+.mapa__traco { display: block; width: min(46vw, 9rem); height: 1px; margin: 0.5rem 0 0.2rem; background: var(--ouro-claro); }
 .mapa__coord { color: var(--ouro-claro); letter-spacing: var(--tracking-sigla); text-transform: uppercase; }
 
 /* Fundo escuro atrás do texto da cidade (legibilidade sobre o mapa) */

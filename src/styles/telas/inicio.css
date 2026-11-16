@@ -16,6 +16,7 @@
 }
 
 .tela-inicio {
+  background-image: var(--grao); /* grão de filme por cima do planeta */
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: calc(var(--margem) * 1.6) var(--margem) calc(var(--margem) * 1.5);
@@ -50,8 +51,10 @@
 
 /* Título: Lora 500, as duas linhas no mesmo tamanho e na mesma cor */
 .inicio__titulo {
-  margin-top: 0.6rem;
-  font-size: var(--fs-h1);
+  margin-top: 0.7rem;
+  font-size: calc(var(--fs-h1) * 1.12);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
   color: var(--creme);
 }
 .inicio__titulo .linha { display: block; }

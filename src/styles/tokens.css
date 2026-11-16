@@ -92,6 +92,10 @@
 
   /* --- Movimento ---------------------------------------------------------- */
   --ease-luxo: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* --- Textura ------------------------------------------------------------- */
+  /* Grão de filme fixo (sem animação) sobre as superfícies escuras: tira o aspecto de tela chapada */
+  --grao: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 0.95  0 0 0 0 0.85  0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   --icone: 1.5px;                        /* traço único dos ícones (grade 24) */
 }
 

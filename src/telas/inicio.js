@@ -1,9 +1,10 @@
 // Tela inicial (vitrine): textos sobre o planeta, botão principal,
 // seletor de idioma e o estado de "descanso".
-// Movimento: a tela só aparece e some com um fade. A animação marcante do totem é a
-// descida do planeta até o mapa (telas/transicao.js); aqui nada disputa atenção com ela.
+// Movimento: uma entrada orquestrada só — o título sobe de dentro da máscara, linha por linha,
+// e o resto chega em seguida. A saída é um fade rápido: o planeta assume a cena.
 import gsap from 'gsap';
 import { menosMovimento } from '../core/estado.js';
+import { revelarLinhas, surgir } from '../core/movimento.js';
 
 const tela = document.querySelector('[data-tela="inicio"]');
 const q = (s) => tela.querySelectorAll(s);
@@ -26,17 +27,23 @@ export function montarInicio({ aoComecar }) {
   );
 }
 
-/** Entrada da vitrine: um fade só, da tela inteira */
+/** Entrada da vitrine: brasão e legenda, o título linha por linha, depois o convite */
 export function entrarInicio({ descanso = false } = {}) {
   descansando = false;
   tela.classList.remove('descansando');
   tela.classList.add('ativa');
   gsap.set(q('.inicio__descanso'), { autoAlpha: 0 });
-  gsap.set(q('.inicio__acoes, .inicio__subtitulo'), { autoAlpha: 1 });
+  gsap.set(q('.inicio__titulo .linha'), { autoAlpha: 0 });
+  gsap.set(q('.inicio__topo, .inicio__sobretitulo, .inicio__subtitulo, .inicio__acoes'), { autoAlpha: 0 });
 
   const tl = gsap.timeline();
-  tl.fromTo(tela, { autoAlpha: 0 }, { autoAlpha: 1, duration: dur(0.9), ease: 'sine.out' }, 0.2);
-  if (descanso) tl.add(() => definirDescanso(true), dur(0.6));
+  tl.set(tela, { autoAlpha: 1 }, 0)
+    .add(surgir(q('.inicio__topo'), { duracao: 1.2, y: -12 }), 0.25)
+    .add(surgir(q('.inicio__sobretitulo')), 0.55)
+    .add(revelarLinhas(q('.inicio__titulo .linha'), { duracao: 1.4, intervalo: 0.14 }), 0.7)
+  // No descanso, o convite "Toque para começar" toma o lugar do subtítulo e dos botões
+  if (descanso) tl.add(() => definirDescanso(true), 1.4);
+  else tl.add(surgir(q('.inicio__subtitulo')), 1.35).add(surgir(q('.inicio__acoes'), { y: 26 }), 1.6);
   return tl;
 }
 
@@ -53,6 +60,13 @@ export function definirDescanso(ligar) {
 /** Saída dos textos (início da transição): fade rápido, o planeta assume a cena */
 export function sairInicio() {
   const tl = gsap.timeline();
-  tl.to(tela, { autoAlpha: 0, duration: dur(0.45), ease: 'sine.in' }).add(() => tela.classList.remove('ativa'));
+  // O texto sobe e se dissolve como se a câmera já estivesse decolando; os botões descem
+  if (!menosMovimento()) {
+    tl.to(q('.inicio__texto'), { y: -60, duration: 0.6, ease: 'power2.in' }, 0)
+      .to(q('.inicio__acoes'), { y: 40, duration: 0.6, ease: 'power2.in' }, 0);
+  }
+  tl.to(tela, { autoAlpha: 0, duration: dur(0.5), ease: 'sine.in' }, 0.05)
+    .add(() => tela.classList.remove('ativa'))
+    .set(q('.inicio__texto, .inicio__acoes'), { clearProps: 'transform' });
   return tl;
 }

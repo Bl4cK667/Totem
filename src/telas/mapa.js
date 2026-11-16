@@ -14,6 +14,7 @@ import { t, tr, html } from '../core/i18n.js';
 import { montarStreetView, pontosTuristicos, assuntosDe } from '../componentes/streetview.js';
 import { gerarQrComoChegar, urlComoChegar } from '../componentes/qrcode.js';
 import { icone, iconeDoPonto } from '../componentes/icones.js';
+import { revelarLinhas, surgir, iris, centroDe, EASE_ENTRA, EASE_TROCA } from '../core/movimento.js';
 
 const DEG = Math.PI / 180;
 
@@ -227,6 +228,7 @@ function criarPins() {
     // "queda" leva o pin e o nome juntos: os dois entram ao mesmo tempo, sem nada solto
     el.innerHTML = `
       <span class="pin__chao" aria-hidden="true"></span>
+      <span class="pin__onda" aria-hidden="true"></span>
       <button class="pin__alvo" data-id="${ponto.id}">
         <span class="pin__queda">
           <span class="pin__corpo">${SVG_PIN}<span class="pin__icone">${icone(iconeDoPonto(ponto))}</span></span>
@@ -239,7 +241,7 @@ function criarPins() {
       .setLngLat([ponto.lng, ponto.lat])
       .addTo(mapa);
     gsap.set(el, { autoAlpha: 0 });
-    return { ponto, el, alvo, marcador, queda: el.querySelector('.pin__queda'), chao: el.querySelector('.pin__chao'), nome: el.querySelector('.pin__nome') };
+    return { ponto, el, alvo, marcador, queda: el.querySelector('.pin__queda'), chao: el.querySelector('.pin__chao'), onda: el.querySelector('.pin__onda'), nome: el.querySelector('.pin__nome') };
   });
   escreverNomes();
 }
@@ -314,14 +316,29 @@ function espalharPins() {
   });
 }
 
-// Entrada: os pins aparecem juntos no fim da descida, como parte da transição (sem queda nem pulso)
-const ENTRADA_PINS = 0.6;
-export const DURACAO_PINS = () => ENTRADA_PINS;
+// Entrada: um pin de cada vez, de perto para longe. O ponto do chão acende, uma onda dourada
+// corre no chão e o pin assenta em cima dele, com o nome logo depois
+const ENTRADA_PINS = 0.9;
+const INTERVALO_PINS = 0.16;
+export const DURACAO_PINS = () => (menosMovimento() ? 0.6 : ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
 
 export function entrarPins() {
   medirPins();
   const tl = gsap.timeline();
-  pins.forEach((p) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: ENTRADA_PINS, ease: 'sine.out' }, 0));
+  if (menosMovimento()) {
+    pins.forEach((p) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: 'sine.out' }, 0));
+    return tl;
+  }
+  // Mais perto da câmera (mais embaixo na tela) primeiro
+  const ordem = [...pins].sort((a, b) => mapa.project([b.ponto.lng, b.ponto.lat]).y - mapa.project([a.ponto.lng, a.ponto.lat]).y);
+  ordem.forEach((p, i) => {
+    const t0 = i * INTERVALO_PINS;
+    tl.set(p.el, { autoAlpha: 1 }, t0)
+      .fromTo(p.chao, { scale: 0 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' }, t0)
+      .fromTo(p.onda, { scale: 0.4, autoAlpha: 0.9 }, { scale: 3.2, autoAlpha: 0, duration: 1.3, ease: 'expo.out' }, t0 + 0.05)
+      .fromTo(p.queda, { y: -36, autoAlpha: 0, scale: 0.86 }, { y: 0, autoAlpha: 1, scale: 1, duration: ENTRADA_PINS, ease: EASE_ENTRA, clearProps: 'transform' }, t0 + 0.08)
+      .fromTo(p.nome, { autoAlpha: 0, y: -8 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', clearProps: 'transform' }, t0 + 0.3);
+  });
   return tl;
 }
 
@@ -362,7 +379,13 @@ export function esperarImagens(limite = 4000) {
 /** Timeline de entrada (vai embutida na transição: nada aparece antes da hora) */
 export function entrarMapa() {
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-  tl.set(tela, { autoAlpha: 1 }, 0).fromTo(tela.querySelector('.mapa__cabecalho'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, 0.2).add(entrarPins(), 0);
+  const cab = tela.querySelector('.mapa__cabecalho');
+  tl.set(tela, { autoAlpha: 1 }, 0)
+    .set(cab, { autoAlpha: 1 }, 0)
+    .set(cab.querySelectorAll('.mapa__sobretitulo, .mapa__titulo'), { autoAlpha: 0 }, 0)
+    .add(surgir(cab.querySelector('.mapa__sobretitulo')), 0.1)
+    .add(revelarLinhas(cab.querySelector('.mapa__titulo')), 0.2)
+    .add(entrarPins(), 0);
   return tl;
 }
 
@@ -398,6 +421,7 @@ let rolagem = null;
 let sv = null;
 let svAssunto = null; // lugar aberto no Street View
 let cameraSalva = null; // o mapa volta exatamente para cá
+let lente = null; // ponto da tela de onde a página abriu (o pin tocado): ela se fecha de volta nele
 let trocando = false;
 let observador = null;
 const guia = { pai: null, depois: null }; // de onde o guia saiu (ele volta para lá ao fechar)
@@ -523,7 +547,12 @@ function montarTela() {
 /** Linha dourada fina à direita: quanto da página já rolou */
 function mostrarProgresso() {
   const total = rolagem.scrollHeight - rolagem.clientHeight;
-  detalhe.querySelector('.detalhe__progresso i').style.transform = `scaleY(${total > 0 ? (rolagem.scrollTop / total).toFixed(4) : 0})`;
+  const y = rolagem.scrollTop;
+  detalhe.querySelector('.detalhe__progresso i').style.transform = `scaleY(${total > 0 ? (y / total).toFixed(4) : 0})`;
+  // Abertura: a foto desce mais devagar que a página e o nome se apaga ao subir (só na primeira tela)
+  if (menosMovimento() || y > innerHeight * 1.2) return;
+  detalhe.querySelector('.abertura__fundo').style.transform = `translate3d(0, ${(y * 0.42).toFixed(1)}px, 0)`;
+  detalhe.querySelector('.abertura__texto').style.opacity = Math.max(0, 1 - y / (innerHeight * 0.45)).toFixed(3);
 }
 
 /** Altura da barra fixa: os blocos param logo abaixo dela */
@@ -643,11 +672,28 @@ function abrirPonto(ponto) {
     easing: (x) => 1 - (1 - x) ** 3,
     essential: true, // sem isto o MapLibre pula a animação com "menos movimento" ligado no Windows
   });
-  gsap.killTweensOf([detalhe, rolagem]);
+  gsap.killTweensOf(rolagem);
   gsap.set(rolagem, { autoAlpha: 1 });
-  // A única entrada marcante da página: fade e o nome do lugar subindo (sem subida com "reduzir movimento")
-  gsap.fromTo(detalhe, { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_DETALHE, ease: 'sine.inOut' });
-  if (!menosMovimento()) gsap.fromTo(detalhe.querySelector('.abertura__texto'), { y: 24 }, { y: 0, duration: FADE_DETALHE + 0.4, ease: 'power3.out' });
+  // A lente do mirante: a página abre num círculo a partir do pin tocado, enquanto o mapa
+  // ainda aproxima; a foto assenta e o nome do lugar sobe de dentro da máscara
+  const pin = pins.find((p) => p.ponto === ponto);
+  lente = centroDe(pin?.el.querySelector('.pin__corpo'));
+  iris(detalhe, { abrir: true, ...lente, duracao: 1.2 });
+  entradaDaAbertura(0.35);
+}
+
+/** Foto que assenta (zoom lento para trás) e textos da abertura em sequência */
+function entradaDaAbertura(atraso = 0) {
+  const a = detalhe.querySelector('.abertura');
+  const foto = a.querySelector('.abertura__foto, .abertura__sem-foto');
+  gsap.set(a.querySelectorAll('.abertura__etiqueta, .abertura__nome, .abertura__frase, .abertura__deslize'), { autoAlpha: 0 });
+  const tl = gsap.timeline({ delay: atraso });
+  if (foto && !menosMovimento()) tl.fromTo(foto, { scale: 1.16 }, { scale: 1, duration: 2.4, ease: EASE_ENTRA, clearProps: 'transform' }, -atraso);
+  tl.add(surgir(a.querySelector('.abertura__etiqueta')), 0.1)
+    .add(revelarLinhas(a.querySelector('.abertura__nome'), { duracao: 1.25 }), 0.2)
+    .add(surgir(a.querySelector('.abertura__frase')), 0.6)
+    .add(surgir(a.querySelector('.abertura__deslize'), { y: -10 }), 1.1);
+  return tl;
 }
 
 /** Anterior / próximo: troca de lugar sem voltar ao mapa, e a página volta ao topo */
@@ -655,17 +701,23 @@ function passar(direcao) {
   if (!aberto || trocando) return;
   const ponto = vizinho(aberto, direcao);
   trocando = true;
+  // Cortina de lado: a página atual some, e a foto do próximo lugar entra varrendo no sentido
+  // do toque (próximo → da direita; anterior → da esquerda)
+  const de = direcao > 0 ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
   gsap
     .timeline({ onComplete: () => (trocando = false) })
-    .to(rolagem, { autoAlpha: 0, duration: menosMovimento() ? 0 : 0.35, ease: 'sine.in' })
+    .to(rolagem, { autoAlpha: 0, duration: menosMovimento() ? 0 : 0.4, ease: 'power2.in' })
     .add(() => {
       aberto = ponto;
       marcarVisto(ponto);
       preencherDetalhe(ponto);
       irParaOTopo();
       emitir('ponto', ponto);
+      gsap.set(rolagem, { autoAlpha: 1 });
+      if (!menosMovimento()) gsap.fromTo(detalhe.querySelector('.abertura__fundo'), { clipPath: de }, { clipPath: 'inset(0 0 0 0%)', duration: 1.2, ease: EASE_TROCA, clearProps: 'clipPath' });
+      entradaDaAbertura(0.3);
     })
-    .to(rolagem, { autoAlpha: 1, duration: menosMovimento() ? 0 : 0.5, ease: 'sine.out' });
+    .to({}, { duration: 1 });
 }
 
 /** "Voltar ao mapa": a página some com fade e o mapa volta exatamente como estava */
@@ -676,19 +728,25 @@ function fecharDetalhe({ voltar = true } = {}) {
   observador?.disconnect();
   detalhe.setAttribute('aria-hidden', 'true');
   emitir('ponto', null);
-  gsap.killTweensOf([detalhe, rolagem]);
+  gsap.killTweensOf(rolagem);
   const sair = () => {
     document.body.classList.remove('detalhe-aberto');
     guiaNaPagina(false);
   };
   if (!voltar) {
-    gsap.set(detalhe, { autoAlpha: 0 });
+    gsap.killTweensOf(detalhe);
+    gsap.set(detalhe, { autoAlpha: 0, clearProps: 'clipPath' });
     sair();
     cameraSalva = null;
     return;
   }
   // O guia e a barra voltam ao normal só depois do fade (nada pula na frente da pessoa)
-  gsap.to(detalhe, { autoAlpha: 0, duration: FADE_DETALHE, ease: 'sine.inOut', onComplete: () => !aberto && sair() });
+  // A lente se fecha de volta no pin de onde abriu
+  iris(detalhe, { abrir: false, ...lente, duracao: 1.1 }).eventCallback('onComplete', () => {
+    gsap.set(detalhe, { autoAlpha: 0, clearProps: 'clipPath' });
+    if (!aberto) sair();
+  });
+  if (!menosMovimento()) gsap.to(detalhe.querySelector('.abertura__fundo'), { scale: 1.08, duration: 0.9, ease: 'expo.in', clearProps: 'transform' });
   if (cameraSalva) mapa.easeTo({ ...cameraSalva, duration: FADE_DETALHE * 1000 + 300, easing: (x) => 1 - (1 - x) ** 3, essential: true });
   cameraSalva = null;
 }
@@ -699,7 +757,8 @@ function abrirStreetView() {
   svAssunto = assuntosDe(aberto)[0];
   sv.setAttribute('aria-hidden', 'false');
   carregarStreetView();
-  gsap.fromTo(sv, { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_DETALHE, ease: 'sine.inOut' });
+  // Abre a partir do botão tocado, como a página do lugar abre a partir do pin
+  iris(sv, { abrir: true, ...centroDe(detalhe.querySelector('[data-acao="street-view"]')), duracao: 1.1 });
 }
 
 function carregarStreetView() {

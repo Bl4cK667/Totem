@@ -185,7 +185,7 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
     // 3) Canaã dos Carajás: desce até a cidade, inclina e gira para olhar a cidade do Mirante
     .to(e, { c: 1, duration: T.canaa[1], ease: EASE }, T.canaa[0])
     // Título da cidade: fade suave de 600 ms, só quando a cidade já está visível
-    .fromTo(rotulo('cidade'), { autoAlpha: 0 }, { autoAlpha: 1, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0])
+    .add(tituloDaCidade(), T.cidade[0])
     .to(rotulo('cidade'), { autoAlpha: 0, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0] + FADE_TITULO + T.cidade[1])
 
     // Antes dos pins, as imagens da cidade precisam estar na tela: se alguma ainda está chegando
@@ -203,6 +203,21 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
     gsap.to(tl, { timeScale: 3.2, duration: 0.3, ease: 'power1.in' });
   }
 
+  return tl;
+}
+
+/**
+ * "Canaã dos Carajás" como título de abertura de filme: as letras chegam afastadas e se fecham
+ * no espaçamento do título; um traço dourado se desenha do centro e as coordenadas aparecem
+ */
+function tituloDaCidade() {
+  const r = rotulo('cidade');
+  const nome = r.querySelector('.serif');
+  const tl = gsap.timeline();
+  tl.set(r, { autoAlpha: 1 })
+    .fromTo(nome, { autoAlpha: 0, letterSpacing: '0.16em' }, { autoAlpha: 1, letterSpacing: '-0.012em', duration: 2.2, ease: 'expo.out', clearProps: 'letterSpacing' }, 0)
+    .fromTo(r.querySelector('.mapa__traco'), { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, 0.25)
+    .fromTo(r.querySelector('.mapa__coord'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, 0.7);
   return tl;
 }
 

@@ -1,0 +1,54 @@
+{
+  "atribuicao": "Imagens © Esri, Maxar, Earthstar Geographics e comunidade de usuários GIS",
+  "geradoEm": "2026-11-17",
+  "camadas": [
+    {
+      "id": "satelite-horizonte",
+      "tiles": "assets/img/satelite/horizonte/{z}/{x}/{y}.webp",
+      "minzoom": 9,
+      "maxzoom": 11,
+      "limites": [
+        -50.449219,
+        -7.362467,
+        -49.21875,
+        -5.965754
+      ]
+    },
+    {
+      "id": "satelite-regiao",
+      "tiles": "assets/img/satelite/regiao/{z}/{x}/{y}.webp",
+      "minzoom": 12,
+      "maxzoom": 13,
+      "limites": [
+        -50.141602,
+        -6.926427,
+        -49.570312,
+        -6.358975
+      ]
+    },
+    {
+      "id": "satelite-cidade",
+      "tiles": "assets/img/satelite/cidade/{z}/{x}/{y}.webp",
+      "minzoom": 14,
+      "maxzoom": 16,
+      "limites": [
+        -49.927368,
+        -6.610044,
+        -49.77356,
+        -6.462693
+      ]
+    },
+    {
+      "id": "satelite-pins",
+      "tiles": "assets/img/satelite/pins/{z}/{x}/{y}.webp",
+      "minzoom": 17,
+      "maxzoom": 17,
+      "limites": [
+        -49.86969,
+        -6.560932,
+        -49.836731,
+        -6.506357
+      ]
+    }
+  ]
+}

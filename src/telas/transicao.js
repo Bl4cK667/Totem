@@ -22,8 +22,8 @@ const T = {
   fusao: [1.5, 1], // o globo do MapLibre aparece por cima do planeta
   para: [2.6, 2.8],
   canaa: [5.15, 4.3], // a câmera para em 9,45 s
-  cidade: [8.9, 1.3], // título: entra com a cidade já nítida na tela, fica 1,3 s e sai até 11,4 s
-  pins: 11.4, // o mapa já está parado e o título já saiu: um de cada vez
+  cidade: [8.9, 0.6], // título: entra com a cidade já nítida na tela, fica 0,6 s e sai até 10,7 s
+  pins: 10.55, // o título está terminando de sair: os pins são fincados um atrás do outro
 };
 const FADE_TITULO = 0.6;
 const EASE = 'power2.inOut';
@@ -189,7 +189,7 @@ export function executarTransicao({ globo, aoRevelar, aoAssentar, aoTerminar }) 
     .to(rotulo('cidade'), { autoAlpha: 0, duration: FADE_TITULO, ease: 'sine.inOut' }, T.cidade[0] + FADE_TITULO + T.cidade[1])
 
     // Antes dos pins, as imagens da cidade precisam estar na tela: se alguma ainda está chegando
-    // (internet lenta), a transição espera um pouco (no máximo 4 s) com o mapa parado
+    // (computador lento), a transição espera um pouco (no máximo 0,8 s) com o mapa parado
     .add(() => esperarImagens(tl), T.pins - 0.05)
     // Pins, um por um, com a câmera parada; o guia entra quando o último assentou
     .add(M.entrarMapa(), T.pins)

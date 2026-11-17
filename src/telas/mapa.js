@@ -60,12 +60,11 @@ const LIMITES = { area: [[-50.25, -6.9], [-49.45, -6.15]], inclinacao: 60, zoomM
 
 // Cor do satélite (ao vivo e fotos guardadas, iguais para não haver emenda)
 const COR_SATELITE = { 'raster-fade-duration': 300, 'raster-saturation': 0.22, 'raster-contrast': 0.16, 'raster-brightness-min': 0.02 };
-// Fotos de satélite guardadas no totem (npm run foto-satelite): aparecem na descida, de longe
-// para perto, e daqui para cima a cidade é só delas. Acima de ZOOM_PERTO (mergulho nos pins),
-// as imagens ao vivo voltam por cima, mais nítidas, onde já chegaram
-const ZOOM_SO_FOTOS = 12.6;
-const ZOOM_PERTO = 15.2;
-const ENTRADA_FOTO = { 11: [7.5, 8.5], 13: [9.5, 10.5], 15: [11.5, 12.5] };
+// Imagens de satélite guardadas no totem (npm run foto-satelite), em vários níveis de detalhe:
+// aparecem na descida e daqui para cima a região é só delas (nada vem da internet).
+const ZOOM_SO_FOTOS = 10;
+const ENTRADA_LOCAL = [7.6, 8.6];
+const TAMANHO_LOCAL = 256;
 
 // A mesma imagem da Esri, servida por dois endereços: o navegador abre no máximo 6 conexões por
 // endereço, então com dois chegam o dobro de imagens ao mesmo tempo. O MapLibre escolhe o endereço
@@ -158,29 +157,24 @@ export function montarMapa() {
 
 export const getMapa = () => mapa;
 
-/** Fotos de satélite guardadas (assets/img/satelite): três camadas, da região inteira à cidade */
+/** Imagens de satélite guardadas (assets/img/satelite): da região inteira aos pontos turísticos */
 async function colocarFotos() {
   let dados;
   try {
-    dados = await fetch('assets/img/satelite/fotos.json').then((r) => r.json());
+    dados = await fetch('assets/img/satelite/camadas.json').then((r) => r.json());
   } catch {
-    // Sem as fotos, o mapa usa só as imagens ao vivo em todas as alturas
+    // Sem as imagens guardadas, o mapa usa só as imagens ao vivo em todas as alturas
     mapa.setLayerZoomRange('satelite', 0, 24);
     return;
   }
-  for (const f of dados.fotos) {
-    const [de, ate] = ENTRADA_FOTO[f.z] || [f.z - 3.5, f.z - 2.5];
-    mapa.addSource(f.id, { type: 'image', url: f.arquivo, coordinates: f.cantos });
-    mapa.addLayer({
-      id: f.id,
-      type: 'raster',
-      source: f.id,
-      minzoom: de,
-      paint: { ...COR_SATELITE, 'raster-fade-duration': 0, 'raster-opacity': ['interpolate', ['linear'], ['zoom'], de, 0, ate, 1] },
-    });
-  }
-  // Mergulho nos pins: imagens ao vivo por cima das fotos, onde já chegaram (onde não, a foto aparece)
-  mapa.addLayer({ id: 'satelite-perto', type: 'raster', source: 'satelite', minzoom: ZOOM_PERTO, paint: COR_SATELITE });
+  // Uma camada por conjunto, a mais detalhada por cima: fora da área ou do zoom de uma, a de baixo aparece
+  dados.camadas.forEach((c, i) => {
+    mapa.addSource(c.id, { type: 'raster', tiles: [c.tiles], tileSize: TAMANHO_LOCAL, minzoom: c.minzoom, maxzoom: c.maxzoom, bounds: c.limites });
+    const paint = { ...COR_SATELITE, 'raster-resampling': 'linear' };
+    // A primeira (horizonte) entra em fade na descida, por cima das imagens ao vivo
+    if (i === 0) paint['raster-opacity'] = ['interpolate', ['linear'], ['zoom'], ENTRADA_LOCAL[0], 0, ENTRADA_LOCAL[1], 1];
+    mapa.addLayer({ id: c.id, type: 'raster', source: c.id, paint });
+  });
 }
 
 /** Gestos do visitante no mapa: sempre desligados. O mapa só se move pelos toques nos pins */
@@ -257,14 +251,9 @@ function baixarCaminho() {
   // Com imagens de 256 px, o MapLibre usa o zoom do mapa + 1 (medido: na vista da cidade, zoom 14,
   // ele pede z15 perto, z14 no meio e z13 no horizonte)
   const v = vista();
-  // A cidade não entra aqui: ela vem das fotos guardadas no totem (colocarFotos)
-  // 1) Em volta de cada pin, para o mergulho ao tocar nele (zoom ~15,8 → imagens z16 e z17)
-  for (const p of pontosTuristicos()) {
-    area(p.lng, p.lat, 16, [-2, 2], [-2, 3]);
-    area(p.lng, p.lat, 17, [-2, 2], [-2, 3]);
-  }
-  // 2) O caminho até o Pará (as imagens ao vivo só aparecem até ZOOM_SO_FOTOS)
-  for (let z = 13; z >= 4; z--) {
+  // A região e os pins não entram aqui: vêm das imagens guardadas no totem (colocarFotos).
+  // Só o caminho até o Pará (as imagens ao vivo só aparecem até ZOOM_SO_FOTOS)
+  for (let z = ZOOM_SO_FOTOS + 1; z >= 4; z--) {
     const { pan } = fracaoDoCaminho(z - 1);
     area(PARA.lng + pan * (v.lng - PARA.lng), PARA.lat + pan * (v.lat - PARA.lat), z, [-3, 3], [-4, 4]);
   }
@@ -441,29 +430,43 @@ function espalharPins() {
   });
 }
 
-// Entrada: um pin de cada vez, de perto para longe, sem pressa. O ponto do chão acende devagar,
-// uma onda dourada corre no chão e o pin desce em fade sobre ele, com o nome logo depois
-const ENTRADA_PINS = 1.3;
-const INTERVALO_PINS = 0.55;
-export const DURACAO_PINS = () => (menosMovimento() ? 0.8 + 0.4 * (pins.length - 1) : ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
+// Entrada: cada pin é fincado no lugar. O ponto do chão acende, o pin brota da ponta para cima
+// (com uma mola contida), o ícone aparece, uma onda dourada corre no chão e a etiqueta se abre
+// do centro para os lados. Um pin logo atrás do outro, de perto para longe.
+// Anima .pin__corpo e .pin__nome (não .pin__queda, que tem a transição do toque no CSS)
+const ENTRADA_PINS = 1.25;
+const INTERVALO_PINS = 0.3;
+export const DURACAO_PINS = () => (menosMovimento() ? 0.8 + 0.3 * (pins.length - 1) : ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
 
 export function entrarPins() {
   medirPins();
   const tl = gsap.timeline();
-  // Mais perto da câmera (mais embaixo na tela) primeiro
-  const ordem = [...pins].sort((a, b) => mapa.project([b.ponto.lng, b.ponto.lat]).y - mapa.project([a.ponto.lng, a.ponto.lat]).y);
+  // Mais perto da câmera da vista primeiro (a timeline é montada antes da descida, então a ordem
+  // vem da direção para onde a câmera da cidade olha, e não da tela deste momento)
+  const b = VISTA.bearing * DEG;
+  const longe = (p) => (p.ponto.lng - VISTA.lng) * Math.cos(VISTA.lat * DEG) * Math.sin(b) + (p.ponto.lat - VISTA.lat) * Math.cos(b);
+  const ordem = [...pins].sort((a, c) => longe(a) - longe(c));
   if (menosMovimento()) {
     // Sem movimento, mas ainda um de cada vez: só o fade
-    ordem.forEach((p, i) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, i * 0.4));
+    ordem.forEach((p, i) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, i * 0.3));
     return tl;
   }
   ordem.forEach((p, i) => {
     const t0 = i * INTERVALO_PINS;
+    const corpo = p.el.querySelector('.pin__corpo');
+    const icone = p.el.querySelector('.pin__icone');
     tl.set(p.el, { autoAlpha: 1 }, t0)
-      .fromTo(p.chao, { scale: 0, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.9, ease: 'power2.out' }, t0)
-      .fromTo(p.onda, { scale: 0.5, autoAlpha: 0.6 }, { scale: 2.8, autoAlpha: 0, duration: 1.8, ease: 'sine.out' }, t0 + 0.1)
-      .fromTo(p.queda, { y: -14, autoAlpha: 0, scale: 0.94 }, { y: 0, autoAlpha: 1, scale: 1, duration: ENTRADA_PINS, ease: 'power2.out', clearProps: 'transform' }, t0 + 0.15)
-      .fromTo(p.nome, { autoAlpha: 0, y: -6 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'sine.out', clearProps: 'transform' }, t0 + 0.6);
+      // 1) o ponto do chão acende
+      .fromTo(p.chao, { scale: 0, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.35, ease: 'power2.out' }, t0)
+      // 2) o pin brota da ponta: estica para cima e assenta
+      .fromTo(corpo, { scaleX: 0.5, scaleY: 0.1, autoAlpha: 0, transformOrigin: '50% 98.6%' }, { scaleX: 1, scaleY: 1, duration: 0.75, ease: 'back.out(1.7)', clearProps: 'transform,transformOrigin' }, t0 + 0.12)
+      .to(corpo, { autoAlpha: 1, duration: 0.18, ease: 'none' }, t0 + 0.12)
+      // 3) o ícone aparece quando o disco já tem tamanho
+      .fromTo(icone, { scale: 0.3, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.5, ease: 'back.out(2.2)', clearProps: 'transform' }, t0 + 0.38)
+      // 4) a onda corre no chão quando ele assenta
+      .fromTo(p.onda, { scale: 0.5, autoAlpha: 0.85 }, { scale: 3, autoAlpha: 0, duration: 1.1, ease: 'expo.out' }, t0 + 0.42)
+      // 5) a etiqueta se abre do centro para os lados
+      .fromTo(p.nome, { clipPath: 'inset(0% 50% 0% 50% round 999px)', autoAlpha: 1 }, { clipPath: 'inset(0% 0% 0% 0% round 999px)', duration: 0.6, ease: 'power3.out', clearProps: 'clipPath' }, t0 + 0.55);
   });
   return tl;
 }
@@ -491,7 +494,7 @@ function soltarLimites() {
 export const imagensCarregadas = () => !mapa || mapa.areTilesLoaded();
 
 /** Imagens da tela já carregadas? Espera o mapa ficar ocioso, no máximo "limite" ms */
-export function esperarImagens(limite = 4000) {
+export function esperarImagens(limite = 800) {
   return new Promise((ok) => {
     if (imagensCarregadas()) return ok();
     const fim = setTimeout(() => (mapa.off('idle', pronto), ok()), limite);

@@ -114,14 +114,14 @@ function formas({ x, y, r }) {
 export function morfarDoPin(el, disco, { abrir = true } = {}) {
   gsap.killTweensOf(el, 'clipPath,opacity,visibility');
   if (menosMovimento() || disco?.x == null) {
-    return gsap.to(el, { autoAlpha: abrir ? 1 : 0, duration: 0.6, ease: 'sine.inOut', clearProps: 'clipPath' });
+    return gsap.to(el, { autoAlpha: abrir ? 1 : 0, duration: 0.9, ease: 'sine.inOut', clearProps: 'clipPath' });
   }
   const f = formas(disco);
   const tl = gsap.timeline();
   if (abrir) {
     tl.set(el, { autoAlpha: 1, clipPath: f.disco })
-      .to(el, { clipPath: f.cartao, duration: 0.55, ease: 'power3.out' })
-      .to(el, { clipPath: f.cheia, duration: 0.85, ease: 'power3.inOut' }, '-=0.08')
+      .to(el, { clipPath: f.cartao, duration: 0.75, ease: 'power2.out' })
+      .to(el, { clipPath: f.cheia, duration: 1.05, ease: 'sine.inOut' }, '-=0.12')
       .set(el, { clearProps: 'clipPath' });
   } else {
     tl.set(el, { clipPath: f.cheia })

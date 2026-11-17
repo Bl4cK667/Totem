@@ -441,28 +441,29 @@ function espalharPins() {
   });
 }
 
-// Entrada: um pin de cada vez, de perto para longe. O ponto do chão acende, uma onda dourada
-// corre no chão e o pin assenta em cima dele, com o nome logo depois
-const ENTRADA_PINS = 0.9;
-const INTERVALO_PINS = 0.16;
-export const DURACAO_PINS = () => (menosMovimento() ? 0.6 : ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
+// Entrada: um pin de cada vez, de perto para longe, sem pressa. O ponto do chão acende devagar,
+// uma onda dourada corre no chão e o pin desce em fade sobre ele, com o nome logo depois
+const ENTRADA_PINS = 1.3;
+const INTERVALO_PINS = 0.55;
+export const DURACAO_PINS = () => (menosMovimento() ? 0.8 + 0.4 * (pins.length - 1) : ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
 
 export function entrarPins() {
   medirPins();
   const tl = gsap.timeline();
-  if (menosMovimento()) {
-    pins.forEach((p) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: 'sine.out' }, 0));
-    return tl;
-  }
   // Mais perto da câmera (mais embaixo na tela) primeiro
   const ordem = [...pins].sort((a, b) => mapa.project([b.ponto.lng, b.ponto.lat]).y - mapa.project([a.ponto.lng, a.ponto.lat]).y);
+  if (menosMovimento()) {
+    // Sem movimento, mas ainda um de cada vez: só o fade
+    ordem.forEach((p, i) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, i * 0.4));
+    return tl;
+  }
   ordem.forEach((p, i) => {
     const t0 = i * INTERVALO_PINS;
     tl.set(p.el, { autoAlpha: 1 }, t0)
-      .fromTo(p.chao, { scale: 0 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' }, t0)
-      .fromTo(p.onda, { scale: 0.4, autoAlpha: 0.9 }, { scale: 3.2, autoAlpha: 0, duration: 1.3, ease: 'expo.out' }, t0 + 0.05)
-      .fromTo(p.queda, { y: -36, autoAlpha: 0, scale: 0.86 }, { y: 0, autoAlpha: 1, scale: 1, duration: ENTRADA_PINS, ease: EASE_ENTRA, clearProps: 'transform' }, t0 + 0.08)
-      .fromTo(p.nome, { autoAlpha: 0, y: -8 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', clearProps: 'transform' }, t0 + 0.3);
+      .fromTo(p.chao, { scale: 0, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.9, ease: 'power2.out' }, t0)
+      .fromTo(p.onda, { scale: 0.5, autoAlpha: 0.6 }, { scale: 2.8, autoAlpha: 0, duration: 1.8, ease: 'sine.out' }, t0 + 0.1)
+      .fromTo(p.queda, { y: -14, autoAlpha: 0, scale: 0.94 }, { y: 0, autoAlpha: 1, scale: 1, duration: ENTRADA_PINS, ease: 'power2.out', clearProps: 'transform' }, t0 + 0.15)
+      .fromTo(p.nome, { autoAlpha: 0, y: -6 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'sine.out', clearProps: 'transform' }, t0 + 0.6);
   });
   return tl;
 }
@@ -746,6 +747,9 @@ function prepararRevelacao() {
     (entradas) => {
       if (!entradas.some((e) => e.isIntersecting)) return;
       observador.disconnect();
+      // Os cards de curiosidade acendem um de cada vez quando chegam na tela
+      const itens = detalhe.querySelectorAll('.sabia__cards li');
+      gsap.fromTo(itens, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.9, ease: 'sine.out', stagger: 0.22 });
       emitir('contar', detalhe.querySelector('.sabia__cards'));
     },
     { root: rolagem, threshold: 0.18 }
@@ -816,12 +820,12 @@ function abrirPonto(ponto) {
   lente = discoDoPin(pin);
   const foto = detalhe.querySelector('.abertura__fundo');
   if (!menosMovimento() && lente.x != null) {
-    gsap.fromTo(foto, { scale: 1.45, transformOrigin: `${lente.x}px ${lente.y}px` }, { scale: 1, duration: 1.6, ease: 'expo.out', clearProps: 'transform,transformOrigin' });
+    gsap.fromTo(foto, { scale: 1.45, transformOrigin: `${lente.x}px ${lente.y}px` }, { scale: 1, duration: 2, ease: 'power3.out', clearProps: 'transform,transformOrigin' });
   }
   morfarDoPin(detalhe, lente, { abrir: true });
   mapaAoFundo(true);
-  barraNaTroca(1.2);
-  entradaDaAbertura(0.95, { foto: false });
+  barraNaTroca(1.5);
+  entradaDaAbertura(1.2, { foto: false });
 }
 
 /** Centro e raio do disco do pin na tela (o SVG tem 64 × 72; o disco tem centro em 32,29 e raio 27) */
@@ -842,7 +846,12 @@ function mapaAoFundo(sim) {
   }
   const dur = menosMovimento() ? 0.3 : 0.6;
   gsap.to(veuMapa, { autoAlpha: sim ? 1 : 0, duration: dur, ease: 'sine.inOut' });
-  gsap.to([...pins.map((p) => p.el), tela.querySelector('.mapa__cabecalho')], { autoAlpha: sim ? 0 : 1, duration: dur * 0.7, ease: 'sine.inOut', delay: sim ? 0.1 : 0 });
+  const cab = tela.querySelector('.mapa__cabecalho');
+  if (sim) return gsap.to([...pins.map((p) => p.el), cab], { autoAlpha: 0, duration: dur * 0.7, ease: 'sine.inOut', delay: 0.1 });
+  // Na volta, os pins reaparecem um de cada vez (o tocado primeiro), não todos de uma vez
+  gsap.to(cab, { autoAlpha: 1, duration: dur, ease: 'sine.inOut' });
+  const ordem = [...pins].sort((a, b) => b.el.classList.contains('visto') - a.el.classList.contains('visto'));
+  gsap.to(ordem.map((p) => p.el), { autoAlpha: 1, duration: 0.8, ease: 'sine.out', stagger: 0.18 });
 }
 
 /** A barra do topo troca de função (mapa ↔ página): some, troca e volta, sem pular na frente */

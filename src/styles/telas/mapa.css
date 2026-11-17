@@ -50,7 +50,7 @@
   position: absolute;
   top: calc(var(--toque) + var(--margem) * 1.3);
   left: var(--margem);
-  right: var(--margem);
+  max-width: calc(100% - var(--margem) * 2); /* só a largura do texto: o fundo escuro não passa por cima dos pins */
   pointer-events: none;
   text-shadow: 0 1px 10px rgba(18, 13, 9, 0.45);
 }
@@ -174,6 +174,58 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+/* Entrada dos pins (cena de filme). Feixe de luz que sobe do chão: dourado, mais forte embaixo,
+   com as bordas apagadas; somado à imagem ("screen") para parecer luz */
+.pin__feixe {
+  position: absolute;
+  left: calc(-1.2rem + var(--dx, 0px));
+  top: calc(var(--pin-h) * -3.2 + var(--dy, 0px));
+  width: 2.4rem;
+  height: calc(var(--pin-h) * 3.2);
+  background: linear-gradient(to top, color-mix(in srgb, var(--ouro-claro) 45%, white), color-mix(in srgb, var(--ouro-claro) 75%, transparent) 35%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 38%, #000 62%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 38%, #000 62%, transparent);
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Ponto de luz no chão com reflexo horizontal de lente (anamórfico) */
+.pin__brilho {
+  position: absolute;
+  left: calc(-6rem + var(--dx, 0px));
+  top: calc(-0.15rem + var(--dy, 0px));
+  width: 12rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ouro-claro) 30%, white), color-mix(in srgb, var(--ouro-claro) 60%, transparent) 45%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.pin__brilho::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin: -0.9rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ouro-claro) 25%, white), color-mix(in srgb, var(--ouro-claro) 50%, transparent) 50%, transparent);
+}
+/* A cidade escurece enquanto os pins acendem (fica entre a imagem e os pins) */
+.mapa-cidade__cena {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 58%, color-mix(in srgb, var(--terra-900) 42%, transparent), color-mix(in srgb, var(--terra-900) 78%, transparent));
+  opacity: 0;
+  visibility: hidden;
 }
 
 /* Último lugar visto: ao voltar ao mapa, o aro e a etiqueta ganham o amarelo */

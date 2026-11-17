@@ -86,6 +86,7 @@ let pins = [];
 let aberto = null; // ponto com a página aberta
 let streetview = null;
 let aquecendo = true;
+let cena = null; // escurece a cidade na entrada dos pins
 
 // --- Mapa ------------------------------------------------------------------------
 export function montarMapa() {
@@ -136,7 +137,12 @@ export function montarMapa() {
   // Vinheta leve nas bordas: fica entre a imagem e os pins
   const veu = document.createElement('div');
   veu.className = 'mapa-cidade__veu';
-  mapa.getCanvasContainer().after(veu);
+  // Logo depois da imagem, dentro do mesmo contêiner: os pins (que o MapLibre põe depois) ficam por cima
+  mapa.getCanvas().after(veu);
+  // Cena: a cidade escurece enquanto os pins acendem (entre a imagem e a vinheta)
+  cena = document.createElement('div');
+  cena.className = 'mapa-cidade__cena';
+  mapa.getCanvas().after(cena);
 
   criarPins();
   montarTela();
@@ -341,7 +347,9 @@ function criarPins() {
     el.className = 'pin';
     // "queda" leva o pin e o nome juntos: os dois entram ao mesmo tempo, sem nada solto
     el.innerHTML = `
+      <span class="pin__feixe" aria-hidden="true"></span>
       <span class="pin__chao" aria-hidden="true"></span>
+      <span class="pin__brilho" aria-hidden="true"></span>
       <span class="pin__onda" aria-hidden="true"></span>
       <button class="pin__alvo" data-id="${ponto.id}">
         <span class="pin__queda">
@@ -355,7 +363,12 @@ function criarPins() {
       .setLngLat([ponto.lng, ponto.lat])
       .addTo(mapa);
     gsap.set(el, { autoAlpha: 0 });
-    return { ponto, el, alvo, marcador, queda: el.querySelector('.pin__queda'), chao: el.querySelector('.pin__chao'), onda: el.querySelector('.pin__onda'), nome: el.querySelector('.pin__nome') };
+    return {
+      ponto, el, alvo, marcador,
+      queda: el.querySelector('.pin__queda'), corpo: el.querySelector('.pin__corpo'), icone: el.querySelector('.pin__icone'),
+      chao: el.querySelector('.pin__chao'), onda: el.querySelector('.pin__onda'), nome: el.querySelector('.pin__nome'),
+      feixe: el.querySelector('.pin__feixe'), brilho: el.querySelector('.pin__brilho'),
+    };
   });
   escreverNomes();
 }
@@ -430,13 +443,16 @@ function espalharPins() {
   });
 }
 
-// Entrada: cada pin é fincado no lugar. O ponto do chão acende, o pin brota da ponta para cima
-// (com uma mola contida), o ícone aparece, uma onda dourada corre no chão e a etiqueta se abre
-// do centro para os lados. Um pin logo atrás do outro, de perto para longe.
+// Entrada dos pins, como cena de filme: a cidade escurece, e em cada lugar um ponto de luz acende
+// no chão com um reflexo horizontal (lente anamórfica). Um feixe dourado sobe, o pin se materializa
+// dentro dele (superexposto, esfriando até a cor real), o feixe se fecha, a onda corre no chão e a
+// etiqueta se abre. Quando o último assenta, a cidade volta a clarear. De perto para longe.
 // Anima .pin__corpo e .pin__nome (não .pin__queda, que tem a transição do toque no CSS)
-const ENTRADA_PINS = 1.25;
-const INTERVALO_PINS = 0.3;
-export const DURACAO_PINS = () => (menosMovimento() ? 0.8 + 0.3 * (pins.length - 1) : ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
+const ATRASO_PINS = 0.35;
+const INTERVALO_PINS = 0.42;
+const ENTRADA_PINS = 1.35;
+export const DURACAO_PINS = () => (menosMovimento() ? 0.8 + 0.3 * (pins.length - 1) : ATRASO_PINS + ENTRADA_PINS + INTERVALO_PINS * (pins.length - 1));
+const SOMBRA = (a) => `drop-shadow(0 0.35rem 0.5rem rgba(18, 13, 9, ${a}))`;
 
 export function entrarPins() {
   medirPins();
@@ -451,22 +467,28 @@ export function entrarPins() {
     ordem.forEach((p, i) => tl.fromTo(p.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, ease: 'sine.out' }, i * 0.3));
     return tl;
   }
+  const fim = ATRASO_PINS + INTERVALO_PINS * (ordem.length - 1) + 0.9;
+  tl.fromTo(cena, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: 'sine.inOut' }, 0)
+    .to(cena, { autoAlpha: 0, duration: 1.2, ease: 'sine.inOut' }, fim);
+
   ordem.forEach((p, i) => {
-    const t0 = i * INTERVALO_PINS;
-    const corpo = p.el.querySelector('.pin__corpo');
-    const icone = p.el.querySelector('.pin__icone');
+    const t0 = ATRASO_PINS + i * INTERVALO_PINS;
     tl.set(p.el, { autoAlpha: 1 }, t0)
-      // 1) o ponto do chão acende
-      .fromTo(p.chao, { scale: 0, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.35, ease: 'power2.out' }, t0)
-      // 2) o pin brota da ponta: estica para cima e assenta
-      .fromTo(corpo, { scaleX: 0.5, scaleY: 0.1, autoAlpha: 0, transformOrigin: '50% 98.6%' }, { scaleX: 1, scaleY: 1, duration: 0.75, ease: 'back.out(1.7)', clearProps: 'transform,transformOrigin' }, t0 + 0.12)
-      .to(corpo, { autoAlpha: 1, duration: 0.18, ease: 'none' }, t0 + 0.12)
-      // 3) o ícone aparece quando o disco já tem tamanho
-      .fromTo(icone, { scale: 0.3, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.5, ease: 'back.out(2.2)', clearProps: 'transform' }, t0 + 0.38)
-      // 4) a onda corre no chão quando ele assenta
-      .fromTo(p.onda, { scale: 0.5, autoAlpha: 0.85 }, { scale: 3, autoAlpha: 0, duration: 1.1, ease: 'expo.out' }, t0 + 0.42)
-      // 5) a etiqueta se abre do centro para os lados
-      .fromTo(p.nome, { clipPath: 'inset(0% 50% 0% 50% round 999px)', autoAlpha: 1 }, { clipPath: 'inset(0% 0% 0% 0% round 999px)', duration: 0.6, ease: 'power3.out', clearProps: 'clipPath' }, t0 + 0.55);
+      // 1) ponto de luz no chão, com o reflexo horizontal da lente
+      .fromTo(p.chao, { scale: 0, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.3, ease: 'power2.out' }, t0)
+      .fromTo(p.brilho, { scaleX: 0.1, autoAlpha: 0 }, { scaleX: 1, autoAlpha: 1, duration: 0.28, ease: 'power3.out' }, t0)
+      .to(p.brilho, { scaleX: 1.5, autoAlpha: 0, duration: 0.9, ease: 'power2.in' }, t0 + 0.3)
+      // 2) o feixe de luz sobe do chão
+      .fromTo(p.feixe, { scaleY: 0, scaleX: 0.5, autoAlpha: 0 }, { scaleY: 1, scaleX: 1, autoAlpha: 1, duration: 0.5, ease: 'expo.out' }, t0 + 0.05)
+      // 3) o pin se materializa dentro do feixe, superexposto, e esfria até a cor real
+      .fromTo(p.corpo, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, ease: 'sine.out' }, t0 + 0.2)
+      .fromTo(p.corpo, { scale: 0.72, y: 14, transformOrigin: '50% 98.6%' }, { scale: 1, y: 0, duration: 0.9, ease: 'back.out(1.5)', clearProps: 'transform,transformOrigin' }, t0 + 0.2)
+      .fromTo(p.corpo, { filter: `${SOMBRA(0)} brightness(2.8) saturate(0.3)` }, { filter: `${SOMBRA(0.5)} brightness(1) saturate(1)`, duration: 1, ease: 'power2.out', clearProps: 'filter' }, t0 + 0.2)
+      .fromTo(p.icone, { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.5, ease: 'back.out(2)', clearProps: 'transform' }, t0 + 0.45)
+      // 4) o feixe se fecha, a onda corre no chão e a etiqueta se abre do centro
+      .to(p.feixe, { scaleX: 0, autoAlpha: 0, duration: 0.7, ease: 'power2.in' }, t0 + 0.55)
+      .fromTo(p.onda, { scale: 0.5, autoAlpha: 0.85 }, { scale: 3.2, autoAlpha: 0, duration: 1.2, ease: 'expo.out' }, t0 + 0.55)
+      .fromTo(p.nome, { clipPath: 'inset(0% 50% 0% 50% round 999px)', autoAlpha: 1 }, { clipPath: 'inset(0% 0% 0% 0% round 999px)', duration: 0.6, ease: 'power3.out', clearProps: 'clipPath' }, t0 + 0.7);
   });
   return tl;
 }
@@ -528,6 +550,10 @@ export function resetarMapa() {
     gsap.killTweensOf(p.el);
     gsap.set(p.el, { autoAlpha: 0 });
   });
+  if (cena) {
+    gsap.killTweensOf(cena);
+    gsap.set(cena, { autoAlpha: 0 });
+  }
   gsap.set(tela, { autoAlpha: 0 });
   mostrarCamada(0);
   if (!mapa) return;
